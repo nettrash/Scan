@@ -1,0 +1,62 @@
+/* 
+  Localizable.strings
+  Scan
+
+  Created by Иван Алексеев on 20.12.16.
+  Copyright © 2016 NETTRASH. All rights reserved.
+*/
+"Camera access" = "Доступ к камере";
+"Camera access denied. Grant access to camera in iPhone Settings." = "Доступ к камере запрещён. Разрешите доступ к камере в настройках.";
+"Loading..." = "Загрузка...";
+"Payer last name" = "Фамилия";
+"Payer name" = "Имя";
+"Payer sure name" = "Отчество";
+"Payer address" = "Адрес";
+"Receiver account" = "Счёт";
+"Receiver name" = "Получатель";
+"Receiver BIC" = "БИК";
+"Receiver INN" = "ИНН";
+"Receiver KPP" = "КПП";
+"Purpose of payment" = "Назначение";
+"Resolution number" = "№ постановления";
+"Resolution date" = "Дата постановления";
+"PENALTY DECISION ADMINISTRATIVE LAW NUMBER %@ from %@" = "ШТРАФ ПО АДМИНИСТРАТИВНОМУ ПРАВОНАРУШЕНИЮ № %@ от %@";
+"PENALTY DECISION ADMINISTRATIVE LAW NUMBER %@" = "ШТРАФ ПО АДМИНИСТРАТИВНОМУ ПРАВОНАРУШЕНИЮ № %@";
+"Payment" = "Платёж";
+"Receiver OKTMO" = "ОКТМО";
+"Receiver CBC" = "КБК";
+"Budget Index Payment Type" = "Бюджет Тип";
+"Budget Index Purpose" = "Бюджет Основание";
+"Budget Index Tax Period" = "Налоговый период";
+"Budget Index Tax Document Number" = "№ документа";
+"Budget Index Tax Document Date" = "Дата документа";
+"UIN" = "УИН";
+"Summa" = "Сумма";
+"Provider" = "Провайдер";
+"MGTS" = "МГТС";
+"Account" = "Счёт";
+"MOSENERGOSBYT" = "МОСЭНЕРГОСБЫТ";
+"MOSCOW GKU" = "МОСКВА ЖКУ";
+"Period" = "Период";
+"Summa with insurance" = "Со страховкой";
+"Open in Safari" = "Открыть в Safari";
+"CODE CARD" = "КАРТА КОДА";
+"Pay" = "Оплатить";
+"Open" = "Открыть";
+"View" = "Просмотр";
+"Search" = "Найти";
+"Ozon.ru" = "Ozon.ru";
+"Amazon.com" = "Amazon.com";
+"mvideo.ru" = "mvideo.ru";
+"Type" = "Тип";
+"Value Type" = "Значение";
+"VCard" = "Контакт";
+"Payment" = "Платёж";
+"URL" = "Ссылка";
+"Goods" = "Товар";
+"Unknown" = "Неизвестно";
+"Value" = "Данные";
+"Code Info" = "Информация";
+"Payment fields" = "Поля платёжки";
+"Actions" = "Действия";
+"CODE VALUE" = "ДАННЫЕ КОДА";

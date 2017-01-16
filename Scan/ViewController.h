@@ -7,9 +7,13 @@
 //
 
 #import <UIKit/UIKit.h>
+#import <Contacts/Contacts.h>
+#import <ContactsUI/ContactsUI.h>
+#import <AVFoundation/AVFoundation.h>
 
-@interface ViewController : UIViewController
+@interface ViewController : UIViewController <AVCaptureMetadataOutputObjectsDelegate, CNContactViewControllerDelegate>
 
+- (void)beginWork;
 
 @end
 

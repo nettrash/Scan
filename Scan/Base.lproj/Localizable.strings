@@ -1,0 +1,63 @@
+/* 
+  Localizable.strings
+  Scan
+
+  Created by Иван Алексеев on 20.12.16.
+  Copyright © 2016 NETTRASH. All rights reserved.
+*/
+"Camera access" = "Camera access";
+"Camera access denied. Grant access to camera in iPhone Settings." = "Camera access denied. Grant access to camera in iPhone Settings.";
+"Loading..." = "Loading...";
+"Payer last name" = "Payer last name";
+"Payer name" = "Payer name";
+"Payer sure name" = "Payer sure name";
+"Payer address" = "Payer address";
+"Receiver account" = "Receiver account";
+"Receiver name" = "Receiver name";
+"Receiver BIC" = "Receiver BIC";
+"Receiver INN" = "Receiver INN";
+"Receiver KPP" = "Receiver KPP";
+"Purpose of payment" = "Purpose of payment";
+"Resolution number" = "Resolution number";
+"Resolution date" = "Resolution date";
+"PENALTY DECISION ADMINISTRATIVE LAW NUMBER %@ from %@" = "PENALTY DECISION ADMINISTRATIVE LAW NUMBER %@ from %@";
+"PENALTY DECISION ADMINISTRATIVE LAW NUMBER %@" = "PENALTY DECISION ADMINISTRATIVE LAW NUMBER %@";
+"Payment" = "Payment";
+"Receiver OKTMO" = "Receiver OKTMO";
+"Receiver CBC" = "Receiver CBC";
+"Budget Index Payment Type" = "Budget Index Payment Type";
+"Budget Index Purpose" = "Budget Index Purpose";
+"Budget Index Tax Period" = "Budget Index Tax Period";
+"Budget Index Tax Document Number" = "Budget Index Tax Document Number";
+"Budget Index Tax Document Date" = "Budget Index Tax Document Date";
+"UIN" = "UIN";
+"Summa" = "Summa";
+"Provider" = "Provider";
+"MGTS" = "MGTS";
+"Account" = "Account";
+"Summa" = "Summa";
+"MOSENERGOSBYT" = "MOSENERGOSBYT";
+"MOSCOW GKU" = "MOSCOW GKU";
+"Period" = "Period";
+"Summa with insurance" = "Summa with insurance";
+"Open in Safari" = "Open in Safari";
+"CODE CARD" = "CODE CARD";
+"Pay" = "Pay";
+"Open" = "Open";
+"View" = "View";
+"Search" = "Search";
+"Ozon.ru" = "Ozon.ru";
+"Amazon.com" = "Amazon.com";
+"mvideo.ru" = "mvideo.ru";
+"Type" = "Type";
+"Value Type" = "Value Type";
+"VCard" = "VCard";
+"Payment" = "Payment";
+"URL" = "URL";
+"Goods" = "Goods";
+"Unknown" = "Unknown";
+"Value" = "Value";
+"Code Info" = "Code Info";
+"Payment fields" = "Payment fields";
+"Actions" = "Actions";
+"CODE VALUE" = "CODE VALUE";

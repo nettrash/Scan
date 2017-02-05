@@ -203,7 +203,7 @@
                         <segue destination="yQU-9Q-PdL" kind="presentation" modalTransitionStyle="partialCurl" id="ZW6-01-cWS"/>
                     </connections>
                 </tapGestureRecognizer>
-                <tapGestureRecognizer id="hnl-t3-gqn">
+                <tapGestureRecognizer delaysTouchesBegan="YES" id="hnl-t3-gqn">
                     <connections>
                         <action selector="modeTap:" destination="BYZ-38-t0r" id="z57-4T-stu"/>
                     </connections>

@@ -2,8 +2,8 @@
 /* Class = "UILabel"; text = "NETTRASH.Scan"; ObjectID = "0KY-uY-h0X"; */
 "0KY-uY-h0X.text" = "NETTRASH.Scan";
 
-/* Class = "UITextView"; text = "Lorem ipsum dolor sit er elit lamet, consectetaur cillium adipisicing pecu, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Nam liber te conscient to factor tum poen legum odioque civiuda."; ObjectID = "4fx-CT-J8r"; */
-"4fx-CT-J8r.text" = "Lorem ipsum dolor sit er elit lamet, consectetaur cillium adipisicing pecu, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Nam liber te conscient to factor tum poen legum odioque civiuda.";
+/* Class = "UITextView"; text = "Hover over the code and allow the camera to focus. Next, the system will do everything herself. It identifies the type of code and perform the action according to the type: open the search on the Internet, shows payment data will copy the code data, or create a new contact in your address book. Depending on the configuration will add the scanned code in the Wallet."; ObjectID = "3E6-P2-3hd"; */
+"3E6-P2-3hd.text" = "Наведите на код и дайте сфокусироваться камере. Далее система все сделает сама. Распознает тип кода и выполнит действие согласно типу: откроет поиск в интернет, покажет платёжные данные, даст скопировать данные кода или создаст новый контакт в адресной книге. При соответствующих настройках сможет добавить сканированный код в Кошелек.";
 
 /* Class = "UILabel"; text = "NETTRASH.Scan"; ObjectID = "AQ3-IE-28q"; */
 "AQ3-IE-28q.text" = "NETTRASH.Scan";
@@ -12,7 +12,7 @@
 "O39-fm-TbN.text" = "v1.0";
 
 /* Class = "UILabel"; text = "Darya Alekseeva"; ObjectID = "SqQ-Ae-Inw"; */
-"SqQ-Ae-Inw.text" = "Даша Алексеева";
+"SqQ-Ae-Inw.text" = "Дарья Алексеева";
 
 /* Class = "UILabel"; text = "Ivan Alekseev"; ObjectID = "TLU-Jc-4Lb"; */
 "TLU-Jc-4Lb.text" = "Иван Алексеев";
@@ -20,5 +20,11 @@
 /* Class = "UILabel"; text = "Authors:"; ObjectID = "WDJ-op-dsG"; */
 "WDJ-op-dsG.text" = "Авторы:";
 
-/* Class = "UILabel"; text = "(c) 2016 NETTRASH Team"; ObjectID = "lud-nN-3oL"; */
-"lud-nN-3oL.text" = "(c) 2016 Команда NETTRASH";
+/* Class = "UILabel"; text = "(c) 2017 NETTRASH Team"; ObjectID = "lud-nN-3oL"; */
+"lud-nN-3oL.text" = "(c) 2017 Команда NETTRASH";
+
+"AzZ-zy-cSJ.text" = "Значение:";
+
+"xqU-DZ-sVi.text" = "Название:";
+
+"CsA-lN-Ril.text" = "Тип кода:";

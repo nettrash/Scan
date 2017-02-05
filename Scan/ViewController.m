@@ -12,6 +12,7 @@
 #import "CodeCardViewController.h"
 #import "TextViewController.h"
 #import "AppDelegate.h"
+#import "WalletViewController.h"
 
 @interface ViewController ()
 
@@ -24,16 +25,24 @@
 
 @property (nonatomic, retain) IBOutlet UILabel *lblTitle;
 @property (nonatomic, retain) IBOutlet UIImageView *ivFlash;
+@property (nonatomic, retain) IBOutlet UITextView *lblInfo;
+@property (nonatomic, retain) IBOutlet UIButton *btnInfo;
+
+@property (nonatomic, retain) IBOutlet UIImageView *ivMode;
+@property (nonatomic, retain) IBOutlet UIPickerView *pvMode;
 
 @end
 
 @implementation ViewController
 
-@synthesize configured, device, input, session, output, preview, lblTitle;
+@synthesize configured, device, input, session, output, preview, lblTitle, lblInfo, btnInfo, ivMode, pvMode;
 
 - (void)viewDidLoad {
     [super viewDidLoad];
     self.configured = NO;
+    [self.lblInfo setHidden:YES];
+    [self.pvMode setHidden:YES];
+    [self.lblInfo setText:NSLocalizedString(@"InfoText", @"InfoText")];
 }
 
 - (void)didReceiveMemoryWarning {
@@ -145,15 +154,13 @@
     con.videoOrientation = AVCaptureVideoOrientationPortrait;
     
     [self.view.layer insertSublayer:self.preview atIndex:0];
-    /*
-    [self.view bringSubviewToFront:self.btnCancel];
-    [self.view bringSubviewToFront:self.btnInfo];
-    [self.view bringSubviewToFront:self.btnTorch];
-    [self.view bringSubviewToFront:self.lblInfoText];
     
-    self.btnTorch.hidden = !self.device.torchAvailable;*/
-    
+    [self.view bringSubviewToFront:self.ivFlash];
     [self.view bringSubviewToFront:self.lblTitle];
+    [self.view bringSubviewToFront:self.lblInfo];
+    [self.view bringSubviewToFront:self.btnInfo];
+    [self.view bringSubviewToFront:self.pvMode];
+    [self.view bringSubviewToFront:self.ivMode];
     
     [self.ivFlash setHidden:![self.device isTorchAvailable]];
     [self.ivFlash setHighlighted:[self.device torchMode] == AVCaptureTorchModeOn];
@@ -184,11 +191,21 @@
     ScannedCodeProcessor *scp = [ScannedCodeProcessor alloc];
     [scp initWithScanType:scanResult.type andText:scanResult.stringValue];
 
-    if ([(AppDelegate *)[[UIApplication sharedApplication] delegate] modeTextOnly]) {
-        [self performSegueWithIdentifier:@"MText" sender:scp.codeValue];
-        return;
+    switch ([self.pvMode selectedRowInComponent:0]) {
+        case 1:
+            [self performSegueWithIdentifier:@"MWallet" sender:scp];
+            return;
+        case 2:
+            [self performSegueWithIdentifier:@"Card" sender:scp];
+            return;
+        case 3:
+            [self performSegueWithIdentifier:@"MText" sender:scp.codeValue];
+            return;
+            
+        default:
+            break;
     }
-    
+
     switch (scp.actionType) {
         case atVCard: {
             [self actionVCard:scp.codeValue];
@@ -243,9 +260,32 @@
     [self.ivFlash setHighlighted:bHighlighted];
 }
 
+- (IBAction)modeTap:(UITapGestureRecognizer *)sender {
+    [self.lblInfo setHidden:YES];
+    BOOL bHighlighted = self.ivMode.highlighted;
+    if (!bHighlighted) {
+        [self.pvMode setHidden:NO];
+    } else {
+        [self.pvMode setHidden:YES];
+    }
+    [self.ivMode setHighlighted:!bHighlighted];
+}
+
 - (void)refreshTorchStatus {
     if (![self.device isTorchAvailable]) return;
     [self.ivFlash setHighlighted:[self.device isTorchActive]];
+}
+
+- (IBAction)switchInfo:(id)sender {
+    [self.pvMode setHidden:YES];
+    [self.ivMode setHighlighted:NO];
+    [self.lblInfo setHidden:!self.lblInfo.hidden];
+}
+
+- (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
+    [self.pvMode setHidden:YES];
+    [self.ivMode setHighlighted:NO];
+    [self.lblInfo setHidden:YES];
 }
 
 #pragma mark - Navigation
@@ -258,7 +298,10 @@
         [(WebViewController *)[segue destinationViewController] setUrl:(NSURL *)sender];
     }
     if ([segue.identifier isEqualToString:@"MText"]) {
-        [(TextViewController *)[segue destinationViewController] setCodeText:(NSString *)sender];
+        [(TextViewController *)[(UINavigationController *)[segue destinationViewController] topViewController] setCodeText:(NSString *)sender];
+    }
+    if ([segue.identifier isEqualToString:@"MWallet"]) {
+        [(WalletViewController *)[(UINavigationController *)[segue destinationViewController] topViewController] setCodeProcessor:(ScannedCodeProcessor *)sender];
     }
     if ([segue.identifier isEqualToString:@"Card"]) {
         [(CodeCardViewController *)[(UINavigationController *)[segue destinationViewController] topViewController] setCodeProcessor:(ScannedCodeProcessor *)sender];
@@ -285,5 +328,34 @@
 - (void)contactViewController:(CNContactViewController *)viewController didCompleteWithContact:(nullable CNContact *)contact {
     [self dismissViewControllerAnimated:YES completion:nil];
 }
+
+#pragma mark - UIPickerViewDelegate
+
+- (nullable NSString *)pickerView:(UIPickerView *)pickerView titleForRow:(NSInteger)row forComponent:(NSInteger)component {
+    switch (row) {
+        case 0:
+            return NSLocalizedString(@"ModeSimple", @"ModeSimple");
+        case 1:
+            return NSLocalizedString(@"ModeWallet", @"ModeWallet");
+        case 2:
+            return NSLocalizedString(@"ModeAdv", @"ModeAdv");
+        case 3:
+            return NSLocalizedString(@"ModeText", @"ModeText");
+            
+        default:
+            return @"";
+    }
+}
+
+#pragma mark - UIPickerViewDataSource
+
+- (NSInteger)numberOfComponentsInPickerView:(UIPickerView *)pickerView {
+    return 1;
+}
+
+- (NSInteger)pickerView:(UIPickerView *)pickerView numberOfRowsInComponent:(NSInteger)component {
+    return 4;
+}
+
 
 @end

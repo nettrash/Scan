@@ -15,8 +15,6 @@
 
 @implementation AppDelegate
 
-@synthesize modeTextOnly;
-
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     // Override point for customization after application launch.
     [self refreshSettings];
@@ -106,10 +104,10 @@
 #pragma mark - Settings
 
 - (void)refreshSettings {
-    if ([[NSUserDefaults standardUserDefaults] synchronize])
-        self.modeTextOnly = [[NSUserDefaults standardUserDefaults] boolForKey:@"textonly_preference"];
-    else
-        self.modeTextOnly = NO;
+//    if ([[NSUserDefaults standardUserDefaults] synchronize])
+//        self.modeTextOnly = [[NSUserDefaults standardUserDefaults] boolForKey:@"textonly_preference"];
+//    else
+//        self.modeTextOnly = NO;
 }
 
 @end

@@ -11,7 +11,7 @@
 #import <ContactsUI/ContactsUI.h>
 #import <AVFoundation/AVFoundation.h>
 
-@interface ViewController : UIViewController <AVCaptureMetadataOutputObjectsDelegate, CNContactViewControllerDelegate>
+@interface ViewController : UIViewController <AVCaptureMetadataOutputObjectsDelegate, CNContactViewControllerDelegate, UIPickerViewDelegate, UIPickerViewDataSource>
 
 - (void)beginWork;
 

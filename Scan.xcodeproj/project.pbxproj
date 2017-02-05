@@ -8,8 +8,12 @@
 
 /* Begin PBXBuildFile section */
 		E50D7D961E01E023000BD7F4 /* CodeCardViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = E50D7D951E01E023000BD7F4 /* CodeCardViewController.m */; };
+		E5175BD51E472F6900485EDB /* WalletViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = E5175BD41E472F6900485EDB /* WalletViewController.m */; };
+		E5175BDA1E475AE700485EDB /* ActiveSettingsIcon.png in Resources */ = {isa = PBXBuildFile; fileRef = E5175BD61E475AE700485EDB /* ActiveSettingsIcon.png */; };
+		E5175BDB1E475AE700485EDB /* ActiveSettingsIcon@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = E5175BD71E475AE700485EDB /* ActiveSettingsIcon@2x.png */; };
+		E5175BDC1E475AE700485EDB /* SettingsIcon.png in Resources */ = {isa = PBXBuildFile; fileRef = E5175BD81E475AE700485EDB /* SettingsIcon.png */; };
+		E5175BDD1E475AE700485EDB /* SettingsIcon@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = E5175BD91E475AE700485EDB /* SettingsIcon@2x.png */; };
 		E52A8BA11E09CC6B007FDC2F /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = E52A8BA31E09CC6B007FDC2F /* Localizable.strings */; };
-		E547478C1E2CDA0D00CDEDDD /* Settings.bundle in Resources */ = {isa = PBXBuildFile; fileRef = E547478B1E2CDA0D00CDEDDD /* Settings.bundle */; };
 		E55D366F1E0863640089B1F4 /* Contacts.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E55D366D1E0863640089B1F4 /* Contacts.framework */; };
 		E55D36701E0863640089B1F4 /* ContactsUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E55D366E1E0863640089B1F4 /* ContactsUI.framework */; };
 		E57192F61DFD7E6D00195F98 /* ScannedCodeProcessor.m in Sources */ = {isa = PBXBuildFile; fileRef = E57192F51DFD7E6D00195F98 /* ScannedCodeProcessor.m */; };
@@ -51,6 +55,7 @@
 		E5EE62BA1DF75B750089FE6F /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = E5EE62B81DF75B750089FE6F /* LaunchScreen.storyboard */; };
 		E5EE62C51DF75B760089FE6F /* ScanTests.m in Sources */ = {isa = PBXBuildFile; fileRef = E5EE62C41DF75B760089FE6F /* ScanTests.m */; };
 		E5EE62D01DF75B760089FE6F /* ScanUITests.m in Sources */ = {isa = PBXBuildFile; fileRef = E5EE62CF1DF75B760089FE6F /* ScanUITests.m */; };
+		E5FBA3421E41E468000A222A /* PassKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E5FBA3411E41E468000A222A /* PassKit.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -73,11 +78,15 @@
 /* Begin PBXFileReference section */
 		E50D7D941E01E023000BD7F4 /* CodeCardViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CodeCardViewController.h; sourceTree = "<group>"; };
 		E50D7D951E01E023000BD7F4 /* CodeCardViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CodeCardViewController.m; sourceTree = "<group>"; };
-		E52A8B9F1E09CC62007FDC2F /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/Main.strings; sourceTree = "<group>"; };
+		E5175BD31E472F6900485EDB /* WalletViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WalletViewController.h; sourceTree = "<group>"; };
+		E5175BD41E472F6900485EDB /* WalletViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WalletViewController.m; sourceTree = "<group>"; };
+		E5175BD61E475AE700485EDB /* ActiveSettingsIcon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ActiveSettingsIcon.png; sourceTree = "<group>"; };
+		E5175BD71E475AE700485EDB /* ActiveSettingsIcon@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "ActiveSettingsIcon@2x.png"; sourceTree = "<group>"; };
+		E5175BD81E475AE700485EDB /* SettingsIcon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = SettingsIcon.png; sourceTree = "<group>"; };
+		E5175BD91E475AE700485EDB /* SettingsIcon@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "SettingsIcon@2x.png"; sourceTree = "<group>"; };
 		E52A8BA01E09CC62007FDC2F /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/LaunchScreen.strings; sourceTree = "<group>"; };
 		E52A8BA21E09CC6B007FDC2F /* Base */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = Base; path = Base.lproj/Localizable.strings; sourceTree = "<group>"; };
 		E52A8BA41E09CC6D007FDC2F /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/Localizable.strings; sourceTree = "<group>"; };
-		E547478B1E2CDA0D00CDEDDD /* Settings.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = Settings.bundle; sourceTree = "<group>"; };
 		E55D366D1E0863640089B1F4 /* Contacts.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Contacts.framework; path = System/Library/Frameworks/Contacts.framework; sourceTree = SDKROOT; };
 		E55D366E1E0863640089B1F4 /* ContactsUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ContactsUI.framework; path = System/Library/Frameworks/ContactsUI.framework; sourceTree = SDKROOT; };
 		E57192F41DFD7E6D00195F98 /* ScannedCodeProcessor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ScannedCodeProcessor.h; sourceTree = "<group>"; };
@@ -112,6 +121,7 @@
 		E5A35C3A1DFDCAD400E05D41 /* safari~iPad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "safari~iPad.png"; sourceTree = "<group>"; };
 		E5A35C451DFDEE2900E05D41 /* Field.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Field.h; sourceTree = "<group>"; };
 		E5A35C461DFDEE2900E05D41 /* Field.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Field.m; sourceTree = "<group>"; };
+		E5A4761B1E41F6B200044EAA /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/Main.strings; sourceTree = "<group>"; };
 		E5E8F2991DFD6B7500AB7810 /* NSString+Checkers.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSString+Checkers.h"; sourceTree = "<group>"; };
 		E5E8F29A1DFD6B7500AB7810 /* NSString+Checkers.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSString+Checkers.m"; sourceTree = "<group>"; };
 		E5E8F29C1DFD6C0A00AB7810 /* NSString+RegEx.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSString+RegEx.h"; sourceTree = "<group>"; };
@@ -136,6 +146,8 @@
 		E5EE62CB1DF75B760089FE6F /* ScanUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ScanUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		E5EE62CF1DF75B760089FE6F /* ScanUITests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ScanUITests.m; sourceTree = "<group>"; };
 		E5EE62D11DF75B760089FE6F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		E5FBA3401E41E468000A222A /* Scan.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Scan.entitlements; sourceTree = "<group>"; };
+		E5FBA3411E41E468000A222A /* PassKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = PassKit.framework; path = System/Library/Frameworks/PassKit.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -143,6 +155,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E5FBA3421E41E468000A222A /* PassKit.framework in Frameworks */,
 				E55D366F1E0863640089B1F4 /* Contacts.framework in Frameworks */,
 				E55D36701E0863640089B1F4 /* ContactsUI.framework in Frameworks */,
 				E57192F81DFD824500195F98 /* AddressBookUI.framework in Frameworks */,
@@ -170,6 +183,10 @@
 		E5A35C181DFDBB2700E05D41 /* Content */ = {
 			isa = PBXGroup;
 			children = (
+				E5175BD61E475AE700485EDB /* ActiveSettingsIcon.png */,
+				E5175BD71E475AE700485EDB /* ActiveSettingsIcon@2x.png */,
+				E5175BD81E475AE700485EDB /* SettingsIcon.png */,
+				E5175BD91E475AE700485EDB /* SettingsIcon@2x.png */,
 				E5A35C311DFDCAD400E05D41 /* safari-7.png */,
 				E5A35C321DFDCAD400E05D41 /* safari-7@2x.png */,
 				E5A35C331DFDCAD400E05D41 /* safari-7@2x~iPad.png */,
@@ -196,6 +213,7 @@
 		E5E8F29F1DFD712B00AB7810 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				E5FBA3411E41E468000A222A /* PassKit.framework */,
 				E55D366D1E0863640089B1F4 /* Contacts.framework */,
 				E55D366E1E0863640089B1F4 /* ContactsUI.framework */,
 				E57192F71DFD824500195F98 /* AddressBookUI.framework */,
@@ -229,6 +247,7 @@
 		E5EE62A61DF75B750089FE6F /* Scan */ = {
 			isa = PBXGroup;
 			children = (
+				E5FBA3401E41E468000A222A /* Scan.entitlements */,
 				E5EE62AA1DF75B750089FE6F /* AppDelegate.h */,
 				E5EE62AB1DF75B750089FE6F /* AppDelegate.m */,
 				E5EE62AD1DF75B750089FE6F /* ViewController.h */,
@@ -260,7 +279,8 @@
 				E58364901E071CDC006A3A65 /* TextViewController.h */,
 				E58364911E071CDD006A3A65 /* TextViewController.m */,
 				E52A8BA31E09CC6B007FDC2F /* Localizable.strings */,
-				E547478B1E2CDA0D00CDEDDD /* Settings.bundle */,
+				E5175BD31E472F6900485EDB /* WalletViewController.h */,
+				E5175BD41E472F6900485EDB /* WalletViewController.m */,
 			);
 			path = Scan;
 			sourceTree = "<group>";
@@ -360,6 +380,11 @@
 						CreatedOnToolsVersion = 8.1;
 						DevelopmentTeam = L3973VL47F;
 						ProvisioningStyle = Manual;
+						SystemCapabilities = {
+							com.apple.Wallet = {
+								enabled = 1;
+							};
+						};
 					};
 					E5EE62BF1DF75B760089FE6F = {
 						CreatedOnToolsVersion = 8.1;
@@ -403,21 +428,24 @@
 			files = (
 				E5A35C211DFDBB2700E05D41 /* FlashOff@3x.png in Resources */,
 				E5A35C1F1DFDBB2700E05D41 /* FlashOff.png in Resources */,
+				E5175BDB1E475AE700485EDB /* ActiveSettingsIcon@2x.png in Resources */,
 				E52A8BA11E09CC6B007FDC2F /* Localizable.strings in Resources */,
 				E5A35C2D1DFDC2A300E05D41 /* Scan@3x.png in Resources */,
 				E5A35C2B1DFDC2A300E05D41 /* Scan.png in Resources */,
+				E5175BDD1E475AE700485EDB /* SettingsIcon@2x.png in Resources */,
 				E5EE62BA1DF75B750089FE6F /* LaunchScreen.storyboard in Resources */,
 				E5EE62B71DF75B750089FE6F /* Assets.xcassets in Resources */,
+				E5175BDA1E475AE700485EDB /* ActiveSettingsIcon.png in Resources */,
 				E5A35C3B1DFDCAD400E05D41 /* safari-7.png in Resources */,
 				E5A35C3E1DFDCAD400E05D41 /* safari-7@3x.png in Resources */,
 				E5EE62B21DF75B750089FE6F /* Main.storyboard in Resources */,
 				E5A35C411DFDCAD400E05D41 /* safari@2x.png in Resources */,
+				E5175BDC1E475AE700485EDB /* SettingsIcon.png in Resources */,
 				E5A35C431DFDCAD400E05D41 /* safari@3x.png in Resources */,
 				E5A35C2C1DFDC2A300E05D41 /* Scan@2x.png in Resources */,
 				E5A35C201DFDBB2700E05D41 /* FlashOff@2x.png in Resources */,
 				E5A35C241DFDBB2700E05D41 /* FlashOn@3x.png in Resources */,
 				E5A35C231DFDBB2700E05D41 /* FlashOn@2x.png in Resources */,
-				E547478C1E2CDA0D00CDEDDD /* Settings.bundle in Resources */,
 				E5A35C3C1DFDCAD400E05D41 /* safari-7@2x.png in Resources */,
 				E5A35C3F1DFDCAD400E05D41 /* safari-7~iPad.png in Resources */,
 				E5A35C3D1DFDCAD400E05D41 /* safari-7@2x~iPad.png in Resources */,
@@ -458,6 +486,7 @@
 				E5A35C471DFDEE2900E05D41 /* Field.m in Sources */,
 				E5EE62B51DF75B750089FE6F /* Scan.xcdatamodeld in Sources */,
 				E5A35C271DFDC07D00E05D41 /* AboutViewController.m in Sources */,
+				E5175BD51E472F6900485EDB /* WalletViewController.m in Sources */,
 				E58364921E071CDD006A3A65 /* TextViewController.m in Sources */,
 				E5EE62A91DF75B750089FE6F /* main.m in Sources */,
 				E5E8F29B1DFD6B7500AB7810 /* NSString+Checkers.m in Sources */,
@@ -511,7 +540,7 @@
 			isa = PBXVariantGroup;
 			children = (
 				E5EE62B11DF75B750089FE6F /* Base */,
-				E52A8B9F1E09CC62007FDC2F /* ru */,
+				E5A4761B1E41F6B200044EAA /* ru */,
 			);
 			name = Main.storyboard;
 			sourceTree = "<group>";
@@ -623,6 +652,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
+				CODE_SIGN_ENTITLEMENTS = Scan/Scan.entitlements;
 				DEVELOPMENT_TEAM = L3973VL47F;
 				INFOPLIST_FILE = Scan/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
@@ -638,6 +668,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
+				CODE_SIGN_ENTITLEMENTS = Scan/Scan.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				DEVELOPMENT_TEAM = L3973VL47F;
 				INFOPLIST_FILE = Scan/Info.plist;

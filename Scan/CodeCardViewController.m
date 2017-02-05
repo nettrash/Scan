@@ -10,6 +10,7 @@
 #import "Field.h"
 #import "WebViewController.h"
 #import "TextViewController.h"
+#import "WalletViewController.h"
 
 @interface CodeCardViewController ()
 
@@ -27,23 +28,23 @@
 
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
 }
 
 - (IBAction)done:(id)sender {
     [self dismissViewControllerAnimated:YES completion:nil];
 }
 
-
 #pragma mark - Navigation
 
-// In a storyboard-based application, you will often want to do a little preparation before navigation
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
     if ([segue.identifier isEqualToString:@"Web"]) {
         [(WebViewController *)[segue destinationViewController] setUrl:(NSURL *)sender];
     }
     if ([segue.identifier isEqualToString:@"Text"]) {
         [(TextViewController *)[segue destinationViewController] setCodeText:(NSString *)sender];
+    }
+    if ([segue.identifier isEqualToString:@"Wallet"]) {
+        [(WalletViewController *)[segue destinationViewController] setCodeProcessor:(NSString *)sender];
     }
 }
 
@@ -150,6 +151,10 @@
                     //Goto text view
                     [self performSegueWithIdentifier:@"Text" sender:self.CodeProcessor.codeValue];
                     break;
+                case 2:
+                    //Add to Wallet
+                     [self performSegueWithIdentifier:@"Wallet" sender:self.CodeProcessor];
+                    break;
                 default:
                     break;
             }
@@ -179,7 +184,7 @@
         case atVCard:
             return 1;
         case atUnknown:
-            return 2;
+            return 3;
         default:
             return 0;
     }
@@ -255,6 +260,11 @@
                 case 1:
                     cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:@"ActionCell"];
                     [cell.textLabel setText:NSLocalizedString(@"View", @"View")];
+                    cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
+                    break;
+                case 2:
+                    cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:@"ActionCell"];
+                    [cell.textLabel setText:NSLocalizedString(@"Wallet", @"Wallet")];
                     cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
                     break;
                 default:

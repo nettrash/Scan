@@ -61,3 +61,11 @@
 "Payment fields" = "Payment fields";
 "Actions" = "Actions";
 "CODE VALUE" = "CODE VALUE";
+"InfoText" = "Hover over the code and allow the camera to focus. Next, the system will do everything herself. It identifies the type of code and perform the action according to the type: open the search on the Internet, shows payment data will copy the code data, or create a new contact in your address book. Depending on the configuration will add the scanned code in the Wallet.";
+"ModeSimple" = "Simple mode";
+"ModeWallet" = "Wallet mode";
+"ModeAdv" = "Advanced mode";
+"ModeText" = "Text mode";
+"AddToWallet" = "Add To Wallet";
+"Some Shop Card" = "Some Shop Card";
+"WalletCardDescription" = "This card added by NETTRASH.Scan";

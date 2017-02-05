@@ -20,7 +20,7 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    //[self.navigationItem setTitle:NSLocalizedString(@"CODE VALUE", @"CODE VALUE")];
+    [self.navigationItem setTitle:NSLocalizedString(@"CODE VALUE", @"CODE VALUE")];
 }
 
 - (void)didReceiveMemoryWarning {

@@ -13,6 +13,7 @@
 #import "TextViewController.h"
 #import "AppDelegate.h"
 #import "WalletViewController.h"
+#include "TargetConditionals.h"
 
 @interface ViewController ()
 
@@ -31,11 +32,13 @@
 @property (nonatomic, retain) IBOutlet UIImageView *ivMode;
 @property (nonatomic, retain) IBOutlet UIPickerView *pvMode;
 
+@property (nonatomic, retain) IBOutlet UIImageView *ivModeIcon;
+
 @end
 
 @implementation ViewController
 
-@synthesize configured, device, input, session, output, preview, lblTitle, lblInfo, btnInfo, ivMode, pvMode;
+@synthesize configured, device, input, session, output, preview, lblTitle, lblInfo, btnInfo, ivMode, pvMode, ivModeIcon;
 
 - (void)viewDidLoad {
     [super viewDidLoad];
@@ -43,6 +46,7 @@
     [self.lblInfo setHidden:YES];
     [self.pvMode setHidden:YES];
     [self.lblInfo setText:NSLocalizedString(@"InfoText", @"InfoText")];
+    [self.ivModeIcon setImage:[UIImage imageNamed:@"SimpleMode.png"]];
 }
 
 - (void)didReceiveMemoryWarning {
@@ -56,6 +60,7 @@
 }
 
 - (void)beginWork {
+#if !(TARGET_OS_SIMULATOR)
     switch([AVCaptureDevice authorizationStatusForMediaType:AVMediaTypeVideo])
     {
         case AVAuthorizationStatusNotDetermined: {
@@ -83,6 +88,9 @@
         }
             
     }
+#else
+    self.configured = YES;
+#endif
 }
 
 - (UIInterfaceOrientationMask)supportedInterfaceOrientations
@@ -123,6 +131,7 @@
 
 - (void)setupScanner
 {
+#if !(TARGET_OS_SIMULATOR)
     if (self.configured) return;
     
     self.device = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
@@ -166,6 +175,7 @@
     [self.ivFlash setHighlighted:[self.device torchMode] == AVCaptureTorchModeOn];
     
     self.configured = YES;
+#endif
 }
 
 - (void)startScanning
@@ -347,6 +357,26 @@
     }
 }
 
+- (void)pickerView:(UIPickerView *)pickerView didSelectRow:(NSInteger)row inComponent:(NSInteger)component {
+    switch (row) {
+        case 0:
+            [self.ivModeIcon setImage:[UIImage imageNamed:@"SimpleMode.png"]];
+            break;
+        case 1:
+            [self.ivModeIcon setImage:[UIImage imageNamed:@"WalletMode.png"]];
+            break;
+        case 2:
+            [self.ivModeIcon setImage:[UIImage imageNamed:@"AdvMode.png"]];
+            break;
+        case 3:
+            [self.ivModeIcon setImage:[UIImage imageNamed:@"TextMode.png"]];
+            break;
+            
+        default:
+            break;
+    }
+}
+
 #pragma mark - UIPickerViewDataSource
 
 - (NSInteger)numberOfComponentsInPickerView:(UIPickerView *)pickerView {
@@ -356,6 +386,5 @@
 - (NSInteger)pickerView:(UIPickerView *)pickerView numberOfRowsInComponent:(NSInteger)component {
     return 4;
 }
-
 
 @end

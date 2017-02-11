@@ -27,6 +27,9 @@
     if (self.navigationItem.backBarButtonItem == nil) {
         self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCancel target:self action:@selector(done:)];
     }
+    
+    [self.lblCodeValue setText:self.CodeProcessor.codeValue];
+    [self.tfCodeLabel setText:NSLocalizedString(@"Some Shop Card", @"Some Shop Card")];
 }
 
 - (void)didReceiveMemoryWarning {
@@ -35,9 +38,6 @@
 
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
-    
-    [self.lblCodeValue setText:self.CodeProcessor.codeValue];
-    [self.tfCodeLabel setText:NSLocalizedString(@"Some Shop Card", @"Some Shop Card")];
 }
 
 - (IBAction)done:(id)sender {
@@ -89,7 +89,9 @@
 #pragma mark - 
 
 -(void)addPassesViewControllerDidFinish:(PKAddPassesViewController *)controller {
-    [self dismissViewControllerAnimated:YES completion:nil];
+    [controller dismissViewControllerAnimated:YES completion:^(void) {
+        [self dismissViewControllerAnimated:YES completion:nil];
+    }];
 }
 
 @end

@@ -157,15 +157,21 @@
                                     <outletCollection property="gestureRecognizers" destination="hnl-t3-gqn" appends="YES" id="WgO-gP-OBG"/>
                                 </connections>
                             </imageView>
+                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="SimpleMode.png" translatesAutoresizingMaskIntoConstraints="NO" id="8UI-eN-7di">
+                                <rect key="frame" x="327" y="524" width="32" height="32"/>
+                            </imageView>
                         </subviews>
                         <color key="backgroundColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
                         <constraints>
                             <constraint firstItem="3E6-P2-3hd" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leadingMargin" constant="26" id="0V9-Nq-bpZ"/>
                             <constraint firstItem="AQ3-IE-28q" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leadingMargin" id="11J-5j-xEf"/>
                             <constraint firstItem="Ubo-8s-J7G" firstAttribute="leading" secondItem="Ls8-wf-KzY" secondAttribute="leading" id="2FI-2V-jBc"/>
+                            <constraint firstItem="Ubo-8s-J7G" firstAttribute="top" secondItem="8UI-eN-7di" secondAttribute="bottom" constant="8" symbolic="YES" id="BOE-Tn-9CS"/>
                             <constraint firstItem="Ls8-wf-KzY" firstAttribute="bottom" secondItem="9cH-8x-he4" secondAttribute="bottom" id="LlL-Ne-iQj"/>
+                            <constraint firstItem="8UI-eN-7di" firstAttribute="leading" secondItem="Ubo-8s-J7G" secondAttribute="leading" id="MdN-dj-YQf"/>
                             <constraint firstItem="clq-gW-yek" firstAttribute="centerY" secondItem="8bC-Xf-vdC" secondAttribute="centerY" id="Mof-I7-m2T"/>
                             <constraint firstItem="Ubo-8s-J7G" firstAttribute="top" secondItem="3E6-P2-3hd" secondAttribute="bottom" constant="92" id="QIi-tU-AON"/>
+                            <constraint firstItem="8UI-eN-7di" firstAttribute="trailing" secondItem="Ubo-8s-J7G" secondAttribute="trailing" id="Tet-sb-vpO"/>
                             <constraint firstItem="3E6-P2-3hd" firstAttribute="centerY" secondItem="clq-gW-yek" secondAttribute="centerY" id="ZyQ-PB-2pb"/>
                             <constraint firstItem="Ubo-8s-J7G" firstAttribute="trailing" secondItem="Ls8-wf-KzY" secondAttribute="trailing" id="c4H-Lh-JHh"/>
                             <constraint firstItem="clq-gW-yek" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leading" id="cya-B9-YXb"/>
@@ -175,6 +181,7 @@
                             <constraint firstItem="Ls8-wf-KzY" firstAttribute="top" secondItem="Ubo-8s-J7G" secondAttribute="bottom" constant="19" id="gdv-G7-BGR"/>
                             <constraint firstItem="9cH-8x-he4" firstAttribute="leading" secondItem="AQ3-IE-28q" secondAttribute="leading" id="mby-1c-JvC"/>
                             <constraint firstItem="AQ3-IE-28q" firstAttribute="trailing" secondItem="8bC-Xf-vdC" secondAttribute="trailingMargin" id="o4s-Ir-uAG"/>
+                            <constraint firstItem="8UI-eN-7di" firstAttribute="top" secondItem="3E6-P2-3hd" secondAttribute="bottom" constant="52" id="tgY-3l-fCc"/>
                             <constraint firstItem="Ls8-wf-KzY" firstAttribute="trailing" secondItem="AQ3-IE-28q" secondAttribute="trailing" id="x6J-Ew-eV5"/>
                             <constraint firstItem="AQ3-IE-28q" firstAttribute="top" secondItem="y3c-jy-aDJ" secondAttribute="bottom" id="zb3-BS-Paq"/>
                         </constraints>
@@ -183,6 +190,7 @@
                         <outlet property="btnInfo" destination="9cH-8x-he4" id="Sc2-qX-BOS"/>
                         <outlet property="ivFlash" destination="Ls8-wf-KzY" id="KCz-Sv-s5c"/>
                         <outlet property="ivMode" destination="Ubo-8s-J7G" id="nRF-uM-eJ5"/>
+                        <outlet property="ivModeIcon" destination="8UI-eN-7di" id="fxG-sF-12F"/>
                         <outlet property="lblInfo" destination="3E6-P2-3hd" id="2nk-7t-9qw"/>
                         <outlet property="lblTitle" destination="AQ3-IE-28q" id="zvT-mb-fCZ"/>
                         <outlet property="pvMode" destination="clq-gW-yek" id="yto-9l-gNc"/>
@@ -503,6 +511,7 @@
         <image name="FlashOn.png" width="32" height="32"/>
         <image name="Scan.png" width="512" height="512"/>
         <image name="SettingsIcon.png" width="32" height="32"/>
+        <image name="SimpleMode.png" width="32" height="32"/>
     </resources>
     <inferredMetricsTieBreakers>
         <segue reference="TDu-WK-9R9"/>

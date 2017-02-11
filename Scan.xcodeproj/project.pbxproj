@@ -13,6 +13,14 @@
 		E5175BDB1E475AE700485EDB /* ActiveSettingsIcon@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = E5175BD71E475AE700485EDB /* ActiveSettingsIcon@2x.png */; };
 		E5175BDC1E475AE700485EDB /* SettingsIcon.png in Resources */ = {isa = PBXBuildFile; fileRef = E5175BD81E475AE700485EDB /* SettingsIcon.png */; };
 		E5175BDD1E475AE700485EDB /* SettingsIcon@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = E5175BD91E475AE700485EDB /* SettingsIcon@2x.png */; };
+		E5175BE01E47B59900485EDB /* SimpleMode.png in Resources */ = {isa = PBXBuildFile; fileRef = E5175BDE1E47B59900485EDB /* SimpleMode.png */; };
+		E5175BE11E47B59900485EDB /* SimpleMode@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = E5175BDF1E47B59900485EDB /* SimpleMode@2x.png */; };
+		E5175BE41E47B6E100485EDB /* WalletMode.png in Resources */ = {isa = PBXBuildFile; fileRef = E5175BE21E47B6E100485EDB /* WalletMode.png */; };
+		E5175BE51E47B6E100485EDB /* WalletMode@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = E5175BE31E47B6E100485EDB /* WalletMode@2x.png */; };
+		E5175BE81E47B82400485EDB /* AdvMode.png in Resources */ = {isa = PBXBuildFile; fileRef = E5175BE61E47B82400485EDB /* AdvMode.png */; };
+		E5175BE91E47B82400485EDB /* AdvMode@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = E5175BE71E47B82400485EDB /* AdvMode@2x.png */; };
+		E5175BEC1E47B9EB00485EDB /* TextMode.png in Resources */ = {isa = PBXBuildFile; fileRef = E5175BEA1E47B9EB00485EDB /* TextMode.png */; };
+		E5175BED1E47B9EB00485EDB /* TextMode@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = E5175BEB1E47B9EB00485EDB /* TextMode@2x.png */; };
 		E52A8BA11E09CC6B007FDC2F /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = E52A8BA31E09CC6B007FDC2F /* Localizable.strings */; };
 		E55D366F1E0863640089B1F4 /* Contacts.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E55D366D1E0863640089B1F4 /* Contacts.framework */; };
 		E55D36701E0863640089B1F4 /* ContactsUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E55D366E1E0863640089B1F4 /* ContactsUI.framework */; };
@@ -84,6 +92,14 @@
 		E5175BD71E475AE700485EDB /* ActiveSettingsIcon@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "ActiveSettingsIcon@2x.png"; sourceTree = "<group>"; };
 		E5175BD81E475AE700485EDB /* SettingsIcon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = SettingsIcon.png; sourceTree = "<group>"; };
 		E5175BD91E475AE700485EDB /* SettingsIcon@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "SettingsIcon@2x.png"; sourceTree = "<group>"; };
+		E5175BDE1E47B59900485EDB /* SimpleMode.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = SimpleMode.png; sourceTree = "<group>"; };
+		E5175BDF1E47B59900485EDB /* SimpleMode@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "SimpleMode@2x.png"; sourceTree = "<group>"; };
+		E5175BE21E47B6E100485EDB /* WalletMode.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = WalletMode.png; sourceTree = "<group>"; };
+		E5175BE31E47B6E100485EDB /* WalletMode@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "WalletMode@2x.png"; sourceTree = "<group>"; };
+		E5175BE61E47B82400485EDB /* AdvMode.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = AdvMode.png; sourceTree = "<group>"; };
+		E5175BE71E47B82400485EDB /* AdvMode@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "AdvMode@2x.png"; sourceTree = "<group>"; };
+		E5175BEA1E47B9EB00485EDB /* TextMode.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = TextMode.png; sourceTree = "<group>"; };
+		E5175BEB1E47B9EB00485EDB /* TextMode@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "TextMode@2x.png"; sourceTree = "<group>"; };
 		E52A8BA01E09CC62007FDC2F /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/LaunchScreen.strings; sourceTree = "<group>"; };
 		E52A8BA21E09CC6B007FDC2F /* Base */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = Base; path = Base.lproj/Localizable.strings; sourceTree = "<group>"; };
 		E52A8BA41E09CC6D007FDC2F /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/Localizable.strings; sourceTree = "<group>"; };
@@ -183,6 +199,14 @@
 		E5A35C181DFDBB2700E05D41 /* Content */ = {
 			isa = PBXGroup;
 			children = (
+				E5175BEA1E47B9EB00485EDB /* TextMode.png */,
+				E5175BEB1E47B9EB00485EDB /* TextMode@2x.png */,
+				E5175BE61E47B82400485EDB /* AdvMode.png */,
+				E5175BE71E47B82400485EDB /* AdvMode@2x.png */,
+				E5175BE21E47B6E100485EDB /* WalletMode.png */,
+				E5175BE31E47B6E100485EDB /* WalletMode@2x.png */,
+				E5175BDE1E47B59900485EDB /* SimpleMode.png */,
+				E5175BDF1E47B59900485EDB /* SimpleMode@2x.png */,
 				E5175BD61E475AE700485EDB /* ActiveSettingsIcon.png */,
 				E5175BD71E475AE700485EDB /* ActiveSettingsIcon@2x.png */,
 				E5175BD81E475AE700485EDB /* SettingsIcon.png */,
@@ -430,19 +454,26 @@
 				E5A35C1F1DFDBB2700E05D41 /* FlashOff.png in Resources */,
 				E5175BDB1E475AE700485EDB /* ActiveSettingsIcon@2x.png in Resources */,
 				E52A8BA11E09CC6B007FDC2F /* Localizable.strings in Resources */,
+				E5175BE91E47B82400485EDB /* AdvMode@2x.png in Resources */,
 				E5A35C2D1DFDC2A300E05D41 /* Scan@3x.png in Resources */,
 				E5A35C2B1DFDC2A300E05D41 /* Scan.png in Resources */,
+				E5175BE11E47B59900485EDB /* SimpleMode@2x.png in Resources */,
 				E5175BDD1E475AE700485EDB /* SettingsIcon@2x.png in Resources */,
 				E5EE62BA1DF75B750089FE6F /* LaunchScreen.storyboard in Resources */,
 				E5EE62B71DF75B750089FE6F /* Assets.xcassets in Resources */,
 				E5175BDA1E475AE700485EDB /* ActiveSettingsIcon.png in Resources */,
 				E5A35C3B1DFDCAD400E05D41 /* safari-7.png in Resources */,
 				E5A35C3E1DFDCAD400E05D41 /* safari-7@3x.png in Resources */,
+				E5175BED1E47B9EB00485EDB /* TextMode@2x.png in Resources */,
+				E5175BE41E47B6E100485EDB /* WalletMode.png in Resources */,
+				E5175BE01E47B59900485EDB /* SimpleMode.png in Resources */,
 				E5EE62B21DF75B750089FE6F /* Main.storyboard in Resources */,
 				E5A35C411DFDCAD400E05D41 /* safari@2x.png in Resources */,
 				E5175BDC1E475AE700485EDB /* SettingsIcon.png in Resources */,
 				E5A35C431DFDCAD400E05D41 /* safari@3x.png in Resources */,
 				E5A35C2C1DFDC2A300E05D41 /* Scan@2x.png in Resources */,
+				E5175BEC1E47B9EB00485EDB /* TextMode.png in Resources */,
+				E5175BE51E47B6E100485EDB /* WalletMode@2x.png in Resources */,
 				E5A35C201DFDBB2700E05D41 /* FlashOff@2x.png in Resources */,
 				E5A35C241DFDBB2700E05D41 /* FlashOn@3x.png in Resources */,
 				E5A35C231DFDBB2700E05D41 /* FlashOn@2x.png in Resources */,
@@ -452,6 +483,7 @@
 				E5A35C441DFDCAD400E05D41 /* safari~iPad.png in Resources */,
 				E5A35C421DFDCAD400E05D41 /* safari@2x~iPad.png in Resources */,
 				E5A35C221DFDBB2700E05D41 /* FlashOn.png in Resources */,
+				E5175BE81E47B82400485EDB /* AdvMode.png in Resources */,
 				E5A35C401DFDCAD400E05D41 /* safari.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

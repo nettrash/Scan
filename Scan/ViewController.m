@@ -137,7 +137,8 @@
     self.device = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
     self.input = [AVCaptureDeviceInput deviceInputWithDevice:self.device error:nil];
     self.session = [[AVCaptureSession alloc] init];
-    
+    self.session.sessionPreset = AVCaptureSessionPresetPhoto;
+	
     self.output = [[AVCaptureMetadataOutput alloc] init];
     [self.session addOutput:self.output];
     [self.session addInput:self.input];
@@ -153,10 +154,13 @@
                                         AVMetadataObjectTypePDF417Code,
                                         AVMetadataObjectTypeQRCode,
                                         AVMetadataObjectTypeAztecCode];
-    
+	
+	CGRect bounds = self.view.layer.bounds;
     self.preview = [AVCaptureVideoPreviewLayer layerWithSession:self.session];
     self.preview.videoGravity = AVLayerVideoGravityResizeAspectFill;
-    self.preview.frame = CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height);
+	self.preview.bounds = bounds;
+	self.preview.position = CGPointMake(CGRectGetMidX(bounds), CGRectGetMidY(bounds));
+	self.preview.frame = self.view.frame;//CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height);
     
     AVCaptureConnection *con = self.preview.connection;
     

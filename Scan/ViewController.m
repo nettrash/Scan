@@ -108,25 +108,35 @@
     return UIInterfaceOrientationPortrait;
 }
 
-- (void)willRotateToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation
+- (void)viewWillTransitionToSize:(CGSize)size withTransitionCoordinator:(id<UIViewControllerTransitionCoordinator>)coordinator
 {
-    AVCaptureConnection *con = self.preview.connection;
-    switch (toInterfaceOrientation) {
-        case UIInterfaceOrientationLandscapeRight:
-            con.videoOrientation = AVCaptureVideoOrientationLandscapeRight;
-            break;
-        case UIInterfaceOrientationLandscapeLeft:
-            con.videoOrientation = AVCaptureVideoOrientationLandscapeLeft;
-            break;
-        case UIInterfaceOrientationPortrait:
-            con.videoOrientation = AVCaptureVideoOrientationPortrait;
-            break;
-        case UIInterfaceOrientationPortraitUpsideDown:
-            con.videoOrientation = AVCaptureVideoOrientationPortraitUpsideDown;
-            break;
-        default:
-            break;
-    }
+	[coordinator animateAlongsideTransition:^(id<UIViewControllerTransitionCoordinatorContext> context)
+	 {
+		 UIInterfaceOrientation orientation = [[UIApplication sharedApplication] statusBarOrientation];
+		 AVCaptureConnection *con = self.preview.connection;
+		 self.preview.frame = CGRectMake(0, 0, size.width, size.height);
+		 switch (orientation) {
+			 case UIInterfaceOrientationLandscapeRight:
+				 con.videoOrientation = AVCaptureVideoOrientationLandscapeRight;
+				 break;
+			 case UIInterfaceOrientationLandscapeLeft:
+				 con.videoOrientation = AVCaptureVideoOrientationLandscapeLeft;
+				 break;
+			 case UIInterfaceOrientationPortrait:
+				 con.videoOrientation = AVCaptureVideoOrientationPortrait;
+				 break;
+			 case UIInterfaceOrientationPortraitUpsideDown:
+				 con.videoOrientation = AVCaptureVideoOrientationPortraitUpsideDown;
+				 break;
+			 default:
+				 break;
+		 }
+	 } completion:^(id<UIViewControllerTransitionCoordinatorContext> context)
+	 {
+		 
+	 }];
+	
+	[super viewWillTransitionToSize:size withTransitionCoordinator:coordinator];
 }
 
 - (void)setupScanner

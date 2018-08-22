@@ -21,5 +21,8 @@
 - (BOOL)isST00011;
 - (BOOL)isST00012;
 - (BOOL)isPD4Nalog;
+- (BOOL)isBTC;
+- (BOOL)isBIO;
+- (BOOL)isSIB;
 
 @end

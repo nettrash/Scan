@@ -8,6 +8,7 @@
 
 #import "NSString+Checkers.h"
 #import "NSString+RegEx.h"
+#import "CryptoCurrency.h"
 
 @implementation NSString (Checkers)
 
@@ -81,6 +82,22 @@
 - (BOOL)isPD4Nalog
 {
     return [self hasPrefix:@"PD4Nalog|"];
+}
+
+- (BOOL)isBTC {
+	CryptoCurrency *cc = [[CryptoCurrency alloc] init];
+	return [cc isBTC:self];
+}
+
+- (BOOL)isBIO {
+	CryptoCurrency *cc = [[CryptoCurrency alloc] init];
+	return [cc isBIO:self];
+
+}
+
+- (BOOL)isSIB {
+	CryptoCurrency *cc = [[CryptoCurrency alloc] init];
+	return [cc isSIB:self];
 }
 
 @end

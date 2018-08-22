@@ -21,6 +21,7 @@
 		E5175BE91E47B82400485EDB /* AdvMode@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = E5175BE71E47B82400485EDB /* AdvMode@2x.png */; };
 		E5175BEC1E47B9EB00485EDB /* TextMode.png in Resources */ = {isa = PBXBuildFile; fileRef = E5175BEA1E47B9EB00485EDB /* TextMode.png */; };
 		E5175BED1E47B9EB00485EDB /* TextMode@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = E5175BEB1E47B9EB00485EDB /* TextMode@2x.png */; };
+		E517C93C212D2FEB005F7C09 /* CryptoCurrency.m in Sources */ = {isa = PBXBuildFile; fileRef = E517C93B212D2FEB005F7C09 /* CryptoCurrency.m */; };
 		E52A8BA11E09CC6B007FDC2F /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = E52A8BA31E09CC6B007FDC2F /* Localizable.strings */; };
 		E55D366F1E0863640089B1F4 /* Contacts.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E55D366D1E0863640089B1F4 /* Contacts.framework */; };
 		E55D36701E0863640089B1F4 /* ContactsUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E55D366E1E0863640089B1F4 /* ContactsUI.framework */; };
@@ -100,6 +101,8 @@
 		E5175BE71E47B82400485EDB /* AdvMode@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "AdvMode@2x.png"; sourceTree = "<group>"; };
 		E5175BEA1E47B9EB00485EDB /* TextMode.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = TextMode.png; sourceTree = "<group>"; };
 		E5175BEB1E47B9EB00485EDB /* TextMode@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "TextMode@2x.png"; sourceTree = "<group>"; };
+		E517C93B212D2FEB005F7C09 /* CryptoCurrency.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CryptoCurrency.m; sourceTree = "<group>"; };
+		E517C93D212D3024005F7C09 /* CryptoCurrency.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CryptoCurrency.h; sourceTree = "<group>"; };
 		E52A8BA01E09CC62007FDC2F /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/LaunchScreen.strings; sourceTree = "<group>"; };
 		E52A8BA21E09CC6B007FDC2F /* Base */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = Base; path = Base.lproj/Localizable.strings; sourceTree = "<group>"; };
 		E52A8BA41E09CC6D007FDC2F /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/Localizable.strings; sourceTree = "<group>"; };
@@ -305,6 +308,8 @@
 				E52A8BA31E09CC6B007FDC2F /* Localizable.strings */,
 				E5175BD31E472F6900485EDB /* WalletViewController.h */,
 				E5175BD41E472F6900485EDB /* WalletViewController.m */,
+				E517C93D212D3024005F7C09 /* CryptoCurrency.h */,
+				E517C93B212D2FEB005F7C09 /* CryptoCurrency.m */,
 			);
 			path = Scan;
 			sourceTree = "<group>";
@@ -403,6 +408,7 @@
 					E5EE62A31DF75B750089FE6F = {
 						CreatedOnToolsVersion = 8.1;
 						DevelopmentTeam = L3973VL47F;
+						LastSwiftMigration = 0940;
 						ProvisioningStyle = Automatic;
 						SystemCapabilities = {
 							com.apple.Wallet = {
@@ -516,6 +522,7 @@
 				E5E8F2A41DFD7AA100AB7810 /* WebViewController.m in Sources */,
 				E5EE62AC1DF75B750089FE6F /* AppDelegate.m in Sources */,
 				E5A35C471DFDEE2900E05D41 /* Field.m in Sources */,
+				E517C93C212D2FEB005F7C09 /* CryptoCurrency.m in Sources */,
 				E5EE62B51DF75B750089FE6F /* Scan.xcdatamodeld in Sources */,
 				E5A35C271DFDC07D00E05D41 /* AboutViewController.m in Sources */,
 				E5175BD51E472F6900485EDB /* WalletViewController.m in Sources */,
@@ -683,6 +690,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = Scan/Scan.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
@@ -693,6 +701,9 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
 				PROVISIONING_PROFILE_SPECIFIER = "";
+				SWIFT_OBJC_BRIDGING_HEADER = "Scan/Scan-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 3.0;
 				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
@@ -701,6 +712,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = Scan/Scan.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
@@ -711,6 +723,8 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
 				PROVISIONING_PROFILE_SPECIFIER = "";
+				SWIFT_OBJC_BRIDGING_HEADER = "Scan/Scan-Bridging-Header.h";
+				SWIFT_VERSION = 3.0;
 				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;

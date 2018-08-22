@@ -160,8 +160,57 @@
     if ([self.codeValue isURL]) {
         self.actionType = atURL;
         self.Url = [NSURL URLWithString:self.codeValue];
+		if ([self.Url.host isBTC]) {
+			self.Url = [NSURL URLWithString:[NSString stringWithFormat:@"https://blockexplorer.com/address/%@", self.Url.host]];
+			return;
+		}
+		if ([self.Url.host isBIO]) {
+			self.Url = [NSURL URLWithString:[NSString stringWithFormat:@"http://block-explorer.biocoin.bio/address/%@", self.Url.host]];
+			return;
+		}
+		if ([self.Url.host isSIB]) {
+			self.Url = [NSURL URLWithString:[NSString stringWithFormat:@"https://sibexplorer.com/address/%@", self.Url.host]];
+			return;
+		}
         return;
     }
+	//Проверяем на криптовалюты
+	if ([self.codeValue isBTC]) {
+		self.actionType = atURL;
+		self.Url = [NSURL URLWithString:[NSString stringWithFormat:@"https://blockexplorer.com/address/%@", self.codeValue]];
+		return;
+	}
+	if ([self.codeValue isBIO]) {
+		self.actionType = atURL;
+		self.Url = [NSURL URLWithString:[NSString stringWithFormat:@"http://block-explorer.biocoin.bio/address/%@", self.codeValue]];
+		return;
+	}
+	if ([self.codeValue isSIB]) {
+		self.actionType = atURL;
+		self.Url = [NSURL URLWithString:[NSString stringWithFormat:@"https://sibexplorer.com/address/%@", self.codeValue]];
+		return;
+	}
+	if ([[self.codeValue lowercaseString] hasPrefix:@"sibcoin:"] || [[self.codeValue lowercaseString] hasPrefix:@"biocoin:"] || [[self.codeValue lowercaseString] hasPrefix:@"bitcoin:"]) {
+		NSString *v = [self.codeValue stringByReplacingOccurrencesOfString:@"oin:" withString:@"oin://"];
+		if ([v isURL]) {
+			self.actionType = atURL;
+			self.Url = [NSURL URLWithString:v];
+			if ([self.Url.host isBTC]) {
+				self.Url = [NSURL URLWithString:[NSString stringWithFormat:@"https://blockexplorer.com/address/%@", self.Url.host]];
+				return;
+			}
+			if ([self.Url.host isBIO]) {
+				self.Url = [NSURL URLWithString:[NSString stringWithFormat:@"http://block-explorer.biocoin.bio/address/%@", self.Url.host]];
+				return;
+			}
+			if ([self.Url.host isSIB]) {
+				self.Url = [NSURL URLWithString:[NSString stringWithFormat:@"https://sibexplorer.com/address/%@", self.Url.host]];
+				return;
+			}
+			return;
+		}
+
+	}
 }
 
 - (void)processAztec

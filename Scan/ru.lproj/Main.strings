@@ -3,7 +3,7 @@
 "0KY-uY-h0X.text" = "NETTRASH.Scan";
 
 /* Class = "UITextView"; text = "Hover over the code and allow the camera to focus. Next, the system will do everything herself. It identifies the type of code and perform the action according to the type: open the search on the Internet, shows payment data will copy the code data, or create a new contact in your address book. Depending on the configuration will add the scanned code in the Wallet."; ObjectID = "3E6-P2-3hd"; */
-"3E6-P2-3hd.text" = "Наведите на код и дайте сфокусироваться камере. Далее система все сделает сама. Распознает тип кода и выполнит действие согласно типу: откроет поиск в интернет, покажет платёжные данные, даст скопировать данные кода или создаст новый контакт в адресной книге. При соответствующих настройках сможет добавить сканированный код в Кошелек.";
+"3E6-P2-3hd.text" = "Наведите на код и дайте сфокусироваться камере, далее система всё сделает сама. Распознает тип кода и выполнит действие согласно типу: откроет поиск в Интернет, покажет платёжные данные, даст скопировать данные кода или создаст новый контакт в адресной книге. При соответствующих настройках сможет добавить отсканированный код в Кошелёк.";
 
 /* Class = "UILabel"; text = "NETTRASH.Scan"; ObjectID = "AQ3-IE-28q"; */
 "AQ3-IE-28q.text" = "NETTRASH.Scan";
@@ -21,7 +21,7 @@
 "WDJ-op-dsG.text" = "Авторы:";
 
 /* Class = "UILabel"; text = "(c) 2017 NETTRASH Team"; ObjectID = "lud-nN-3oL"; */
-"lud-nN-3oL.text" = "(c) 2017 Команда NETTRASH";
+"lud-nN-3oL.text" = "(c) 2018 Команда NETTRASH";
 
 "AzZ-zy-cSJ.text" = "Значение:";
 

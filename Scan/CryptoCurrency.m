@@ -51,9 +51,11 @@
 -(BOOL)isBTC:(NSString *)addressString {
 	return [self verifyAddress:addressString] && ([addressString hasPrefix:@"1"] || [addressString hasPrefix:@"3"]);
 }
+
 -(BOOL)isBIO:(NSString *)addressString {
 	return [self verifyAddress:addressString] && [addressString hasPrefix:@"B"];
 }
+
 -(BOOL)isSIB:(NSString *)addressString {
 	return [self verifyAddress:addressString] && ([addressString hasPrefix:@"S"]);
 }

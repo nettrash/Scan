@@ -47,6 +47,7 @@
     [self.pvMode setHidden:YES];
     [self.lblInfo setText:NSLocalizedString(@"InfoText", @"InfoText")];
     [self.ivModeIcon setImage:[UIImage imageNamed:@"SimpleMode.png"]];
+	[self.pvMode setValue:[UIColor whiteColor] forKey:@"textColor"];
 }
 
 - (void)didReceiveMemoryWarning {
@@ -55,6 +56,7 @@
 
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
+	[self.pvMode setValue:[UIColor whiteColor] forKey:@"textColor"];
     [self refreshTorchStatus];
     [self beginWork];
 }
@@ -289,6 +291,7 @@
     BOOL bHighlighted = self.ivMode.highlighted;
     if (!bHighlighted) {
         [self.pvMode setHidden:NO];
+		[self.pvMode setValue:[UIColor whiteColor] forKey:@"textColor"];
     } else {
         [self.pvMode setHidden:YES];
     }
@@ -355,20 +358,20 @@
 
 #pragma mark - UIPickerViewDelegate
 
-- (nullable NSString *)pickerView:(UIPickerView *)pickerView titleForRow:(NSInteger)row forComponent:(NSInteger)component {
-    switch (row) {
-        case 0:
-            return NSLocalizedString(@"ModeSimple", @"ModeSimple");
-        case 1:
-            return NSLocalizedString(@"ModeWallet", @"ModeWallet");
-        case 2:
-            return NSLocalizedString(@"ModeAdv", @"ModeAdv");
-        case 3:
-            return NSLocalizedString(@"ModeText", @"ModeText");
-            
-        default:
-            return @"";
-    }
+- (NSAttributedString *)pickerView:(UIPickerView *)pickerView attributedTitleForRow:(NSInteger)row forComponent:(NSInteger)component
+{
+	switch (row) {
+		case 0:
+			return [[NSAttributedString alloc] initWithString:NSLocalizedString(@"ModeSimple", @"ModeSimple") attributes:@{NSForegroundColorAttributeName:[UIColor whiteColor]}];
+		case 1:
+			return [[NSAttributedString alloc] initWithString:NSLocalizedString(@"ModeWallet", @"ModeWallet") attributes:@{NSForegroundColorAttributeName:[UIColor whiteColor]}];
+		case 2:
+			return [[NSAttributedString alloc] initWithString:NSLocalizedString(@"ModeAdv", @"ModeAdv") attributes:@{NSForegroundColorAttributeName:[UIColor whiteColor]}];
+		case 3:
+			return [[NSAttributedString alloc] initWithString:NSLocalizedString(@"ModeText", @"ModeText") attributes:@{NSForegroundColorAttributeName:[UIColor whiteColor]}];
+		default:
+			return [[NSAttributedString alloc] initWithString:@"" attributes:@{NSForegroundColorAttributeName:[UIColor whiteColor]}];
+	}
 }
 
 - (void)pickerView:(UIPickerView *)pickerView didSelectRow:(NSInteger)row inComponent:(NSInteger)component {

@@ -380,6 +380,9 @@
         default:
             break;
     }
+	[cell setBackgroundColor:[UIColor blackColor]];
+	[cell.textLabel setTextColor:[UIColor colorWithRed:238.0/255.0 green:238.0/255.0 blue:238.0/255.0 alpha:1]];
+	[cell.detailTextLabel setTextColor:[UIColor colorWithRed:238.0/255.0 green:238.0/255.0 blue:238.0/255.0 alpha:1]];
     return cell;
     
 }

@@ -211,6 +211,43 @@
 		}
 
 	}
+	//Проверяем на код ФНС
+	if ([self.codeValue isFiscalDocumentLink]) {
+		self.actionType = atFiscalDocumentLink;
+		
+		self.Fields = [[NSMutableArray alloc] initWithCapacity:0];
+		
+		for (NSString *param in [self.codeValue componentsSeparatedByString:@"&"]) {
+			NSArray *elts = [param componentsSeparatedByString:@"="];
+			if([elts count] < 2) continue;
+			NSString *paramName = [[elts firstObject] lowercaseString];
+			NSString *paramValue = [elts lastObject];
+			if ([paramName isEqualToString:@"t"]) { //Дата и вемя
+				NSString *year = [paramValue substringWithRange:NSMakeRange(0, 4)];
+				NSString *month = [paramValue substringWithRange:NSMakeRange(4, 2)];
+				NSString *day = [paramValue substringWithRange:NSMakeRange(6, 2)];
+				NSString *hours = [paramValue substringWithRange:NSMakeRange(9, 2)];
+				NSString *minutes = [paramValue substringWithRange:NSMakeRange(11, 2)];
+				[self.Fields addObject:[Field fieldWithName:NSLocalizedString(@"FNS_FD_T", @"FNS_FD_T") andValue:[NSString stringWithFormat:@"%@-%@-%@ %@:%@", year, month, day, hours, minutes]]];
+			}
+			if ([paramName isEqualToString:@"s"]) { //Итого
+				[self.Fields addObject:[Field fieldWithName:NSLocalizedString(@"FNS_FD_S", @"FNS_FD_S") andValue:[NSString stringWithFormat:@"%@ ₽", paramValue]]];
+			}
+			if ([paramName isEqualToString:@"fn"]) { //ФН №
+				[self.Fields addObject:[Field fieldWithName:NSLocalizedString(@"FNS_FD_FN", @"FNS_FD_FN") andValue:paramValue]];
+			}
+			if ([paramName isEqualToString:@"i"]) { //ФД №
+				[self.Fields addObject:[Field fieldWithName:NSLocalizedString(@"FNS_FD_I", @"FNS_FD_I") andValue:paramValue]];
+			}
+			if ([paramName isEqualToString:@"fp"]) { //ФПД
+				[self.Fields addObject:[Field fieldWithName:NSLocalizedString(@"FNS_FD_FP", @"FNS_FD_FP") andValue:paramValue]];
+			}
+			/*if ([paramName isEqualToString:@"n"]) { // --
+				[self.Fields addObject:[Field fieldWithName:NSLocalizedString(@"FNS_FD_N", @"FNS_FD_N") andValue:paramValue]];
+			}*/
+		}
+		return;
+	}
 }
 
 - (void)processAztec

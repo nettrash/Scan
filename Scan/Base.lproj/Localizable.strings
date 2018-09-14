@@ -43,6 +43,8 @@
 "Open in Safari" = "Open in Safari";
 "CODE CARD" = "CODE CARD";
 "Pay" = "Pay";
+"CheckReceiptExists" = "Check receipt";
+"GetReceipt" = "Get receipt";
 "Open" = "Open";
 "View" = "View";
 "Search" = "Search";
@@ -53,12 +55,14 @@
 "Value Type" = "Value Type";
 "VCard" = "VCard";
 "Payment" = "Payment";
+"FiscalDocumentLink" = "Fiscal Document";
 "URL" = "URL";
 "Goods" = "Goods";
 "Unknown" = "Unknown";
 "Value" = "Value";
 "Code Info" = "Code Info";
 "Payment fields" = "Payment fields";
+"Fiscal Document fields" = "Fiscal Document fields";
 "Actions" = "Actions";
 "CODE VALUE" = "CODE VALUE";
 "InfoText" = "Hover over the code and allow the camera to focus. Next, the system will do everything herself. It identifies the type of code and perform the action according to the type: open the search on the Internet, shows payment data will copy the code data, or create a new contact in your address book. Depending on the configuration will add the scanned code in the Wallet.";
@@ -69,3 +73,12 @@
 "AddToWallet" = "Add To Wallet";
 "Some Shop Card" = "Some Shop Card";
 "WalletCardDescription" = "This card added by NETTRASH.Scan";
+"FNS_FD_T" = "Date & time";
+"FNS_FD_S" = "Sum";
+"FNS_FD_FN" = "FS №";
+"FNS_FD_I" = "FD №";
+"FNS_FD_FP" = "FSIGN";
+"Check Receipt" = "Check receipt";
+"Receipt not exists" = "Receipt not found.";
+"Receipt exists" = "Receipt found!";
+"Receipt find error" = "Error find receipt";

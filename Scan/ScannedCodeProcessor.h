@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 
-typedef enum { atVCard, atPayment, atURL, atGoods, atUnknown } ScanResultActionType;
+typedef enum { atVCard, atPayment, atURL, atGoods, atFiscalDocumentLink, atUnknown } ScanResultActionType;
 
 @interface ScannedCodeProcessor : NSObject
 

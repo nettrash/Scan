@@ -247,6 +247,10 @@
             [self performSegueWithIdentifier:@"Card" sender:scp];
             break;
         }
+		case atFiscalDocumentLink: {
+			[self performSegueWithIdentifier:@"Card" sender:scp];
+			break;
+		}
         case atGoods: {
             [self performSelector:@selector(openURL:) withObject:scp.Url afterDelay:.1];
             //[[UIApplication sharedApplication] openURL:scp.Url options:@{} completionHandler:nil];

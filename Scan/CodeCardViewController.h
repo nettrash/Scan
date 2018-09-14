@@ -9,6 +9,8 @@
 #import <UIKit/UIKit.h>
 #import "ScannedCodeProcessor.h"
 
+typedef enum { found, notfound, finderror } ReceiptFindResultType;
+
 @interface CodeCardViewController : UITableViewController <UITableViewDelegate, UITableViewDataSource>
 
 @property (nonatomic, retain) ScannedCodeProcessor *CodeProcessor;

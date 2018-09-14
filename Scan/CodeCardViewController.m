@@ -44,7 +44,7 @@
         [(TextViewController *)[segue destinationViewController] setCodeText:(NSString *)sender];
     }
     if ([segue.identifier isEqualToString:@"Wallet"]) {
-        [(WalletViewController *)[segue destinationViewController] setCodeProcessor:(NSString *)sender];
+        [(WalletViewController *)[segue destinationViewController] setCodeProcessor:(ScannedCodeProcessor *)sender];
     }
 }
 
@@ -60,9 +60,11 @@
             
         case 1:
             switch (self.CodeProcessor.actionType) {
-                case atPayment:
-                    return;
-                    
+				case atPayment:
+					return;
+				case atFiscalDocumentLink:
+					return;
+
                 default:
                     break;
             }
@@ -75,12 +77,96 @@
     }
     
     switch (self.CodeProcessor.actionType) {
-        case atPayment: {
-            // Goto web tinkoff.ru
-            [[UIApplication sharedApplication] openURL:self.CodeProcessor.Url options:@{} completionHandler:nil];
-            //[self performSegueWithIdentifier:@"Web" sender:url];
-            break;
-        }
+		case atPayment: {
+			// Goto web tinkoff.ru
+			[[UIApplication sharedApplication] openURL:self.CodeProcessor.Url options:@{} completionHandler:nil];
+			//[self performSegueWithIdentifier:@"Web" sender:url];
+			break;
+		}
+		case atFiscalDocumentLink: {
+			switch (indexPath.row) {
+				case 0: //Check
+					switch ([self checkReceiptExists]) {
+						case found: {
+							NSLog(@"Exists");
+							UIAlertController *alert = [UIAlertController alertControllerWithTitle:NSLocalizedString(@"Check Receipt", @"Check Receipt") message:NSLocalizedString(@"Receipt exists", @"Receipt exists") preferredStyle:UIAlertControllerStyleActionSheet];
+							
+							UIAlertAction* defaultAction = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault
+																				  handler:^(UIAlertAction * action) {}];
+							
+							[alert addAction:defaultAction];
+							
+							[self presentViewController:alert animated:YES completion:nil];
+							break;
+						}
+						case notfound: {
+							NSLog(@"Not Exists");
+							UIAlertController *alert = [UIAlertController alertControllerWithTitle:NSLocalizedString(@"Check Receipt", @"Check Receipt") message:NSLocalizedString(@"Receipt not exists", @"Receipt not exists") preferredStyle:UIAlertControllerStyleActionSheet];
+							
+							UIAlertAction* defaultAction = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault
+																				  handler:^(UIAlertAction * action) {}];
+							
+							[alert addAction:defaultAction];
+							
+							[self presentViewController:alert animated:YES completion:nil];
+							break;
+						}
+						case finderror: {
+							NSLog(@"Not Exists");
+							UIAlertController *alert = [UIAlertController alertControllerWithTitle:NSLocalizedString(@"Check Receipt", @"Check Receipt") message:NSLocalizedString(@"Receipt find error", @"Receipt find error") preferredStyle:UIAlertControllerStyleActionSheet];
+							
+							UIAlertAction* defaultAction = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault
+																				  handler:^(UIAlertAction * action) {}];
+							
+							[alert addAction:defaultAction];
+							
+							[self presentViewController:alert animated:YES completion:nil];
+							break;
+						}
+						default:
+							break;
+					}
+					break;
+				case 1: //Get
+					switch ([self checkReceiptExists]) {
+						case found: {
+							NSLog(@"Exists");
+							break;
+						}
+						case notfound: {
+							NSLog(@"Not Exists");
+							UIAlertController *alert = [UIAlertController alertControllerWithTitle:NSLocalizedString(@"Check Receipt", @"Check Receipt") message:NSLocalizedString(@"Receipt not exists", @"Receipt not exists") preferredStyle:UIAlertControllerStyleActionSheet];
+							
+							UIAlertAction* defaultAction = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault
+																				  handler:^(UIAlertAction * action) {}];
+							
+							[alert addAction:defaultAction];
+							
+							[self presentViewController:alert animated:YES completion:nil];
+							break;
+						}
+						case finderror: {
+							NSLog(@"Not Exists");
+							UIAlertController *alert = [UIAlertController alertControllerWithTitle:NSLocalizedString(@"Check Receipt", @"Check Receipt") message:NSLocalizedString(@"Receipt find error", @"Receipt find error") preferredStyle:UIAlertControllerStyleActionSheet];
+							
+							UIAlertAction* defaultAction = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault
+																				  handler:^(UIAlertAction * action) {}];
+							
+							[alert addAction:defaultAction];
+							
+							[self presentViewController:alert animated:YES completion:nil];
+							break;
+						}
+						default:
+							break;
+					}
+					break;
+
+				default:
+					break;
+			}
+			break;
+		}
         case atURL: {
             switch (indexPath.row) {
                 case 0: {
@@ -137,9 +223,9 @@
             }
             break;
         }
-        case atVCard: {
-            break;
-        }
+		case atVCard: {
+			break;
+		}
         case atUnknown: {
             switch (indexPath.row) {
                 case 0:
@@ -168,21 +254,23 @@
 #pragma mark UITableViewDataSource
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
-    if (self.CodeProcessor.actionType == atPayment)
+    if (self.CodeProcessor.actionType == atPayment || self.CodeProcessor.actionType == atFiscalDocumentLink)
         return 3;
     return 2;
 }
 
 - (NSInteger)actionRows {
     switch (self.CodeProcessor.actionType) {
-        case atPayment:
-            return 1;
+		case atPayment:
+			return 1;
+		case atFiscalDocumentLink:
+			return 2;
         case atURL:
             return 2;
         case atGoods:
             return 5;
         case atVCard:
-            return 1;
+            return 0;
         case atUnknown:
             return 3;
         default:
@@ -199,6 +287,23 @@
             cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
             break;
         }
+		case atFiscalDocumentLink: {
+			switch (indexPath.row) {
+				case 0: {
+					cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:@"ActionCell"];
+					[cell.textLabel setText:NSLocalizedString(@"CheckReceiptExists", @"CheckReceiptExists")];
+					cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
+					break;
+				}
+				case 1: {
+					cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:@"ActionCell"];
+					[cell.textLabel setText:NSLocalizedString(@"GetReceipt", @"GetReceipt")];
+					cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
+					break;
+				}
+			}
+			break;
+		}
         case atURL: {
             switch (indexPath.row) {
                 case 0: {
@@ -247,9 +352,9 @@
             }
             break;
         }
-        case atVCard: {
-            break;
-        }
+		case atVCard: {
+			break;
+		}
         case atUnknown: {
             switch (indexPath.row) {
                 case 0:
@@ -285,9 +390,11 @@
 
         case 1:
             switch (self.CodeProcessor.actionType) {
-                case atPayment:
-                    return [self.CodeProcessor.Fields count];
-                    
+				case atPayment:
+					return [self.CodeProcessor.Fields count];
+				case atFiscalDocumentLink:
+					return [self.CodeProcessor.Fields count];
+
                 default:
                     return [self actionRows];
             }
@@ -322,11 +429,15 @@
                         case atVCard:
                             [cell.textLabel setText:NSLocalizedString(@"VCard", @"VCard")];
                             break;
-                        
-                        case atPayment:
-                            [cell.textLabel setText:NSLocalizedString(@"Payment", @"Payment")];
-                            break;
-                            
+							
+						case atPayment:
+							[cell.textLabel setText:NSLocalizedString(@"Payment", @"Payment")];
+							break;
+							
+						case atFiscalDocumentLink:
+							[cell.textLabel setText:NSLocalizedString(@"FiscalDocumentLink", @"FiscalDocumentLink")];
+							break;
+
                         case atURL:
                             [cell.textLabel setText:NSLocalizedString(@"URL", @"URL")];
                             break;
@@ -356,12 +467,18 @@
         }
         case 1: {
             switch (self.CodeProcessor.actionType) {
-                case atPayment: {
-                    Field *f = (Field *)[self.CodeProcessor.Fields objectAtIndex:indexPath.row];
-                    [cell.detailTextLabel setText:[f Name]];
-                    [cell.textLabel setText:[f Value]];
-                    break;
-                }
+				case atPayment: {
+					Field *f = (Field *)[self.CodeProcessor.Fields objectAtIndex:indexPath.row];
+					[cell.detailTextLabel setText:[f Name]];
+					[cell.textLabel setText:[f Value]];
+					break;
+				}
+				case atFiscalDocumentLink: {
+					Field *f = (Field *)[self.CodeProcessor.Fields objectAtIndex:indexPath.row];
+					[cell.detailTextLabel setText:[f Name]];
+					[cell.textLabel setText:[f Value]];
+					break;
+				}
                 default: {
                     cell = [self actionCell:indexPath];
                     break;
@@ -393,8 +510,10 @@
             return NSLocalizedString(@"Code Info", @"Code Info");
         case 1:
             switch (self.CodeProcessor.actionType) {
-                case atPayment:
-                    return NSLocalizedString(@"Payment fields", @"Payment fields");
+				case atPayment:
+					return NSLocalizedString(@"Payment fields", @"Payment fields");
+				case atFiscalDocumentLink:
+					return NSLocalizedString(@"Fiscal Document fields", @"Fiscal Document fields");
                 default:
                     return NSLocalizedString(@"Actions", @"Actions");
             }
@@ -407,6 +526,92 @@
 
 - (nullable NSString *)tableView:(UITableView *)tableView titleForFooterInSection:(NSInteger)section {
     return @"";
+}
+
+#pragma mark Receipts
+
+- (ReceiptFindResultType)checkReceiptExists {
+	NSString *t = @"";
+	NSString *s = @"";
+	NSString *fn = @"";
+	NSString *i = @"";
+	NSString *fp = @"";
+	NSString *n = @"";
+	
+	for (NSString *param in [self.CodeProcessor.codeValue componentsSeparatedByString:@"&"]) {
+		NSArray *elts = [param componentsSeparatedByString:@"="];
+		if([elts count] < 2) continue;
+		NSString *paramName = [[elts firstObject] lowercaseString];
+		NSString *paramValue = [elts lastObject];
+		if ([[paramName lowercaseString] isEqualToString:@"t"]) {
+			NSString *year = [paramValue substringWithRange:NSMakeRange(0, 4)];
+			NSString *month = [paramValue substringWithRange:NSMakeRange(4, 2)];
+			NSString *day = [paramValue substringWithRange:NSMakeRange(6, 2)];
+			NSString *hours = [paramValue substringWithRange:NSMakeRange(9, 2)];
+			NSString *minutes = [paramValue substringWithRange:NSMakeRange(11, 2)];
+			t = [NSString stringWithFormat:@"%@-%@-%@T%@:%@:00", year, month, day, hours, minutes];
+		}
+		if ([[paramName lowercaseString] isEqualToString:@"s"]) {
+			s = [paramValue stringByReplacingOccurrencesOfString:@"." withString:@""];
+		}
+		if ([[paramName lowercaseString] isEqualToString:@"fn"]) {
+			fn = paramValue;
+		}
+		if ([[paramName lowercaseString] isEqualToString:@"i"]) {
+			i = paramValue;
+		}
+		if ([[paramName lowercaseString] isEqualToString:@"fp"]) {
+			fp = paramValue;
+		}
+		if ([[paramName lowercaseString] isEqualToString:@"n"]) {
+			n = paramValue;
+		}
+	}
+	NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"https://proverkacheka.nalog.ru:9999/v1/ofds/*/inns/*/fss/%@/operations/%@/tickets/%@?fiscalSign=%@&date=%@&sum=%@", fn, n, i, fp, t, s]];
+	
+	NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
+	[request setHTTPMethod:@"GET"];
+	[request setURL:url];
+	
+	__block ReceiptFindResultType checkResult = notfound;
+	
+	dispatch_semaphore_t _Nonnull semaphore = dispatch_semaphore_create(0);
+	NSURLSessionConfiguration *sessionConfiguration = [NSURLSessionConfiguration defaultSessionConfiguration];
+	sessionConfiguration.HTTPAdditionalHeaders = @{
+												   @"Authorization": @"Basic bG9naW46cGFzc3dvcmQ=",
+												   @"Device-Id": [[[UIDevice currentDevice] identifierForVendor] UUIDString],
+												   @"Device-OS": [[UIDevice currentDevice] systemVersion],
+												   @"Version": @"2",
+												   @"ClientVersion": @"1.4.4.1",
+												   @"User-Agent": @"okhttp/3.0.1",
+												   @"Accept-Encoding": @"gzip"
+												   //@"Content-Type": @"application/json; charset=UTF-8"
+												   };
+	NSURLSession *session = [NSURLSession sessionWithConfiguration:sessionConfiguration];
+	
+	[[session dataTaskWithRequest:request completionHandler:
+	  ^(NSData * _Nullable data,
+		NSURLResponse * _Nullable response,
+		NSError * _Nullable error) {
+		  
+		  NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse *)response;
+		  if (httpResponse) {
+			  if (httpResponse.statusCode == 204) {
+			  	checkResult = found;
+		  	}
+			  if (httpResponse.statusCode == -1005) {
+			  	checkResult = finderror;
+		  	}
+		  } else {
+			  checkResult = finderror;
+		  }
+		  dispatch_semaphore_signal(semaphore);
+		  
+	  }] resume];
+	
+	dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
+	
+	return checkResult;
 }
 
 @end

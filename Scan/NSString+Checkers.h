@@ -24,5 +24,6 @@
 - (BOOL)isBTC;
 - (BOOL)isBIO;
 - (BOOL)isSIB;
+- (BOOL)isFiscalDocumentLink;
 
 @end

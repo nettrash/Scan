@@ -100,4 +100,8 @@
 	return [cc isSIB:self];
 }
 
+- (BOOL)isFiscalDocumentLink {
+	return [self containsString:@"t="] && [self containsString:@"s="] && [self containsString:@"fn="] && [self containsString:@"i="] && [self containsString:@"fp="] && [self containsString:@"n="];
+}
+
 @end

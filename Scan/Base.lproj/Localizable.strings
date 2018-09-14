@@ -82,3 +82,5 @@
 "Receipt not exists" = "Receipt not found.";
 "Receipt exists" = "Receipt found!";
 "Receipt find error" = "Error find receipt";
+"Error get receipt" = "Error get receipt";
+"Receipt data is empty" = "Receipt data is empty";

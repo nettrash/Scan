@@ -131,6 +131,8 @@
 					switch ([self checkReceiptExists]) {
 						case found: {
 							NSLog(@"Exists");
+							NSString *receipt = [self receiptGet];
+							[self performSegueWithIdentifier:@"Text" sender:receipt];
 							break;
 						}
 						case notfound: {
@@ -578,7 +580,7 @@
 	dispatch_semaphore_t _Nonnull semaphore = dispatch_semaphore_create(0);
 	NSURLSessionConfiguration *sessionConfiguration = [NSURLSessionConfiguration defaultSessionConfiguration];
 	sessionConfiguration.HTTPAdditionalHeaders = @{
-												   @"Authorization": @"Basic bG9naW46cGFzc3dvcmQ=",
+												   @"Authorization": @"Basic Nzk2NTI0OTIxNTU6NTc3NzY5",
 												   @"Device-Id": [[[UIDevice currentDevice] identifierForVendor] UUIDString],
 												   @"Device-OS": [[UIDevice currentDevice] systemVersion],
 												   @"Version": @"2",
@@ -597,13 +599,98 @@
 		  NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse *)response;
 		  if (httpResponse) {
 			  if (httpResponse.statusCode == 204) {
-			  	checkResult = found;
-		  	}
+				  checkResult = found;
+			  }
 			  if (httpResponse.statusCode == -1005) {
-			  	checkResult = finderror;
-		  	}
+				  checkResult = finderror;
+			  }
 		  } else {
 			  checkResult = finderror;
+		  }
+		  dispatch_semaphore_signal(semaphore);
+		  
+	  }] resume];
+	
+	dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
+	
+	return checkResult;
+}
+
+- (NSString *)receiptGet {
+	NSString *t = @"";
+	NSString *s = @"";
+	NSString *fn = @"";
+	NSString *i = @"";
+	NSString *fp = @"";
+	NSString *n = @"";
+	
+	for (NSString *param in [self.CodeProcessor.codeValue componentsSeparatedByString:@"&"]) {
+		NSArray *elts = [param componentsSeparatedByString:@"="];
+		if([elts count] < 2) continue;
+		NSString *paramName = [[elts firstObject] lowercaseString];
+		NSString *paramValue = [elts lastObject];
+		if ([[paramName lowercaseString] isEqualToString:@"t"]) {
+			NSString *year = [paramValue substringWithRange:NSMakeRange(0, 4)];
+			NSString *month = [paramValue substringWithRange:NSMakeRange(4, 2)];
+			NSString *day = [paramValue substringWithRange:NSMakeRange(6, 2)];
+			NSString *hours = [paramValue substringWithRange:NSMakeRange(9, 2)];
+			NSString *minutes = [paramValue substringWithRange:NSMakeRange(11, 2)];
+			t = [NSString stringWithFormat:@"%@-%@-%@T%@:%@:00", year, month, day, hours, minutes];
+		}
+		if ([[paramName lowercaseString] isEqualToString:@"s"]) {
+			s = [paramValue stringByReplacingOccurrencesOfString:@"." withString:@""];
+		}
+		if ([[paramName lowercaseString] isEqualToString:@"fn"]) {
+			fn = paramValue;
+		}
+		if ([[paramName lowercaseString] isEqualToString:@"i"]) {
+			i = paramValue;
+		}
+		if ([[paramName lowercaseString] isEqualToString:@"fp"]) {
+			fp = paramValue;
+		}
+		if ([[paramName lowercaseString] isEqualToString:@"n"]) {
+			n = paramValue;
+		}
+	}
+	NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"https://proverkacheka.nalog.ru:9999/v1/inns/*/kkts/*/fss/%@/tickets/%@?fiscalSign=%@&sendToEmail=no", fn, i, fp]];
+	
+	NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
+	[request setHTTPMethod:@"GET"];
+	[request setURL:url];
+	
+	__block NSString *checkResult = @"";
+	
+	dispatch_semaphore_t _Nonnull semaphore = dispatch_semaphore_create(0);
+	NSURLSessionConfiguration *sessionConfiguration = [NSURLSessionConfiguration defaultSessionConfiguration];
+	sessionConfiguration.HTTPAdditionalHeaders = @{
+												   @"Authorization": @"Basic Kzc5NjUyNDkyMTU1OjU3Nzc2OQ==",
+												   @"Device-Id": [[[UIDevice currentDevice] identifierForVendor] UUIDString],
+												   @"Device-OS": [[UIDevice currentDevice] systemVersion],
+												   @"Version": @"2",
+												   @"ClientVersion": @"1.4.4.1",
+												   @"User-Agent": @"okhttp/3.0.1"
+												   //@"Accept-Encoding": @"gzip"
+												   //@"Content-Type": @"application/json; charset=UTF-8"
+												   };
+	NSURLSession *session = [NSURLSession sessionWithConfiguration:sessionConfiguration];
+	
+	[[session dataTaskWithRequest:request completionHandler:
+	  ^(NSData * _Nullable data,
+		NSURLResponse * _Nullable response,
+		NSError * _Nullable error) {
+		  
+		  NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse *)response;
+		  if (httpResponse) {
+			  NSLog(@"%li", (long)httpResponse.statusCode);
+			  if (httpResponse.statusCode == 200) {
+				  checkResult = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+			  }
+			  if (httpResponse.statusCode == -1005) {
+				  checkResult = NSLocalizedString(@"Error get receipt", @"Error get receipt");
+			  }
+		  } else {
+			  checkResult = NSLocalizedString(@"Receipt data is empty", @"Receipt data is empty");
 		  }
 		  dispatch_semaphore_signal(semaphore);
 		  

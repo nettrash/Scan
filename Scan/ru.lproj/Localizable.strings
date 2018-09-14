@@ -81,3 +81,5 @@
 "Receipt not exists" = "Чек не найден";
 "Receipt exists" = "Чек существует";
 "Receipt find error" = "Ошибка при проверке существования чека";
+"Error get receipt" = "Ошибка получения чека";
+"Receipt data is empty" = "Данные чека пока пустые. Попробуйте запросить чуть позже.";

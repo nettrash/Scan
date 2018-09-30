@@ -37,27 +37,33 @@
 }
 
 -(BOOL)verifyAddress:(NSString *)addressString {
-	unsigned char bytes[32];
-	NSData *unbased = [self decodeBase58:[addressString cStringUsingEncoding:NSASCIIStringEncoding] bytes:bytes];
-	if (unbased != nil) {
-		NSData *doubleSha = [self sha256:[unbased subdataWithRange:NSMakeRange(0, 21)]];
-		NSData *first4 = [doubleSha subdataWithRange:NSMakeRange(0, 4)];
-		NSData *last4 = [unbased subdataWithRange:NSMakeRange([unbased length]-4,4)];
-		return [first4 isEqualToData:last4];
+	if ([addressString length] < 26 && [addressString length] > 35) return NO;
+	@try {
+		unsigned char bytes[32];
+		NSData *unbased = [self decodeBase58:[addressString cStringUsingEncoding:NSASCIIStringEncoding] bytes:bytes];
+		if (unbased != nil) {
+			NSData *doubleSha = [self sha256:[unbased subdataWithRange:NSMakeRange(0, 21)]];
+			NSData *first4 = [doubleSha subdataWithRange:NSMakeRange(0, 4)];
+			NSData *last4 = [unbased subdataWithRange:NSMakeRange([unbased length]-4,4)];
+			return [first4 isEqualToData:last4];
+		}
+		return false;
+	} @catch (NSException *exception) {
+		return false;
+	} @finally {
 	}
-	return false;
 }
 
 -(BOOL)isBTC:(NSString *)addressString {
-	return [self verifyAddress:addressString] && ([addressString hasPrefix:@"1"] || [addressString hasPrefix:@"3"]);
+	return  ([addressString hasPrefix:@"1"] || [addressString hasPrefix:@"3"]) && [self verifyAddress:addressString];
 }
 
 -(BOOL)isBIO:(NSString *)addressString {
-	return [self verifyAddress:addressString] && [addressString hasPrefix:@"B"];
+	return [addressString hasPrefix:@"B"] && [self verifyAddress:addressString];
 }
 
 -(BOOL)isSIB:(NSString *)addressString {
-	return [self verifyAddress:addressString] && ([addressString hasPrefix:@"S"]);
+	return ([addressString hasPrefix:@"S"]) && [self verifyAddress:addressString];
 }
 
 - (NSData *)sha256:(NSData *)data {

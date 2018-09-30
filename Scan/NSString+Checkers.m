@@ -85,23 +85,42 @@
 }
 
 - (BOOL)isBTC {
-	CryptoCurrency *cc = [[CryptoCurrency alloc] init];
-	return [cc isBTC:self];
+	@try {
+		CryptoCurrency *cc = [[CryptoCurrency alloc] init];
+		return [cc isBTC:self];
+	} @catch (NSException *exception) {
+		return NO;
+	} @finally {
+	}
 }
 
 - (BOOL)isBIO {
-	CryptoCurrency *cc = [[CryptoCurrency alloc] init];
-	return [cc isBIO:self];
-
+	@try {
+		CryptoCurrency *cc = [[CryptoCurrency alloc] init];
+		return [cc isBIO:self];
+	} @catch (NSException *exception) {
+		return NO;
+	} @finally {
+	}
 }
 
 - (BOOL)isSIB {
-	CryptoCurrency *cc = [[CryptoCurrency alloc] init];
-	return [cc isSIB:self];
+	@try {
+		CryptoCurrency *cc = [[CryptoCurrency alloc] init];
+		return [cc isSIB:self];
+	} @catch (NSException *exception) {
+		return NO;
+	} @finally {
+	}
 }
 
 - (BOOL)isFiscalDocumentLink {
-	return [self containsString:@"t="] && [self containsString:@"s="] && [self containsString:@"fn="] && [self containsString:@"i="] && [self containsString:@"fp="] && [self containsString:@"n="];
+	@try {
+		return [self containsString:@"t="] && [self containsString:@"s="] && [self containsString:@"fn="] && [self containsString:@"i="] && [self containsString:@"fp="] && [self containsString:@"n="];
+	} @catch (NSException *exception) {
+		return NO;
+	} @finally {
+	}
 }
 
 @end

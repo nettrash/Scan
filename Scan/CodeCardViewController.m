@@ -131,7 +131,7 @@
 					switch ([self checkReceiptExists]) {
 						case found: {
 							NSLog(@"Exists");
-							NSString *receipt = [self receiptGet];
+							NSString *receipt = [self receiptGet:0];
 							[self performSegueWithIdentifier:@"Text" sender:receipt];
 							break;
 						}
@@ -616,7 +616,7 @@
 	return checkResult;
 }
 
-- (NSString *)receiptGet {
+- (NSString *)receiptGet:(int)iteration {
 	NSString *t = @"";
 	NSString *s = @"";
 	NSString *fn = @"";
@@ -685,6 +685,13 @@
 			  NSLog(@"%li", (long)httpResponse.statusCode);
 			  if (httpResponse.statusCode == 200) {
 				  checkResult = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+				  if (!checkResult || [checkResult isEqualToString:@""]) {
+					  if (iteration == 0) {
+						  [self receiptGet:1];
+					  } else {
+						  checkResult = NSLocalizedString(@"Receipt getting error. Please try again.", @"Receipt getting error. Please try again.");
+					  }
+				  }
 			  }
 			  if (httpResponse.statusCode == -1005) {
 				  checkResult = NSLocalizedString(@"Error get receipt", @"Error get receipt");

@@ -84,3 +84,4 @@
 "Receipt find error" = "Error find receipt";
 "Error get receipt" = "Error get receipt";
 "Receipt data is empty" = "Receipt data is empty";
+"Receipt getting error. Please try again." = "Receipt data is empty. Please try again.";

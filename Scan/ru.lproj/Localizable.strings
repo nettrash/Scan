@@ -83,3 +83,4 @@
 "Receipt find error" = "Ошибка при проверке существования чека";
 "Error get receipt" = "Ошибка получения чека";
 "Receipt data is empty" = "Данные чека пока пустые. Попробуйте запросить чуть позже.";
+"Receipt getting error. Please try again." = "Данные чека еще формируются. Попробуйте ещё раз.";

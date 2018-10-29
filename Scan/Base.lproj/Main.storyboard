@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="14113" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="BYZ-38-t0r">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="14313.18" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="BYZ-38-t0r">
     <device id="retina5_9" orientation="portrait">
         <adaptation id="fullscreen"/>
     </device>
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="14088"/>
-        <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="14283.14"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
@@ -86,7 +85,7 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <textView clipsSubviews="YES" multipleTouchEnabled="YES" userInteractionEnabled="NO" alpha="0.45000000000000001" contentMode="scaleToFill" scrollEnabled="NO" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" editable="NO" textAlignment="center" adjustsFontForContentSizeCategory="YES" selectable="NO" translatesAutoresizingMaskIntoConstraints="NO" id="3E6-P2-3hd">
-                                <rect key="frame" x="0.0" y="119" width="375" height="190"/>
+                                <rect key="frame" x="0.0" y="118.66666666666669" width="375" height="190"/>
                                 <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="190" id="hRw-sJ-xDV"/>
@@ -243,6 +242,7 @@
                         <segue destination="0Ep-wP-dAC" kind="presentation" identifier="Web" customClass="PushSegue" id="o5L-el-r6n"/>
                         <segue destination="b65-Cg-TYW" kind="presentation" identifier="Text" customClass="PushSegue" id="Scs-NN-1Aa"/>
                         <segue destination="a3l-Kh-2ii" kind="presentation" identifier="Wallet" customClass="PushSegue" id="l3f-cK-hZz"/>
+                        <segue destination="yaP-9F-iOr" kind="presentation" identifier="Receipt" customClass="PushSegue" id="BE5-m9-BQf"/>
                     </connections>
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="rJJ-qF-pXb" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -310,6 +310,24 @@
             </objects>
             <point key="canvasLocation" x="2801" y="37"/>
         </scene>
+        <!--View Controller-->
+        <scene sceneID="0Rw-pe-y4r">
+            <objects>
+                <viewController id="yaP-9F-iOr" sceneMemberID="viewController">
+                    <layoutGuides>
+                        <viewControllerLayoutGuide type="top" id="axn-Op-QBH"/>
+                        <viewControllerLayoutGuide type="bottom" id="29s-e1-Df5"/>
+                    </layoutGuides>
+                    <view key="view" contentMode="scaleToFill" id="NCY-hr-hWh">
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="812"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                    </view>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="Xoj-zo-LXa" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="3861" y="37"/>
+        </scene>
         <!--Wallet View Controller-->
         <scene sceneID="zgQ-we-dC7">
             <objects>
@@ -326,7 +344,7 @@
                                 <rect key="frame" x="0.0" y="44" width="375" height="768"/>
                                 <subviews>
                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Code Label:" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="xqU-DZ-sVi">
-                                        <rect key="frame" x="8" y="110" width="135" height="21"/>
+                                        <rect key="frame" x="8" y="109.66666666666666" width="135" height="21"/>
                                         <constraints>
                                             <constraint firstAttribute="width" constant="135" id="Or9-sl-Y3D"/>
                                         </constraints>
@@ -335,7 +353,7 @@
                                         <nil key="highlightedColor"/>
                                     </label>
                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="TopLeft" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontForContentSizeCategory="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="vP4-6E-v9g">
-                                        <rect key="frame" x="8" y="24" width="359" height="48"/>
+                                        <rect key="frame" x="8" y="24.333333333333329" width="359" height="48"/>
                                         <constraints>
                                             <constraint firstAttribute="height" constant="48" id="X9c-9r-Mcm"/>
                                         </constraints>
@@ -355,7 +373,7 @@
                                         <textInputTraits key="textInputTraits"/>
                                     </textField>
                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Code Type:" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="CsA-lN-Ril">
-                                        <rect key="frame" x="8" y="179" width="135" height="21"/>
+                                        <rect key="frame" x="8" y="179.66666666666666" width="135" height="21"/>
                                         <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                         <color key="textColor" white="0.94835069439999997" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                         <nil key="highlightedColor"/>

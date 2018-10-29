@@ -25,6 +25,7 @@
 		E52A8BA11E09CC6B007FDC2F /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = E52A8BA31E09CC6B007FDC2F /* Localizable.strings */; };
 		E55D366F1E0863640089B1F4 /* Contacts.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E55D366D1E0863640089B1F4 /* Contacts.framework */; };
 		E55D36701E0863640089B1F4 /* ContactsUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E55D366E1E0863640089B1F4 /* ContactsUI.framework */; };
+		E56265D621873566000F2C5B /* ReceiptViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = E56265D521873566000F2C5B /* ReceiptViewController.m */; };
 		E57192F61DFD7E6D00195F98 /* ScannedCodeProcessor.m in Sources */ = {isa = PBXBuildFile; fileRef = E57192F51DFD7E6D00195F98 /* ScannedCodeProcessor.m */; };
 		E57192F81DFD824500195F98 /* AddressBookUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E57192F71DFD824500195F98 /* AddressBookUI.framework */; };
 		E583648F1E06FE37006A3A65 /* PushSegue.m in Sources */ = {isa = PBXBuildFile; fileRef = E583648E1E06FE37006A3A65 /* PushSegue.m */; };
@@ -108,6 +109,8 @@
 		E52A8BA41E09CC6D007FDC2F /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/Localizable.strings; sourceTree = "<group>"; };
 		E55D366D1E0863640089B1F4 /* Contacts.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Contacts.framework; path = System/Library/Frameworks/Contacts.framework; sourceTree = SDKROOT; };
 		E55D366E1E0863640089B1F4 /* ContactsUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ContactsUI.framework; path = System/Library/Frameworks/ContactsUI.framework; sourceTree = SDKROOT; };
+		E56265D421873566000F2C5B /* ReceiptViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ReceiptViewController.h; sourceTree = "<group>"; };
+		E56265D521873566000F2C5B /* ReceiptViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ReceiptViewController.m; sourceTree = "<group>"; };
 		E57192F41DFD7E6D00195F98 /* ScannedCodeProcessor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ScannedCodeProcessor.h; sourceTree = "<group>"; };
 		E57192F51DFD7E6D00195F98 /* ScannedCodeProcessor.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ScannedCodeProcessor.m; sourceTree = "<group>"; };
 		E57192F71DFD824500195F98 /* AddressBookUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AddressBookUI.framework; path = System/Library/Frameworks/AddressBookUI.framework; sourceTree = SDKROOT; };
@@ -310,6 +313,8 @@
 				E5175BD41E472F6900485EDB /* WalletViewController.m */,
 				E517C93D212D3024005F7C09 /* CryptoCurrency.h */,
 				E517C93B212D2FEB005F7C09 /* CryptoCurrency.m */,
+				E56265D421873566000F2C5B /* ReceiptViewController.h */,
+				E56265D521873566000F2C5B /* ReceiptViewController.m */,
 			);
 			path = Scan;
 			sourceTree = "<group>";
@@ -522,6 +527,7 @@
 				E5E8F2A41DFD7AA100AB7810 /* WebViewController.m in Sources */,
 				E5EE62AC1DF75B750089FE6F /* AppDelegate.m in Sources */,
 				E5A35C471DFDEE2900E05D41 /* Field.m in Sources */,
+				E56265D621873566000F2C5B /* ReceiptViewController.m in Sources */,
 				E517C93C212D2FEB005F7C09 /* CryptoCurrency.m in Sources */,
 				E5EE62B51DF75B750089FE6F /* Scan.xcdatamodeld in Sources */,
 				E5A35C271DFDC07D00E05D41 /* AboutViewController.m in Sources */,

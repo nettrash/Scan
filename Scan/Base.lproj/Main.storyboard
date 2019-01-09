@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="14313.18" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="BYZ-38-t0r">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="14460.31" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="BYZ-38-t0r">
     <device id="retina5_9" orientation="portrait">
         <adaptation id="fullscreen"/>
     </device>
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="14283.14"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="14460.20"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
@@ -214,7 +214,7 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <color key="backgroundColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         <color key="tintColor" white="0.94835069439999997" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                        <color key="sectionIndexColor" white="0.94835069439999997" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                        <color key="sectionIndexColor" red="0.94516211748123169" green="0.94905298948287964" blue="0.94509798288345337" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                         <color key="sectionIndexBackgroundColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         <prototypes>
                             <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" selectionStyle="none" indentationWidth="10" id="m7t-oD-b56">
@@ -242,7 +242,7 @@
                         <segue destination="0Ep-wP-dAC" kind="presentation" identifier="Web" customClass="PushSegue" id="o5L-el-r6n"/>
                         <segue destination="b65-Cg-TYW" kind="presentation" identifier="Text" customClass="PushSegue" id="Scs-NN-1Aa"/>
                         <segue destination="a3l-Kh-2ii" kind="presentation" identifier="Wallet" customClass="PushSegue" id="l3f-cK-hZz"/>
-                        <segue destination="yaP-9F-iOr" kind="presentation" identifier="Receipt" customClass="PushSegue" id="BE5-m9-BQf"/>
+                        <segue destination="fR7-Id-Tbc" kind="presentation" identifier="Receipt" id="Nfh-sR-L3G"/>
                     </connections>
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="rJJ-qF-pXb" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -310,23 +310,36 @@
             </objects>
             <point key="canvasLocation" x="2801" y="37"/>
         </scene>
-        <!--View Controller-->
-        <scene sceneID="0Rw-pe-y4r">
+        <!--Receipt View Controller-->
+        <scene sceneID="1Tb-sF-FJe">
             <objects>
-                <viewController id="yaP-9F-iOr" sceneMemberID="viewController">
-                    <layoutGuides>
-                        <viewControllerLayoutGuide type="top" id="axn-Op-QBH"/>
-                        <viewControllerLayoutGuide type="bottom" id="29s-e1-Df5"/>
-                    </layoutGuides>
-                    <view key="view" contentMode="scaleToFill" id="NCY-hr-hWh">
+                <tableViewController id="fR7-Id-Tbc" customClass="ReceiptViewController" sceneMemberID="viewController">
+                    <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="grouped" separatorStyle="none" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="18" sectionFooterHeight="18" id="nIN-y7-uWi">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="812"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                    </view>
-                </viewController>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="Xoj-zo-LXa" userLabel="First Responder" sceneMemberID="firstResponder"/>
+                        <color key="backgroundColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                        <color key="tintColor" white="0.94999999999999996" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                        <color key="sectionIndexColor" white="0.94999999999999996" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                        <color key="sectionIndexBackgroundColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                        <prototypes>
+                            <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" id="3Sd-Cf-1aw">
+                                <rect key="frame" x="0.0" y="55.333333333333343" width="375" height="44"/>
+                                <autoresizingMask key="autoresizingMask"/>
+                                <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="3Sd-Cf-1aw" id="nm0-Sr-c3q">
+                                    <rect key="frame" x="0.0" y="0.0" width="375" height="44"/>
+                                    <autoresizingMask key="autoresizingMask"/>
+                                </tableViewCellContentView>
+                            </tableViewCell>
+                        </prototypes>
+                        <connections>
+                            <outlet property="dataSource" destination="fR7-Id-Tbc" id="PlJ-Jj-wui"/>
+                            <outlet property="delegate" destination="fR7-Id-Tbc" id="XHV-z4-jee"/>
+                        </connections>
+                    </tableView>
+                </tableViewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="Ipc-vW-Lc6" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="3861" y="37"/>
+            <point key="canvasLocation" x="3796" y="35"/>
         </scene>
         <!--Wallet View Controller-->
         <scene sceneID="zgQ-we-dC7">
@@ -576,6 +589,6 @@
     <inferredMetricsTieBreakers>
         <segue reference="o5L-el-r6n"/>
         <segue reference="l3f-cK-hZz"/>
-        <segue reference="TDu-WK-9R9"/>
+        <segue reference="Scs-NN-1Aa"/>
     </inferredMetricsTieBreakers>
 </document>

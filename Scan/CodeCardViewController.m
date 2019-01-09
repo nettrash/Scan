@@ -11,8 +11,12 @@
 #import "WebViewController.h"
 #import "TextViewController.h"
 #import "WalletViewController.h"
+#import "ReceiptViewController.h"
 
 @interface CodeCardViewController ()
+
+@property (nonatomic, retain) IBOutlet UIView *vWait;
+@property (nonatomic, retain) IBOutlet UIActivityIndicatorView *aiWait;
 
 @end
 
@@ -24,6 +28,23 @@
     [super viewDidLoad];
     // Do any additional setup after loading the view.
     self.navigationItem.title = NSLocalizedString(@"CODE CARD", @"CODE CARD");
+
+	self.vWait = [[UIView alloc] initWithFrame:self.tableView.frame];
+	self.vWait.hidden = YES;
+	self.vWait.backgroundColor = [UIColor blackColor];
+	self.vWait.alpha = .8;
+	self.aiWait = [[UIActivityIndicatorView alloc] init];
+	[self.aiWait setActivityIndicatorViewStyle:UIActivityIndicatorViewStyleWhiteLarge];
+	[self.vWait addSubview:self.aiWait];
+	[self.aiWait startAnimating];
+	[self.view addSubview:self.vWait];
+	[self.view bringSubviewToFront:self.vWait];
+}
+
+- (void)viewWillAppear:(BOOL)animated {
+	self.vWait.frame = CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height);
+	self.aiWait.frame = CGRectMake(self.view.frame.size.width/2 - 16, self.view.frame.size.height/2 - 16, 32, 32);
+	[super viewWillAppear:animated];
 }
 
 - (void)didReceiveMemoryWarning {
@@ -40,9 +61,12 @@
     if ([segue.identifier isEqualToString:@"Web"]) {
         [(WebViewController *)[segue destinationViewController] setUrl:(NSURL *)sender];
     }
-    if ([segue.identifier isEqualToString:@"Text"]) {
-        [(TextViewController *)[segue destinationViewController] setCodeText:(NSString *)sender];
-    }
+	if ([segue.identifier isEqualToString:@"Text"]) {
+		[(TextViewController *)[segue destinationViewController] setCodeText:(NSString *)sender];
+	}
+	if ([segue.identifier isEqualToString:@"Receipt"]) {
+		[(ReceiptViewController *)[segue destinationViewController] setCodeText:(NSString *)sender];
+	}
     if ([segue.identifier isEqualToString:@"Wallet"]) {
         [(WalletViewController *)[segue destinationViewController] setCodeProcessor:(ScannedCodeProcessor *)sender];
     }
@@ -131,9 +155,8 @@
 					switch ([self checkReceiptExists]) {
 						case found: {
 							NSLog(@"Exists");
-							sleep(1);
-							NSString *receipt = [self receiptGet:0];
-							[self performSegueWithIdentifier:@"Receipt" sender:receipt];
+							[self performSelectorOnMainThread:@selector(showWait:) withObject:nil waitUntilDone:YES];
+							[self performSelectorOnMainThread:@selector(getReceipt:) withObject:nil waitUntilDone:NO];
 							break;
 						}
 						case notfound: {
@@ -252,6 +275,23 @@
         default:
             break;
     }
+}
+
+- (void)showWait:(id)sender {
+	self.vWait.hidden = NO;
+	[self.view bringSubviewToFront:self.vWait];
+}
+
+- (void)hideWait:(id)sender {
+	self.vWait.hidden = YES;
+}
+
+- (void)getReceipt:(id)sender {
+	sleep(1);
+	NSString *receipt = [self receiptGet:0];
+	[self performSelectorOnMainThread:@selector(hideWait:) withObject:nil waitUntilDone:NO];
+	//[self performSegueWithIdentifier:@"Receipt" sender:receipt];
+	[self performSegueWithIdentifier:@"Text" sender:receipt];
 }
 
 #pragma mark UITableViewDataSource
@@ -686,10 +726,11 @@
 			  NSLog(@"%li", (long)httpResponse.statusCode);
 			  if (httpResponse.statusCode == 200) {
 				  checkResult = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+				  NSLog(@"receipt: %@", checkResult);
 				  if (!checkResult || [checkResult isEqualToString:@""]) {
 					  if (iteration == 0) {
 						  sleep(1);
-						  [self receiptGet:iteration+1];
+						  checkResult = [self receiptGet:iteration+1];
 					  } else {
 						  checkResult = NSLocalizedString(@"Receipt getting error. Please try again.", @"Receipt getting error. Please try again.");
 					  }
@@ -697,7 +738,7 @@
 			  }
 			  if (httpResponse.statusCode > 200 && httpResponse.statusCode < 300) {
 				  sleep(1);
-				  [self receiptGet:iteration+1];
+				  checkResult = [self receiptGet:iteration+1];
 			  }
 			  if (httpResponse.statusCode == -1005) {
 				  checkResult = NSLocalizedString(@"Error get receipt", @"Error get receipt");

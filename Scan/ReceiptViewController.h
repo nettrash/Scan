@@ -8,7 +8,7 @@
 
 #import <UIKit/UIKit.h>
 
-@interface ReceiptViewController : UIViewController
+@interface ReceiptViewController : UITableViewController <UITableViewDelegate, UITableViewDataSource>
 
 @property (nonatomic, retain) NSString *CodeText;
 

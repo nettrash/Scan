@@ -17,7 +17,7 @@
 	<key>CFBundleShortVersionString</key>
 	<string>1.8</string>
 	<key>CFBundleVersion</key>
-	<string>70</string>
+	<string>75</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSAppTransportSecurity</key>
@@ -26,7 +26,7 @@
 		<true/>
 	</dict>
 	<key>NSCameraUsageDescription</key>
-	<string>QR ot Bar code scan.</string>
+	<string>QR or Bar code scan.</string>
 	<key>NSContactsUsageDescription</key>
 	<string>Add vCard to contacts.</string>
 	<key>UILaunchStoryboardName</key>

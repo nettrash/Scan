@@ -58,7 +58,7 @@
     [super viewWillAppear:animated];
 	[self.pvMode setValue:[UIColor whiteColor] forKey:@"textColor"];
     [self refreshTorchStatus];
-    [self beginWork];
+	[self beginWork];
 }
 
 - (void)beginWork {
@@ -68,8 +68,7 @@
         case AVAuthorizationStatusNotDetermined: {
             [AVCaptureDevice requestAccessForMediaType:AVMediaTypeVideo completionHandler:^(BOOL granted) {
                 if (granted) {
-                    [self setupScanner];
-                    [self performSelector:@selector(startScanning) withObject:nil afterDelay:.5];
+					[self performSelectorOnMainThread:@selector(setupScanner:) withObject:nil waitUntilDone:NO];
                 } else {
                     UIAlertController *alert = [UIAlertController alertControllerWithTitle:NSLocalizedString(@"Camera access", @"Camera access") message:NSLocalizedString(@"Camera access denied. Grant access to camera in iPhone Settings.", @"Camera access denied. Grant access to camera in iPhone Settings.") preferredStyle:UIAlertControllerStyleActionSheet];
                     [self presentViewController:alert animated:YES completion:nil];
@@ -84,8 +83,7 @@
             break;
         }
         case AVAuthorizationStatusAuthorized: {
-            [self setupScanner];
-            [self performSelector:@selector(startScanning) withObject:nil afterDelay:.5];
+			[self performSelectorOnMainThread:@selector(setupScanner:) withObject:nil waitUntilDone:NO];
             break;
         }
             
@@ -141,10 +139,13 @@
 	[super viewWillTransitionToSize:size withTransitionCoordinator:coordinator];
 }
 
-- (void)setupScanner
+- (void)setupScanner:(id)sender
 {
 #if !(TARGET_OS_SIMULATOR)
-    if (self.configured) return;
+	if (self.configured) {
+		[self performSelector:@selector(startScanning) withObject:nil afterDelay:.5];
+		return;
+	}
     
     self.device = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
     self.input = [AVCaptureDeviceInput deviceInputWithDevice:self.device error:nil];
@@ -191,6 +192,8 @@
     [self.ivFlash setHighlighted:[self.device torchMode] == AVCaptureTorchModeOn];
     
     self.configured = YES;
+
+	[self performSelector:@selector(startScanning) withObject:nil afterDelay:.5];
 #endif
 }
 

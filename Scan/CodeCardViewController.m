@@ -740,15 +740,18 @@
 						  checkResult = NSLocalizedString(@"Receipt getting error. Please try again.", @"Receipt getting error. Please try again.");
 					  }
 				  }
+			  } else {
+				  if (httpResponse.statusCode > 200 && httpResponse.statusCode < 300) {
+					  sleep(1);
+					  checkResult = [self receiptGet:iteration+1];
+				  } else {
+					  if (httpResponse.statusCode == -1005) {
+						  checkResult = NSLocalizedString(@"Error get receipt", @"Error get receipt");
+					  } else {
+						  checkResult = NSLocalizedString(@"Receipt getting error. Please try again.", @"Receipt getting error. Please try again.");
+					  }
+				  }
 			  }
-			  if (httpResponse.statusCode > 200 && httpResponse.statusCode < 300) {
-				  sleep(1);
-				  checkResult = [self receiptGet:iteration+1];
-			  }
-			  if (httpResponse.statusCode == -1005) {
-				  checkResult = NSLocalizedString(@"Error get receipt", @"Error get receipt");
-			  }
-			  checkResult = NSLocalizedString(@"Receipt getting error. Please try again.", @"Receipt getting error. Please try again.");
 		  } else {
 			  checkResult = NSLocalizedString(@"Receipt data is empty", @"Receipt data is empty");
 		  }

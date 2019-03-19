@@ -144,6 +144,7 @@
 		E5A35C451DFDEE2900E05D41 /* Field.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Field.h; sourceTree = "<group>"; };
 		E5A35C461DFDEE2900E05D41 /* Field.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Field.m; sourceTree = "<group>"; };
 		E5A4761B1E41F6B200044EAA /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/Main.strings; sourceTree = "<group>"; };
+		E5AD9D7122410A8600AC8260 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		E5E8F2991DFD6B7500AB7810 /* NSString+Checkers.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSString+Checkers.h"; sourceTree = "<group>"; };
 		E5E8F29A1DFD6B7500AB7810 /* NSString+Checkers.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSString+Checkers.m"; sourceTree = "<group>"; };
 		E5E8F29C1DFD6C0A00AB7810 /* NSString+RegEx.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSString+RegEx.h"; sourceTree = "<group>"; };
@@ -255,6 +256,7 @@
 		E5EE629B1DF75B750089FE6F = {
 			isa = PBXGroup;
 			children = (
+				E5AD9D7122410A8600AC8260 /* README.md */,
 				E5A35C181DFDBB2700E05D41 /* Content */,
 				E5EE62A61DF75B750089FE6F /* Scan */,
 				E5EE62C31DF75B760089FE6F /* ScanTests */,

@@ -322,6 +322,22 @@
     [self.lblInfo setHidden:YES];
 }
 
+-(IBAction) handlePinchToZoomRecognizer:(UIPinchGestureRecognizer*)pinchRecognizer {
+	const CGFloat pinchVelocityDividerFactor = 5.0f;
+	
+	if (pinchRecognizer.state == UIGestureRecognizerStateChanged) {
+		NSError *error = nil;
+		if ([self.device lockForConfiguration:&error]) {
+			CGFloat desiredZoomFactor = self.device.videoZoomFactor + atan2f(pinchRecognizer.velocity, pinchVelocityDividerFactor);
+			// Check if desiredZoomFactor fits required range from 1.0 to activeFormat.videoMaxZoomFactor
+			self.device.videoZoomFactor = MAX(1.0, MIN(desiredZoomFactor, self.device.activeFormat.videoMaxZoomFactor));
+			[self.device unlockForConfiguration];
+		} else {
+			NSLog(@"error: %@", error);
+		}
+	}
+}
+
 #pragma mark - Navigation
 
 // In a storyboard-based application, you will often want to do a little preparation before navigation

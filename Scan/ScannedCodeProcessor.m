@@ -172,6 +172,9 @@
 			self.Url = [NSURL URLWithString:[NSString stringWithFormat:@"https://sibexplorer.com/address/%@", self.Url.host]];
 			return;
 		}
+		if (![self.codeValue hasPrefix:@"https://"] && ![self.codeValue hasPrefix:@"http://"]) {
+			self.Url = [NSURL URLWithString:[NSString stringWithFormat:@"http://%@", self.codeValue]];
+		}
         return;
     }
 	//Проверяем на криптовалюты

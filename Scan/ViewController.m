@@ -13,7 +13,7 @@
 #import "TextViewController.h"
 #import "AppDelegate.h"
 #import "WalletViewController.h"
-#include "TargetConditionals.h"
+#import "TargetConditionals.h"
 
 @interface ViewController ()
 
@@ -270,8 +270,8 @@
 {
     NSArray<CNContact *> *contacts = [CNContactVCardSerialization contactsWithData:[vcardValue dataUsingEncoding:NSUTF8StringEncoding] error:nil];
     CNContactViewController *cvc = [CNContactViewController viewControllerForNewContact:[contacts objectAtIndex:0]];
-    cvc.allowsActions = YES;
-    cvc.allowsEditing = YES;
+    cvc.allowsActions = NO;
+    cvc.allowsEditing = NO;
     cvc.delegate = self;
     UINavigationController *navigation = [[UINavigationController alloc] initWithRootViewController:cvc];
     [self presentViewController:navigation animated:YES completion:nil];
@@ -375,8 +375,15 @@
 
 #pragma mark - CNContactViewContractDelegate
 
+- (BOOL)contactViewController:(CNContactViewController *)viewController shouldPerformDefaultActionForContactProperty:(CNContactProperty *)property {
+    [self dismissViewControllerAnimated:YES completion:nil];
+	[self startScanning];
+	return NO;
+}
+
 - (void)contactViewController:(CNContactViewController *)viewController didCompleteWithContact:(nullable CNContact *)contact {
     [self dismissViewControllerAnimated:YES completion:nil];
+	[self startScanning];
 }
 
 #pragma mark - UIPickerViewDelegate

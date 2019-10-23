@@ -14,7 +14,8 @@
 
 - (BOOL)isVCARD
 {
-    return ([self hasPrefix:@"BEGIN:VCARD"] && [self hasSuffix:@"END:VCARD"]);
+	NSString *value = [self stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+    return ([value hasPrefix:@"BEGIN:VCARD"] && [value hasSuffix:@"END:VCARD"]);
 }
 
 - (BOOL)isURL

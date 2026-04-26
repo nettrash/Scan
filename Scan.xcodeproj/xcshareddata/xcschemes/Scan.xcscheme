@@ -39,9 +39,6 @@
                ReferencedContainer = "container:Scan.xcodeproj">
             </BuildableReference>
          </TestableReference>
-         <!-- ScanUITests is the Xcode template's launch-only smoke test;
-              it's flaky on CI and adds little value, so it's skipped by
-              default. Flip skipped="NO" once it has real assertions. -->
          <TestableReference
             skipped = "YES">
             <BuildableReference

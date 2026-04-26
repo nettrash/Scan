@@ -91,3 +91,5 @@ fastlane/test_output
 #     library) is sometimes committed for build reproducibility; flip the rule
 #     above if you want it tracked.
 # =============================================================================
+
+marketing/

@@ -73,7 +73,7 @@ The icon is a real, scannable QR code that decodes to `https://nettrash.me`, fra
 
 ## Requirements
 
-- **Deployment target**: iOS 26.0+ (the app target's `IPHONEOS_DEPLOYMENT_TARGET`). The project root and the test target are still at iOS 16.4 for tooling reasons; the runtime requirement is set by the app target.
+- **Deployment target**: iOS 26.0+ uniformly across the project root, the app target, and both test targets. (Bumping the test targets in step with the app target matters: `@testable import Scan` brings the iOS-26-built module into the test bundle, so a lower test deployment fails to link.)
 - **Xcode**: 26+ (uses the iOS 26 SDK and the Liquid Glass design system).
 - **Devices**: iPhone and iPad (universal — `TARGETED_DEVICE_FAMILY = "1,2"`).
 

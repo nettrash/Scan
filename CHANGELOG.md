@@ -228,17 +228,22 @@ labelled, copyable fields. Recognised:
 
 ### Changed
 
-- **Deployment target raised to iOS 26.0** on the app target. Lets the
-  app use AVFoundation's `videoRotationAngle` API directly,
+- **Deployment target raised to iOS 26.0** uniformly across the
+  project root, the `Scan` app target, and the `ScanTests` /
+  `ScanUITests` targets — all four `IPHONEOS_DEPLOYMENT_TARGET`
+  configurations now read `26.0`. Lets the app use AVFoundation's
+  `videoRotationAngle` API directly,
   `UIWindowScene.effectiveGeometry.interfaceOrientation`,
   `requestWriteOnlyAccessToEvents` without an iOS 16 fallback,
   `ContentUnavailableView` and the modern two-arg
-  `onChange(of:_:)` natively, and picks up Liquid Glass automatically on
-  the standard SwiftUI containers. The project root and the test target
-  remain at iOS 16.4 for tooling reasons; the runtime floor is set by
-  the app target. As a side-effect, all of the iOS 16 / 17 / 25
-  deprecation warnings the build was carrying are gone, and the
-  `obsoleted:`-annotated legacy fallback helpers were deleted.
+  `onChange(of:_:)` natively, and picks up Liquid Glass automatically
+  on the standard SwiftUI containers. As a side-effect, all of the
+  iOS 16 / 17 / 25 deprecation warnings the build was carrying are
+  gone, and the `obsoleted:`-annotated legacy fallback helpers were
+  deleted. Bumping the test targets *together with* the app target
+  was necessary because `@testable import Scan` pulls the whole iOS
+  26-built module into the test bundle — leaving the test target at
+  iOS 16.4 caused `SwiftDriver ScanTests` to fail at link time on CI.
 - `Scan.xcdatamodel` — `Item` → `ScanRecord`. Schema-incompatible: any
   existing simulator install must be deleted before re-running.
 - The viewfinder reticle is corner-bracket-only now — the previous

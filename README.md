@@ -69,7 +69,13 @@ The icon is a real, scannable QR code that decodes to `https://nettrash.me`, fra
 
 ### Build numbering
 
-`CFBundleVersion` is set automatically at build time from `git rev-list --count HEAD`. Each commit on `main` produces a unique, monotonically increasing build number — no `pbxproj` churn, no manual bumping. CI (GitHub Actions) checks out with `fetch-depth: 0` so the count is correct on builds.
+`CFBundleVersion` comes from `CURRENT_PROJECT_VERSION` in the project file, and the `Scan` shared scheme has a **post-build action** that runs `agvtool bump` after every successful build:
+
+```
+cd "${PROJECT_DIR}" ; agvtool bump
+```
+
+`agvtool bump` (alias for `next-version -all`) rewrites `CURRENT_PROJECT_VERSION` directly in `project.pbxproj` thanks to the `VERSIONING_SYSTEM = "apple-generic"` build setting. Because it's a scheme post-action — not a build-phase script — it runs *outside* the User Script Sandbox, so Xcode's default `ENABLE_USER_SCRIPT_SANDBOXING = YES` doesn't block it. Same mechanism the sibling Geo app uses, ported here.
 
 ## Requirements
 

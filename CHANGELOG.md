@@ -5,15 +5,13 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-`CFBundleVersion` (build number) is set automatically at build time from
-`git rev-list --count HEAD`, so a separate "build number" entry per release
-is not required — it is whatever the commit count was when the build was cut.
+`CFBundleVersion` (build number) is the value of `CURRENT_PROJECT_VERSION`
+in the project file and is now auto-incremented by the app target's
+build-phase script via `agvtool next-version -all`.
 
 ## [Unreleased]
 
-This is the work that will become **1.0.0** once tagged. Until then, every
-commit on `main` produces a fresh dev build whose `CFBundleVersion` matches
-the commit count.
+This is the work that will become **1.0.0** once tagged.
 
 ### Added
 
@@ -24,10 +22,22 @@ the commit count.
 - App icon is a real, scannable QR code pointing to
   `https://nettrash.me`, framed by amber viewfinder corner brackets on a
   navy gradient. Verified pixel-accurate against the canonical encoding.
-- Auto-incrementing build number via a `PBXShellScriptBuildPhase` that
-  rewrites `CFBundleVersion` in the bundle (and dSYM) Info.plist using
-  `git rev-list --count HEAD`. Skips silently with a warning if git isn't
-  available.
+- Build number (`CFBundleVersion`) auto-increments via a **scheme
+  post-action** on the `Scan` shared scheme that runs
+  `cd "${PROJECT_DIR}" ; agvtool bump` after every successful build.
+  `agvtool bump` (alias for `next-version -all`) rewrites
+  `CURRENT_PROJECT_VERSION` in `project.pbxproj` directly — no
+  build-phase script and so no User Script Sandbox to fight.
+  Same mechanism the sibling `Geo` app uses; ported wholesale.
+
+  Earlier iterations tried two other approaches that didn't survive
+  contact with reality: a `PBXShellScriptBuildPhase` deriving the
+  build number from `git rev-list --count HEAD` (Xcode 14+'s default
+  `ENABLE_USER_SCRIPT_SANDBOXING = YES` blocks the script from
+  reading `.git/`, so it printed "Could not determine git commit
+  count" and left the version unchanged); and pure manual bumping
+  via *Editor → Increase Build Number* (worked but easy to forget).
+  The post-action approach is sandbox-friendly and runs automatically.
 
 #### Live camera scanner
 
@@ -206,11 +216,25 @@ labelled, copyable fields. Recognised:
 
 #### CI
 
-- GitHub Actions workflow updated with `fetch-depth: 0` so the build-
-  number script's `git rev-list --count` returns the real commit count.
+- GitHub Actions workflow uses the default shallow checkout — no longer
+  needs `fetch-depth: 0` since the build-phase git script is gone.
 - Pinned the runner to `macos-26` so we get Xcode 26 and the iOS 26 SDK
   (the app target's deployment target requires both). `macos-latest`
   still aliases to macos-15 / Xcode 16 at the time of writing.
+- Added `LD_RUNPATH_SEARCH_PATHS` to all four test-target configurations
+  (`ScanTests` + `ScanUITests` Debug + Release). The original Xcode 14
+  template left this off the test targets; Xcode 26's explicit Swift
+  module-build pipeline trips over it and fails the
+  `SwiftExplicitDependencyGeneratePcm` step for the XCTest /
+  XCUIAutomation precompiled modules.
+- Switched CI from the split `build-for-testing` / `test-without-building`
+  pair to a single combined `xcodebuild test` call. Xcode 26 has a known
+  issue where the split form interacts badly with explicit module
+  precompilation; the combined form is what Xcode itself runs when
+  you press ⌘U and is the supported path.
+- CI now writes `build/TestResults.xcresult` and uploads it as an
+  artifact on failure, so the next time CI breaks the diagnostic data
+  is one click away in the GitHub Actions run summary.
 - Replaced the brittle "find any project / find any scheme" path
   detection with explicit `-project Scan.xcodeproj -scheme Scan`. The
   workflow now also resolves whatever iPhone iOS-runtime simulator the
@@ -228,6 +252,10 @@ labelled, copyable fields. Recognised:
 
 ### Changed
 
+- Restored automatic build-number incrementing for the app target using a
+  `PBXShellScriptBuildPhase` that runs `agvtool next-version -all` during
+  build/install actions (previews are skipped). This keeps the flow automatic
+  without relying on `.git` commit counting.
 - **Deployment target raised to iOS 26.0** uniformly across the
   project root, the `Scan` app target, and the `ScanTests` /
   `ScanUITests` targets — all four `IPHONEOS_DEPLOYMENT_TARGET`

@@ -18,11 +18,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          # Full history so the auto-incrementing build-number script
-          # (CFBundleVersion = `git rev-list --count HEAD`) sees every
-          # commit. A shallow clone would always count to 1.
-          fetch-depth: 0
 
       - name: Show toolchain
         run: |
@@ -48,18 +43,24 @@ jobs:
           echo "Resolved simulator: $DEVICE"
           echo "name=$DEVICE" >> "$GITHUB_OUTPUT"
 
-      - name: Build for testing
+      - name: Build & test
+        # A single combined `xcodebuild test` call instead of the
+        # `build-for-testing` / `test-without-building` split — Xcode 26
+        # has a known issue where the split form interacts badly with
+        # explicit Swift module precompilation (XCTest / XCUIAutomation
+        # PCMs failing under SwiftExplicitDependencyGeneratePcm).
         run: |
-          xcodebuild build-for-testing \
+          xcodebuild test \
             -project Scan.xcodeproj \
             -scheme Scan \
             -destination "platform=iOS Simulator,name=${{ steps.sim.outputs.name }},OS=latest" \
+            -resultBundlePath build/TestResults.xcresult \
             CODE_SIGNING_ALLOWED=NO
 
-      - name: Run tests
-        run: |
-          xcodebuild test-without-building \
-            -project Scan.xcodeproj \
-            -scheme Scan \
-            -destination "platform=iOS Simulator,name=${{ steps.sim.outputs.name }},OS=latest" \
-            CODE_SIGNING_ALLOWED=NO
+      - name: Upload test results on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: TestResults
+          path: build/TestResults.xcresult
+          retention-days: 7

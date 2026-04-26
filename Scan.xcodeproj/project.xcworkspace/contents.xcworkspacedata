@@ -4,4 +4,7 @@
    <FileRef
       location = "self:">
    </FileRef>
+   <FileRef
+      location = "group:increment_build_number.sh">
+   </FileRef>
 </Workspace>

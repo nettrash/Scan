@@ -7,31 +7,59 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build:
-    name: Build and Test default scheme using any available iPhone simulator
-    runs-on: macos-latest
+  build-test:
+    name: Build and Test
+    # The app target requires IPHONEOS_DEPLOYMENT_TARGET = 26.0, which
+    # only macos-26 (Xcode 26 + iOS 26 SDK) provides.
+    # `macos-latest` still aliases to macos-15 / Xcode 16 at the time of
+    # writing, so we pin explicitly.
+    runs-on: macos-26
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
-          # fetch-depth: 0 gives the full git history so the build phase
-          # can compute CFBundleVersion from `git rev-list --count HEAD`.
+          # Full history so the auto-incrementing build-number script
+          # (CFBundleVersion = `git rev-list --count HEAD`) sees every
+          # commit. A shallow clone would always count to 1.
           fetch-depth: 0
-      - name: Set Default Scheme
+
+      - name: Show toolchain
         run: |
-          scheme_list=$(xcodebuild -list -json | tr -d "\n")
-          default=$(echo $scheme_list | ruby -e "require 'json'; puts JSON.parse(STDIN.gets)['project']['targets'][0]")
-          echo $default | cat >default
-          echo Using default scheme: $default
-      - name: Build
-        env:
-          scheme: ${{ 'default' }}
-          platform: ${{ 'iOS Simulator' }}
+          xcodebuild -version
+          xcrun simctl list runtimes | grep -E "^iOS " || xcrun simctl list runtimes
+
+      - name: Resolve simulator
+        id: sim
+        # Pick the first available iPhone simulator on any installed iOS
+        # runtime. Robust to whatever model+OS Apple ships on the runner
+        # in any given week.
         run: |
-          # xcrun xctrace returns via stderr, not the expected stdout (see https://developer.apple.com/forums/thread/663959)
-          # device=`xcrun xctrace list devices 2>&1 | grep -oE 'iPhone.*?[^\(]+' | head -1 | awk '{$1=$1;print}' | sed -e "s/ Simulator$//"`
-          if [ $scheme = default ]; then scheme=$(cat default); fi
-          if [ "`ls -A | grep -i \\.xcworkspace\$`" ]; then filetype_parameter="workspace" && file_to_build="`ls -A | grep -i \\.xcworkspace\$`"; else filetype_parameter="project" && file_to_build="`ls -A | grep -i \\.xcodeproj\$`"; fi
-          file_to_build=`echo $file_to_build | awk '{$1=$1;print}'`
-          xcodebuild build -scheme "$scheme" -"$filetype_parameter" "$file_to_build" CODE_SIGNING_ALLOWED="NO"
+          set -euo pipefail
+          DEVICE=$(xcrun simctl list devices available \
+            | awk '/^-- iOS/{flag=1; next} /^-- /{flag=0} flag && /iPhone/{print; exit}' \
+            | sed -E 's/^[[:space:]]+([^(]+) \(.*$/\1/' \
+            | xargs)
+          if [ -z "$DEVICE" ]; then
+            echo "::error::No iPhone simulator with an iOS runtime is installed on this runner."
+            xcrun simctl list devices available
+            exit 1
+          fi
+          echo "Resolved simulator: $DEVICE"
+          echo "name=$DEVICE" >> "$GITHUB_OUTPUT"
+
+      - name: Build for testing
+        run: |
+          xcodebuild build-for-testing \
+            -project Scan.xcodeproj \
+            -scheme Scan \
+            -destination "platform=iOS Simulator,name=${{ steps.sim.outputs.name }},OS=latest" \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Run tests
+        run: |
+          xcodebuild test-without-building \
+            -project Scan.xcodeproj \
+            -scheme Scan \
+            -destination "platform=iOS Simulator,name=${{ steps.sim.outputs.name }},OS=latest" \
+            CODE_SIGNING_ALLOWED=NO

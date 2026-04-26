@@ -99,13 +99,13 @@ cd Scan
 open Scan.xcodeproj
 ```
 
-CI builds on `macos-latest` via the workflow at `.github/workflows/ios.yml`:
+CI runs on the `macos-26` GitHub-hosted runner (Xcode 26 / iOS 26 SDK — required by the deployment target) via the workflow at `.github/workflows/ios.yml`. The workflow resolves whatever iPhone simulator the runner happens to ship with for the day, then runs `build-for-testing` followed by `test-without-building`. Equivalent locally:
 
 ```sh
-xcodebuild build \
+xcodebuild test \
   -scheme Scan \
   -project Scan.xcodeproj \
-  -destination 'platform=iOS Simulator,name=iPhone 15' \
+  -destination 'platform=iOS Simulator,name=iPhone 17 Pro,OS=latest' \
   CODE_SIGNING_ALLOWED=NO
 ```
 

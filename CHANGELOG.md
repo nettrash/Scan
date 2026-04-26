@@ -208,6 +208,23 @@ labelled, copyable fields. Recognised:
 
 - GitHub Actions workflow updated with `fetch-depth: 0` so the build-
   number script's `git rev-list --count` returns the real commit count.
+- Pinned the runner to `macos-26` so we get Xcode 26 and the iOS 26 SDK
+  (the app target's deployment target requires both). `macos-latest`
+  still aliases to macos-15 / Xcode 16 at the time of writing.
+- Replaced the brittle "find any project / find any scheme" path
+  detection with explicit `-project Scan.xcodeproj -scheme Scan`. The
+  workflow now also resolves whatever iPhone iOS-runtime simulator the
+  runner ships with for the day, instead of relying on a hardcoded
+  device name.
+- Workflow now runs the test suite (`build-for-testing` →
+  `test-without-building`), not just `build`. Bumped
+  `actions/checkout@v3` → `@v4` since v3 is deprecated.
+- Committed a shared scheme at
+  `Scan.xcodeproj/xcshareddata/xcschemes/Scan.xcscheme` so xcodebuild
+  doesn't have to autocreate one on each fresh checkout. ScanUITests
+  is included in the scheme but `skipped="YES"` by default — it's the
+  template's launch-only smoke test and adds little value while costing
+  CI time.
 
 ### Changed
 

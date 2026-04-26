@@ -108,7 +108,7 @@ struct ScannerScreen: View {
                 presentImportError(err.localizedDescription)
             }
         }
-        .onChange(of: photoItem) { newItem in
+        .onValueChange(of: photoItem) { newItem in
             guard let newItem else { return }
             Task { await handlePickedPhoto(newItem) }
         }

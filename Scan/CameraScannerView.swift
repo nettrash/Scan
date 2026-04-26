@@ -208,15 +208,25 @@ final class ScannerViewController: UIViewController, AVCaptureMetadataOutputObje
 
     private func updatePreviewOrientation() {
         guard let connection = previewLayer?.connection,
-              connection.isVideoOrientationSupported else { return }
-        let scene = view.window?.windowScene
-        let interfaceOrientation = scene?.interfaceOrientation ?? .portrait
-        switch interfaceOrientation {
-        case .portrait:           connection.videoOrientation = .portrait
-        case .portraitUpsideDown: connection.videoOrientation = .portraitUpsideDown
-        case .landscapeLeft:      connection.videoOrientation = .landscapeLeft
-        case .landscapeRight:     connection.videoOrientation = .landscapeRight
-        default:                  connection.videoOrientation = .portrait
+              let scene = view.window?.windowScene else { return }
+        let orient = scene.effectiveGeometry.interfaceOrientation
+        let angle = Self.videoRotationAngle(for: orient)
+        if connection.isVideoRotationAngleSupported(angle) {
+            connection.videoRotationAngle = angle
+        }
+    }
+
+    /// Map a UI orientation to the rotation angle the iOS 17+
+    /// `AVCaptureConnection.videoRotationAngle` API expects. Mapping
+    /// covers the back camera; the front camera is mirrored at the
+    /// layer level by AVFoundation, so the same angles apply.
+    private static func videoRotationAngle(for orient: UIInterfaceOrientation) -> CGFloat {
+        switch orient {
+        case .portrait:           return 90
+        case .portraitUpsideDown: return 270
+        case .landscapeLeft:      return 180
+        case .landscapeRight:     return 0
+        default:                  return 90
         }
     }
 

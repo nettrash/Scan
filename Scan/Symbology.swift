@@ -105,21 +105,19 @@ enum Symbology: String, CaseIterable, Identifiable {
 /// are filtered out at session-configure time.
 enum SupportedSymbologies {
     static var all: [AVMetadataObject.ObjectType] {
+        // Deployment target is iOS 16.4, so .codabar (iOS 15.4+) and the
+        // GS1 DataBar family are always available — no #available gate
+        // needed. Types unsupported by the *device* are filtered out at
+        // session-configure time against `output.availableMetadataObjectTypes`.
         var types: [AVMetadataObject.ObjectType] = [
             .qr, .aztec, .pdf417, .dataMatrix,
             .ean8, .ean13, .upce,
             .code39, .code39Mod43, .code93, .code128,
-            .itf14, .interleaved2of5
+            .itf14, .interleaved2of5,
+            .codabar
         ]
-        if #available(iOS 15.4, *) {
-            types.append(.codabar)
-            // GS1 DataBar family - guard with raw-value lookup so we compile
-            // on older SDKs.
-            let extras = ["org.gs1.DataBar", "org.gs1.DataBar-Expanded", "org.gs1.DataBar-Limited"]
-            for raw in extras {
-                let t = AVMetadataObject.ObjectType(rawValue: raw)
-                types.append(t)
-            }
+        for raw in ["org.gs1.DataBar", "org.gs1.DataBar-Expanded", "org.gs1.DataBar-Limited"] {
+            types.append(AVMetadataObject.ObjectType(rawValue: raw))
         }
         return types
     }

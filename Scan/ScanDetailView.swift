@@ -54,9 +54,9 @@ struct ScanDetailView: View {
             Section("Notes") {
                 TextField("Add a note", text: $notes, axis: .vertical)
                     .lineLimit(1...6)
-                    .onChange(of: notes) { _ in
+                    .onValueChange(of: notes) { newValue in
                         // Persist on change.
-                        record.notes = notes.isEmpty ? nil : notes
+                        record.notes = newValue.isEmpty ? nil : newValue
                         try? viewContext.save()
                     }
             }

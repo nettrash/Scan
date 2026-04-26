@@ -279,7 +279,9 @@ struct GeneratorScreen: View {
         // permission specifically (NSPhotoLibraryAddUsageDescription).
         let proceed = {
             PHPhotoLibrary.shared().performChanges({
-                PHAssetCreationRequest.creationRequestForAsset(from: image)
+                // The request registers itself with the surrounding change
+                // block; the returned object is intentionally unused.
+                _ = PHAssetCreationRequest.creationRequestForAsset(from: image)
             }, completionHandler: { success, error in
                 Task { @MainActor in
                     if success {

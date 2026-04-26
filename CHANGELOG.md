@@ -211,6 +211,17 @@ labelled, copyable fields. Recognised:
 
 ### Changed
 
+- **Deployment target raised to iOS 26.0** on the app target. Lets the
+  app use AVFoundation's `videoRotationAngle` API directly,
+  `UIWindowScene.effectiveGeometry.interfaceOrientation`,
+  `requestWriteOnlyAccessToEvents` without an iOS 16 fallback,
+  `ContentUnavailableView` and the modern two-arg
+  `onChange(of:_:)` natively, and picks up Liquid Glass automatically on
+  the standard SwiftUI containers. The project root and the test target
+  remain at iOS 16.4 for tooling reasons; the runtime floor is set by
+  the app target. As a side-effect, all of the iOS 16 / 17 / 25
+  deprecation warnings the build was carrying are gone, and the
+  `obsoleted:`-annotated legacy fallback helpers were deleted.
 - `Scan.xcdatamodel` — `Item` → `ScanRecord`. Schema-incompatible: any
   existing simulator install must be deleted before re-running.
 - The viewfinder reticle is corner-bracket-only now — the previous
@@ -224,6 +235,15 @@ labelled, copyable fields. Recognised:
 
 - The Xcode template's "Add Item" / `Item` flow.
 - The decorative rounded-square outline on the scanner reticle.
+- All iOS 16 / 17 / 25 fallback paths in `CameraScannerView`,
+  `PayloadActionsView`, and `HistoryScreen` that the deployment-target
+  bump made obsolete: the legacy `applyLegacyVideoOrientation` and
+  `legacySceneInterfaceOrientation` helpers, the iOS 16
+  `requestAccess(to:.event)` branch in `requestCalendarAccess`, the
+  iOS 16 manual `VStack` fallback inside `ContentUnavailableViewCompat`,
+  and the `if #available(iOS 17.0, *)` branch inside `onValueChange`.
+  All call sites still work — the wrappers stayed in place for
+  readability but now just delegate to the native iOS 17+ APIs.
 
 ### Notes
 

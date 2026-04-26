@@ -133,29 +133,30 @@ private struct HistoryRow: View {
     }
 }
 
-// MARK: - Compat content unavailable view (iOS 16 fallback)
+// MARK: - SwiftUI helpers
 
+extension View {
+    /// Wrapper that calls SwiftUI's iOS 17+ two-arg `onChange` and forwards
+    /// just the new value, the way the rest of this app cares about it.
+    /// Kept as a small affordance so call sites stay readable.
+    func onValueChange<V: Equatable>(
+        of value: V,
+        perform action: @escaping (V) -> Void
+    ) -> some View {
+        onChange(of: value) { _, newValue in
+            action(newValue)
+        }
+    }
+}
+
+/// Thin wrapper around SwiftUI's `ContentUnavailableView` so callers in
+/// older code paths don't need to construct `Text(description)` themselves.
 struct ContentUnavailableViewCompat: View {
     let title: String
     let systemImage: String
     let description: String
 
     var body: some View {
-        if #available(iOS 17, *) {
-            ContentUnavailableView(title, systemImage: systemImage, description: Text(description))
-        } else {
-            VStack(spacing: 12) {
-                Image(systemName: systemImage)
-                    .font(.system(size: 48))
-                    .foregroundStyle(.secondary)
-                Text(title).font(.title3.bold())
-                Text(description)
-                    .font(.body)
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal)
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-        }
+        ContentUnavailableView(title, systemImage: systemImage, description: Text(description))
     }
 }

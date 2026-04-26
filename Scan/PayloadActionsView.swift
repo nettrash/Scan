@@ -507,17 +507,12 @@ struct AddCalendarEventSheet: UIViewControllerRepresentable {
     }
 }
 
-/// Requests write-only access on iOS 17+, falls back to full access on iOS 16,
-/// and hands back the authorised EKEventStore on success (nil on denial).
+/// Requests write-only access to the user's calendars and hands back the
+/// authorised `EKEventStore` on success (nil on denial). Uses the iOS 17+
+/// least-privilege API exclusively — the deployment target requires iOS 17.
 func requestCalendarAccess(completion: @escaping (EKEventStore?) -> Void) {
     let store = EKEventStore()
-    if #available(iOS 17.0, *) {
-        store.requestWriteOnlyAccessToEvents { granted, _ in
-            DispatchQueue.main.async { completion(granted ? store : nil) }
-        }
-    } else {
-        store.requestAccess(to: .event) { granted, _ in
-            DispatchQueue.main.async { completion(granted ? store : nil) }
-        }
+    store.requestWriteOnlyAccessToEvents { granted, _ in
+        DispatchQueue.main.async { completion(granted ? store : nil) }
     }
 }

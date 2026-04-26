@@ -73,9 +73,9 @@ The icon is a real, scannable QR code that decodes to `https://nettrash.me`, fra
 
 ## Requirements
 
-- **Deployment target**: iOS 16.4+
-- **Xcode**: 15+ (uses iOS 17 SDK conditionally)
-- **Devices**: iPhone and iPad (universal — `TARGETED_DEVICE_FAMILY = "1,2"`)
+- **Deployment target**: iOS 26.0+ (the app target's `IPHONEOS_DEPLOYMENT_TARGET`). The project root and the test target are still at iOS 16.4 for tooling reasons; the runtime requirement is set by the app target.
+- **Xcode**: 26+ (uses the iOS 26 SDK and the Liquid Glass design system).
+- **Devices**: iPhone and iPad (universal — `TARGETED_DEVICE_FAMILY = "1,2"`).
 
 ## Privacy
 

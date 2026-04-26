@@ -14,6 +14,11 @@ struct ScannedCode: Equatable {
     let symbology: Symbology
     let avType: String
     let timestamp: Date
+    /// Bounding rectangle of the detected code, expressed in the preview
+    /// view's own coordinate system (top-left origin, points). `nil` when
+    /// the code came from a still image rather than the live camera, so
+    /// callers should treat its absence as "no on-screen position".
+    let previewRect: CGRect?
 }
 
 struct CameraScannerView: UIViewControllerRepresentable {
@@ -239,11 +244,18 @@ final class ScannerViewController: UIViewController, AVCaptureMetadataOutputObje
             guard let readable = obj as? AVMetadataMachineReadableCodeObject,
                   let value = readable.stringValue,
                   !value.isEmpty else { continue }
+            // Transform the metadata object into the preview layer's
+            // coordinate space — the resulting `bounds` is then in points
+            // inside the view (top-left origin), ready to drive the
+            // SwiftUI overlay reticle.
+            let transformed = previewLayer?.transformedMetadataObject(for: readable)
+                as? AVMetadataMachineReadableCodeObject
             let scanned = ScannedCode(
                 value: value,
                 symbology: Symbology(readable.type),
                 avType: readable.type.rawValue,
-                timestamp: Date()
+                timestamp: Date(),
+                previewRect: transformed?.bounds
             )
             delegate?.scanner(self, didDecode: scanned)
             return

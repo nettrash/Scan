@@ -84,7 +84,8 @@ enum ImageDecoder {
                         value: value,
                         symbology: Symbology(visionSymbology: obs.symbology),
                         avType: obs.symbology.rawValue,
-                        timestamp: Date()
+                        timestamp: Date(),
+                        previewRect: nil
                     )
                 }
 

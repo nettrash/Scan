@@ -25,6 +25,9 @@ struct ScannerScreen: View {
     @State private var failureReason: String?
     @State private var lastValue: String?
     @State private var lastValueAt: Date = .distantPast
+    /// The most recent detected code's rectangle, in CameraScannerView's
+    /// coordinate space. `nil` falls back to a centred default-size reticle.
+    @State private var detectedRect: CGRect?
 
     // Image-import state
     @State private var photoItem: PhotosPickerItem?
@@ -45,10 +48,28 @@ struct ScannerScreen: View {
             )
             .ignoresSafeArea()
 
-            VStack {
-                Spacer()
+            // Reticle: snaps to the detected code's bounds when the camera
+            // sees one, otherwise centres a default-size square as a hint
+            // of where to point the lens. The animation gives the user
+            // visible confirmation that a code was just recognised.
+            GeometryReader { geo in
+                let defaultSize: CGFloat = 260
+                let rect = detectedRect ?? CGRect(
+                    x: (geo.size.width - defaultSize) / 2,
+                    y: (geo.size.height - defaultSize) / 2 - 80,
+                    width: defaultSize,
+                    height: defaultSize
+                )
                 ReticleView()
-                    .frame(width: 260, height: 260)
+                    .frame(width: max(rect.width, 80),
+                           height: max(rect.height, 80))
+                    .position(x: rect.midX, y: rect.midY)
+                    .animation(.spring(response: 0.28, dampingFraction: 0.78),
+                               value: detectedRect)
+            }
+            .ignoresSafeArea()
+
+            VStack {
                 Spacer()
                 HStack {
                     importMenu
@@ -117,7 +138,12 @@ struct ScannerScreen: View {
         } message: { msg in
             Text(msg)
         }
-        .sheet(isPresented: $showResult, onDismiss: { lastScan = nil }) {
+        .sheet(isPresented: $showResult, onDismiss: {
+            lastScan = nil
+            // Reset the reticle to its default centred position so the
+            // next scan starts from a neutral hint.
+            detectedRect = nil
+        }) {
             if let lastScan {
                 ScanResultSheet(
                     scan: lastScan,
@@ -157,6 +183,12 @@ struct ScannerScreen: View {
     // MARK: - Live scan handling
 
     private func handleScan(_ code: ScannedCode) {
+        // Snap the reticle to the detected code's bounds. We do this even
+        // on a debounced repeat so the reticle keeps tracking the code if
+        // it moves while the result sheet is still about to appear.
+        if let rect = code.previewRect {
+            detectedRect = rect
+        }
         // Debounce duplicate decodes from the same code in quick succession.
         let now = Date()
         if code.value == lastValue, now.timeIntervalSince(lastValueAt) < dedupeWindow {
@@ -249,14 +281,24 @@ struct ScannerScreen: View {
 
 private struct ReticleView: View {
     var body: some View {
-        ZStack {
-            ForEach(0..<4, id: \.self) { i in
-                Corner()
-                    .stroke(Color.accentColor, style: StrokeStyle(lineWidth: 5, lineCap: .round))
-                    .frame(width: 36, height: 36)
-                    .rotationEffect(.degrees(Double(i) * 90))
-                    .frame(maxWidth: .infinity, maxHeight: .infinity,
-                           alignment: cornerAlignment(for: i))
+        GeometryReader { geo in
+            // Scale the corner-bracket size to ~18 % of the shorter
+            // dimension, clamped between 20 and 48 pt. This way the
+            // brackets stay readable when the reticle wraps a small
+            // detected code and don't look comical when it's full-size.
+            let minDim = min(geo.size.width, geo.size.height)
+            let cornerSize = max(20, min(48, minDim * 0.18))
+            let lineWidth = max(3, min(6, minDim * 0.025))
+            ZStack {
+                ForEach(0..<4, id: \.self) { i in
+                    Corner()
+                        .stroke(Color.accentColor,
+                                style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
+                        .frame(width: cornerSize, height: cornerSize)
+                        .rotationEffect(.degrees(Double(i) * 90))
+                        .frame(maxWidth: .infinity, maxHeight: .infinity,
+                               alignment: cornerAlignment(for: i))
+                }
             }
         }
     }

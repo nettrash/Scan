@@ -16,6 +16,21 @@
 		E542678D2AB57CF400BFED1E /* ScanTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E542678C2AB57CF400BFED1E /* ScanTests.swift */; };
 		E54267972AB57CF400BFED1E /* ScanUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E54267962AB57CF400BFED1E /* ScanUITests.swift */; };
 		E54267992AB57CF400BFED1E /* ScanUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E54267982AB57CF400BFED1E /* ScanUITestsLaunchTests.swift */; };
+		E5C0DE000000000000000102 /* Symbology.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000000101 /* Symbology.swift */; };
+		E5C0DE000000000000000202 /* ScanPayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000000201 /* ScanPayload.swift */; };
+		E5C0DE000000000000000302 /* CameraScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000000301 /* CameraScannerView.swift */; };
+		E5C0DE000000000000000402 /* ScannerScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000000401 /* ScannerScreen.swift */; };
+		E5C0DE000000000000000502 /* PayloadActionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000000501 /* PayloadActionsView.swift */; };
+		E5C0DE000000000000000602 /* HistoryScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000000601 /* HistoryScreen.swift */; };
+		E5C0DE000000000000000702 /* ScanDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000000701 /* ScanDetailView.swift */; };
+		E5C0DE000000000000000802 /* ImageDecoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000000801 /* ImageDecoder.swift */; };
+		E5C0DE000000000000000B02 /* CodeGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000000B01 /* CodeGenerator.swift */; };
+		E5C0DE000000000000000C02 /* CodeComposer.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000000C01 /* CodeComposer.swift */; };
+		E5C0DE000000000000000D02 /* GeneratorScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000000D01 /* GeneratorScreen.swift */; };
+		E5C0DE000000000000000E02 /* BankPaymentPayloads.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000000E01 /* BankPaymentPayloads.swift */; };
+		E5C0DE000000000000000F02 /* CryptoPayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000000F01 /* CryptoPayload.swift */; };
+		E5C0DE000000000000001002 /* CalendarPayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000001001 /* CalendarPayload.swift */; };
+		E5C0DE000000000000001102 /* RegionalPaymentPayloads.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000001101 /* RegionalPaymentPayloads.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -49,6 +64,21 @@
 		E54267922AB57CF400BFED1E /* ScanUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ScanUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		E54267962AB57CF400BFED1E /* ScanUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanUITests.swift; sourceTree = "<group>"; };
 		E54267982AB57CF400BFED1E /* ScanUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanUITestsLaunchTests.swift; sourceTree = "<group>"; };
+		E5C0DE000000000000000101 /* Symbology.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Symbology.swift; sourceTree = "<group>"; };
+		E5C0DE000000000000000201 /* ScanPayload.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanPayload.swift; sourceTree = "<group>"; };
+		E5C0DE000000000000000301 /* CameraScannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraScannerView.swift; sourceTree = "<group>"; };
+		E5C0DE000000000000000401 /* ScannerScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScannerScreen.swift; sourceTree = "<group>"; };
+		E5C0DE000000000000000501 /* PayloadActionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PayloadActionsView.swift; sourceTree = "<group>"; };
+		E5C0DE000000000000000601 /* HistoryScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryScreen.swift; sourceTree = "<group>"; };
+		E5C0DE000000000000000701 /* ScanDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanDetailView.swift; sourceTree = "<group>"; };
+		E5C0DE000000000000000801 /* ImageDecoder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageDecoder.swift; sourceTree = "<group>"; };
+		E5C0DE000000000000000B01 /* CodeGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeGenerator.swift; sourceTree = "<group>"; };
+		E5C0DE000000000000000C01 /* CodeComposer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeComposer.swift; sourceTree = "<group>"; };
+		E5C0DE000000000000000D01 /* GeneratorScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeneratorScreen.swift; sourceTree = "<group>"; };
+		E5C0DE000000000000000E01 /* BankPaymentPayloads.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BankPaymentPayloads.swift; sourceTree = "<group>"; };
+		E5C0DE000000000000000F01 /* CryptoPayload.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoPayload.swift; sourceTree = "<group>"; };
+		E5C0DE000000000000001001 /* CalendarPayload.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarPayload.swift; sourceTree = "<group>"; };
+		E5C0DE000000000000001101 /* RegionalPaymentPayloads.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegionalPaymentPayloads.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -101,6 +131,21 @@
 			children = (
 				E54267752AB57CF200BFED1E /* ScanApp.swift */,
 				E54267772AB57CF200BFED1E /* ContentView.swift */,
+				E5C0DE000000000000000401 /* ScannerScreen.swift */,
+				E5C0DE000000000000000301 /* CameraScannerView.swift */,
+				E5C0DE000000000000000501 /* PayloadActionsView.swift */,
+				E5C0DE000000000000000601 /* HistoryScreen.swift */,
+				E5C0DE000000000000000701 /* ScanDetailView.swift */,
+				E5C0DE000000000000000801 /* ImageDecoder.swift */,
+				E5C0DE000000000000000D01 /* GeneratorScreen.swift */,
+				E5C0DE000000000000000B01 /* CodeGenerator.swift */,
+				E5C0DE000000000000000C01 /* CodeComposer.swift */,
+				E5C0DE000000000000000201 /* ScanPayload.swift */,
+				E5C0DE000000000000000E01 /* BankPaymentPayloads.swift */,
+				E5C0DE000000000000000F01 /* CryptoPayload.swift */,
+				E5C0DE000000000000001001 /* CalendarPayload.swift */,
+				E5C0DE000000000000001101 /* RegionalPaymentPayloads.swift */,
+				E5C0DE000000000000000101 /* Symbology.swift */,
 				E54267792AB57CF400BFED1E /* Assets.xcassets */,
 				E542677E2AB57CF400BFED1E /* Persistence.swift */,
 				E54267832AB57CF400BFED1E /* Info.plist */,
@@ -145,6 +190,7 @@
 				E542676E2AB57CF200BFED1E /* Sources */,
 				E542676F2AB57CF200BFED1E /* Frameworks */,
 				E54267702AB57CF200BFED1E /* Resources */,
+				E5C0DE000000000000000A01 /* Auto-increment build number */,
 			);
 			buildRules = (
 			);
@@ -260,6 +306,28 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		E5C0DE000000000000000A01 /* Auto-increment build number */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Auto-increment build number";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Auto-set CFBundleVersion to the git commit count so every commit\n# yields a unique, monotonically increasing build number.\n# Updates the bundle Info.plist (and dSYM Info.plist) in place; the\n# original CURRENT_PROJECT_VERSION in the project stays at 1.\n\nINFO_PLIST=\"${BUILT_PRODUCTS_DIR}/${INFOPLIST_PATH}\"\n[ -f \"$INFO_PLIST\" ] || { echo \"warning: Info.plist not found at $INFO_PLIST\"; exit 0; }\n\nBUILD_NUMBER=$(cd \"${SRCROOT}\" && git rev-list --count HEAD 2>/dev/null) || BUILD_NUMBER=\"\"\nif [ -z \"$BUILD_NUMBER\" ]; then\n    echo \"warning: Could not determine git commit count; leaving CFBundleVersion as-is.\"\n    exit 0\nfi\n\n/usr/libexec/PlistBuddy -c \"Set :CFBundleVersion $BUILD_NUMBER\" \"$INFO_PLIST\"\n\nDSYM_INFO_PLIST=\"${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}/Contents/Info.plist\"\nif [ -f \"$DSYM_INFO_PLIST\" ]; then\n    /usr/libexec/PlistBuddy -c \"Set :CFBundleVersion $BUILD_NUMBER\" \"$DSYM_INFO_PLIST\"\nfi\n\necho \"Set CFBundleVersion to $BUILD_NUMBER (git commit count)\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		E542676E2AB57CF200BFED1E /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -267,6 +335,21 @@
 			files = (
 				E542677F2AB57CF400BFED1E /* Persistence.swift in Sources */,
 				E54267782AB57CF200BFED1E /* ContentView.swift in Sources */,
+				E5C0DE000000000000000102 /* Symbology.swift in Sources */,
+				E5C0DE000000000000000202 /* ScanPayload.swift in Sources */,
+				E5C0DE000000000000000302 /* CameraScannerView.swift in Sources */,
+				E5C0DE000000000000000402 /* ScannerScreen.swift in Sources */,
+				E5C0DE000000000000000502 /* PayloadActionsView.swift in Sources */,
+				E5C0DE000000000000000602 /* HistoryScreen.swift in Sources */,
+				E5C0DE000000000000000702 /* ScanDetailView.swift in Sources */,
+				E5C0DE000000000000000802 /* ImageDecoder.swift in Sources */,
+				E5C0DE000000000000000B02 /* CodeGenerator.swift in Sources */,
+				E5C0DE000000000000000C02 /* CodeComposer.swift in Sources */,
+				E5C0DE000000000000000D02 /* GeneratorScreen.swift in Sources */,
+				E5C0DE000000000000000E02 /* BankPaymentPayloads.swift in Sources */,
+				E5C0DE000000000000000F02 /* CryptoPayload.swift in Sources */,
+				E5C0DE000000000000001002 /* CalendarPayload.swift in Sources */,
+				E5C0DE000000000000001102 /* RegionalPaymentPayloads.swift in Sources */,
 				E54267822AB57CF400BFED1E /* Scan.xcdatamodeld in Sources */,
 				E54267762AB57CF200BFED1E /* ScanApp.swift in Sources */,
 			);
@@ -424,24 +507,33 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Scan/Preview Content\"";
 				DEVELOPMENT_TEAM = V4WM2SJ8Q9;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Scan;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Scan needs the camera to read 1D and 2D barcodes such as QR, EAN, UPC, Code 128, PDF417, Aztec and Data Matrix.";
+				INFOPLIST_KEY_NSContactsUsageDescription = "Scan can save a scanned vCard or MECARD as a new entry in your Contacts. You'll be shown the system 'New Contact' form first and can edit or cancel before saving.";
+				INFOPLIST_KEY_NSCalendarsUsageDescription = "Scan can add events from a scanned iCalendar QR to your calendar. You'll be shown the system 'Add Event' sheet first and can edit or cancel before saving.";
+				INFOPLIST_KEY_NSCalendarsWriteOnlyAccessUsageDescription = "Scan can add events from a scanned iCalendar QR to your calendar. The app only needs write access — it never reads your existing events.";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "Scan can save the codes you generate to your Photos library so you can print or share them later.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = nettrash.Scan;
+				PRODUCT_BUNDLE_IDENTIFIER = me.nettrash.Scan;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -459,17 +551,24 @@
 				DEVELOPMENT_TEAM = V4WM2SJ8Q9;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Scan;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Scan needs the camera to read 1D and 2D barcodes such as QR, EAN, UPC, Code 128, PDF417, Aztec and Data Matrix.";
+				INFOPLIST_KEY_NSContactsUsageDescription = "Scan can save a scanned vCard or MECARD as a new entry in your Contacts. You'll be shown the system 'New Contact' form first and can edit or cancel before saving.";
+				INFOPLIST_KEY_NSCalendarsUsageDescription = "Scan can add events from a scanned iCalendar QR to your calendar. You'll be shown the system 'Add Event' sheet first and can edit or cancel before saving.";
+				INFOPLIST_KEY_NSCalendarsWriteOnlyAccessUsageDescription = "Scan can add events from a scanned iCalendar QR to your calendar. The app only needs write access — it never reads your existing events.";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "Scan can save the codes you generate to your Photos library so you can print or share them later.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = nettrash.Scan;
+				PRODUCT_BUNDLE_IDENTIFIER = me.nettrash.Scan;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;

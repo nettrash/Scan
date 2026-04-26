@@ -1,0 +1,93 @@
+# =============================================================================
+# .gitignore for Scan — an iOS / Xcode project.
+# Adapted from github.com/github/gitignore (Swift + Objective-C templates)
+# with project-specific entries.
+# =============================================================================
+
+# ----- macOS system files -----------------------------------------------------
+.DS_Store
+.DS_Store?
+._*
+.AppleDouble
+.LSOverride
+.Spotlight-V100
+.Trashes
+.fseventsd
+.TemporaryItems
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+Icon?
+
+# ----- Xcode: user-specific UI / runtime state --------------------------------
+# Per-user UI layout, breakpoints, scheme selection — should not be shared.
+xcuserdata/
+*.xcuserstate
+*.xcuserdatad/
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+*.pbxuser
+*.moved-aside
+DerivedData/
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# ----- Xcode: build outputs ---------------------------------------------------
+build/
+**/*.xcodeproj/build/
+**/*.xcworkspace/xcuserdata/
+*.o
+*.a
+*.so
+
+# ----- Swift Package Manager --------------------------------------------------
+.build/
+.swiftpm/
+Packages/
+Package.pins
+Package.resolved
+*.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
+
+# ----- CocoaPods (in case it ever gets added) ---------------------------------
+Pods/
+*.xcworkspace/contents.xcworkspacedata.lock
+
+# ----- Carthage (in case it ever gets added) ----------------------------------
+Carthage/Build/
+Carthage/Checkouts
+
+# ----- fastlane ---------------------------------------------------------------
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/**/*.png
+fastlane/test_output
+
+# ----- Editors / IDEs other than Xcode ----------------------------------------
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# ----- Profiling / dumps ------------------------------------------------------
+*.profraw
+*.profdata
+*.gcno
+*.gcda
+
+# =============================================================================
+# Notes:
+#   * `xcshareddata/` IS intentionally tracked — it carries shared schemes and
+#     workspace settings the whole team should agree on. Only `xcuserdata/` is
+#     ignored.
+#   * `Package.resolved` for an *application* target (rather than a reusable
+#     library) is sometimes committed for build reproducibility; flip the rule
+#     above if you want it tracked.
+# =============================================================================

@@ -2,9 +2,15 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>UIBackgroundModes</key>
-	<array>
-		<string>remote-notification</string>
-	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>Scan needs the camera to read 1D and 2D barcodes such as QR, EAN, UPC, Code 128, PDF417, Aztec and Data Matrix.</string>
+	<key>NSContactsUsageDescription</key>
+	<string>Scan can save a scanned vCard or MECARD as a new entry in your Contacts. You'll be shown the system 'New Contact' form first and can edit or cancel before saving.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Scan can save the codes you generate to your Photos library so you can print or share them later.</string>
+	<key>NSCalendarsUsageDescription</key>
+	<string>Scan can add events from a scanned iCalendar QR to your calendar. You'll be shown the system 'Add Event' sheet first and can edit or cancel before saving.</string>
+	<key>NSCalendarsWriteOnlyAccessUsageDescription</key>
+	<string>Scan can add events from a scanned iCalendar QR to your calendar. The app only needs write access — it never reads your existing events.</string>
 </dict>
 </plist>

@@ -373,7 +373,6 @@ final class ScanTests: XCTestCase {
 
 
 
-
         199.95
         CHF
         S
@@ -619,7 +618,8 @@ final class ScanTests: XCTestCase {
         XCTAssertTrue(labels.contains(where: { $0.contains("Scheme GUID") }))
         XCTAssertTrue(labels.contains(where: { $0.contains("Identifier") }))
     }
-}
+
+    // MARK: - VEVENT all-day
 
     func testParsesICalendarAllDayEvent() {
         let raw = """
@@ -635,5 +635,223 @@ final class ScanTests: XCTestCase {
         }
         XCTAssertEqual(c.summary, "Holiday")
         XCTAssertTrue(c.allDay)
+    }
+
+    // MARK: - Edge cases & gap coverage
+    //
+    // Everything below this line is new on top of the 38-test core suite.
+    // Each block targets a parser path the original tests didn't exercise.
+
+    // MARK: Russian unified payment (ST00011)
+
+    func testParsesRussianUnifiedPaymentLegacyHeader() {
+        // ST00011 is the older header — same field grammar, different prefix.
+        let raw = "ST00011|Name=Acme LLC|PersonalAcc=40702810000000000000|Sum=500"
+        let p = ScanPayloadParser.parse(raw)
+        guard case .ruPayment(let ru) = p else {
+            return XCTFail("Expected .ruPayment, got \(p)")
+        }
+        XCTAssertEqual(ru.version, "ST00011")
+        let dict = Dictionary(uniqueKeysWithValues: ru.labelledFields.map { ($0.label, $0.value) })
+        XCTAssertEqual(dict["Recipient"], "Acme LLC")
+        XCTAssertEqual(dict["Amount"], "5.00 ₽")
+    }
+
+    // MARK: FNS receipt — non-Sale receipt types
+
+    func testFNSReceiptRefundType() {
+        let raw = "t=20240101T1000&s=99.00&fn=8710000100000123&i=1&fp=1&n=2"
+        let p = ScanPayloadParser.parse(raw)
+        guard case .fnsReceipt(let r) = p else {
+            return XCTFail("Expected .fnsReceipt, got \(p)")
+        }
+        XCTAssertEqual(r.receiptTypeLabel, "Sale refund")
+    }
+
+    func testFNSReceiptExpenseType() {
+        let raw = "t=20240101T1000&s=10&fn=1&i=1&fp=1&n=3"
+        let p = ScanPayloadParser.parse(raw)
+        guard case .fnsReceipt(let r) = p else {
+            return XCTFail("Expected .fnsReceipt, got \(p)")
+        }
+        XCTAssertEqual(r.receiptTypeLabel, "Expense")
+    }
+
+    // MARK: Serbian SUF receipt — host strictness
+
+    func testParsesSerbianSUFReceiptOnSandboxSubdomain() {
+        // Sandbox env — should still classify as a SUF receipt.
+        let raw = "https://tap.sandbox.suf.purs.gov.rs/v/?vl=encoded"
+        let p = ScanPayloadParser.parse(raw)
+        guard case .sufReceipt = p else {
+            return XCTFail("Sandbox subdomain should still be recognised as .sufReceipt, got \(p)")
+        }
+    }
+
+    func testRejectsSUFLookalikeHost() {
+        // The host `notsuf.purs.gov.rs` ends with `suf.purs.gov.rs` literally
+        // but isn't a real subdomain — must not classify.
+        let raw = "https://notsuf.purs.gov.rs/v/?vl=anything"
+        let p = ScanPayloadParser.parse(raw)
+        if case .sufReceipt = p { XCTFail("Lookalike host should fall through to .url") }
+    }
+
+    // MARK: NBS IPS — POS variants
+
+    func testParsesNBSIPSMerchantPresentedQR() {
+        // PT — merchant-presented QR at point of sale.
+        let raw = "K:PT|V:01|C:1|R:160600000007029817|N:Acme%20DOO|I:RSD100"
+        let p = ScanPayloadParser.parse(raw)
+        guard case .ipsPayment(let ips) = p else {
+            return XCTFail("Expected .ipsPayment, got \(p)")
+        }
+        XCTAssertEqual(ips.kind, "PT")
+        let labels = Dictionary(uniqueKeysWithValues: ips.labelledFields.map { ($0.label, $0.value) })
+        XCTAssertEqual(labels["Code"], "POS — merchant QR (PT)")
+    }
+
+    func testParsesNBSIPSCustomerPresentedQR() {
+        // PK — customer-presented QR at point of sale.
+        let raw = "K:PK|V:01|C:1|R:160600000007029817|N:Buyer|I:RSD50"
+        let p = ScanPayloadParser.parse(raw)
+        guard case .ipsPayment(let ips) = p else {
+            return XCTFail("Expected .ipsPayment, got \(p)")
+        }
+        XCTAssertEqual(ips.kind, "PK")
+        let labels = Dictionary(uniqueKeysWithValues: ips.labelledFields.map { ($0.label, $0.value) })
+        XCTAssertEqual(labels["Code"], "POS — customer QR (PK)")
+    }
+
+    // MARK: geo / sms / mailto — minimal forms
+
+    func testParsesGeoWithoutQuery() {
+        let p = ScanPayloadParser.parse("geo:51.5074,-0.1278")
+        guard case .geo(let lat, let lon, let q) = p else {
+            return XCTFail("Expected .geo, got \(p)")
+        }
+        XCTAssertEqual(lat, 51.5074, accuracy: 0.0001)
+        XCTAssertEqual(lon, -0.1278, accuracy: 0.0001)
+        XCTAssertNil(q)
+    }
+
+    func testParsesSMSWithoutBody() {
+        // Plain `sms:NUMBER` form — no body query.
+        let p = ScanPayloadParser.parse("sms:+447400123456")
+        guard case .sms(let num, let body) = p else {
+            return XCTFail("Expected .sms, got \(p)")
+        }
+        XCTAssertEqual(num, "+447400123456")
+        XCTAssertNil(body)
+    }
+
+    func testParsesMailtoWithoutQueryParameters() {
+        let p = ScanPayloadParser.parse("mailto:bare@example.com")
+        guard case .email(let address, let subject, let body) = p else {
+            return XCTFail("Expected .email, got \(p)")
+        }
+        XCTAssertEqual(address, "bare@example.com")
+        XCTAssertNil(subject)
+        XCTAssertNil(body)
+    }
+
+    // MARK: Composer — fields not exercised by the round-trip tests
+
+    func testVCardComposerIncludesURLField() {
+        // The earlier round-trip omits `url`; verify it survives parsing.
+        let composed = CodeComposer.vCard(
+            fullName: "Jane Doe",
+            phone: nil,
+            email: nil,
+            organization: nil,
+            url: "https://nettrash.me"
+        )
+        let payload = ScanPayloadParser.parse(composed)
+        guard case .contact(let c) = payload else {
+            return XCTFail("Expected .contact, got \(payload)")
+        }
+        XCTAssertEqual(c.fullName, "Jane Doe")
+        XCTAssertEqual(c.urls, ["https://nettrash.me"])
+    }
+
+    func testWifiComposerEmitsHiddenFlag() {
+        let composed = CodeComposer.wifi(
+            ssid: "Stealth",
+            password: "x",
+            security: .wpa,
+            hidden: true
+        )
+        XCTAssertTrue(composed.contains(";H:true"),
+                      "Composer must emit ;H:true for hidden networks")
+    }
+
+    // MARK: vCard — repeated fields
+
+    func testParsesVCardWithMultiplePhonesAndEmails() {
+        // Repeated TEL / EMAIL lines should both end up in the contact.
+        let v = """
+        BEGIN:VCARD
+        VERSION:3.0
+        FN:Bob Smith
+        TEL;TYPE=CELL:+15551111111
+        TEL;TYPE=HOME:+15552222222
+        EMAIL;TYPE=WORK:bob@work.example
+        EMAIL;TYPE=HOME:bob@home.example
+        END:VCARD
+        """
+        let p = ScanPayloadParser.parse(v)
+        guard case .contact(let c) = p else {
+            return XCTFail("Expected .contact, got \(p)")
+        }
+        XCTAssertEqual(c.phones, ["+15551111111", "+15552222222"])
+        XCTAssertEqual(c.emails, ["bob@work.example", "bob@home.example"])
+    }
+
+    // MARK: EMV — defensive rejection
+
+    func testRejectsEMVWithoutPayloadFormatPrefix() {
+        // EMVCo payloads must start with the Payload-Format-Indicator
+        // "000201" (tag 00, length 02, value "01"). A string composed of
+        // valid-looking TLV fields but missing that prefix must not
+        // classify as `.emvPayment`.
+        let raw = "5303123" + "5802BR" + "5907Test BR" + "6304ABCD"
+        let p = ScanPayloadParser.parse(raw)
+        if case .emvPayment = p {
+            XCTFail("Non-prefixed input must not classify as .emvPayment, got \(p)")
+        }
+    }
+
+    func testRejectsEMVWithMalformedLength() {
+        // Has the right prefix, but a later TLV declares a length larger
+        // than the bytes that follow. The defensive TLV decoder must bail
+        // out and the parser must fall through.
+        let raw = "000201" + "5399BAD" + "6304ABCD"
+        let p = ScanPayloadParser.parse(raw)
+        if case .emvPayment = p {
+            XCTFail("Malformed-length input must not classify as .emvPayment")
+        }
+    }
+
+    // MARK: UPI — mandate command
+
+    func testParsesUPIMandateURI() {
+        // The parser tolerates `mandate` in addition to `pay`.
+        let raw = "upi://mandate?pa=biller@upi&pn=Subscription&am=99"
+        let p = ScanPayloadParser.parse(raw)
+        guard case .upiPayment(let upi) = p else {
+            return XCTFail("Expected .upiPayment, got \(p)")
+        }
+        XCTAssertEqual(upi.payeeAddress, "biller@upi")
+    }
+
+    // MARK: Crypto — Bitcoin Cash chain identification
+
+    func testParsesBitcoinCashURI() {
+        let raw = "bitcoincash:qpm2qsznhks23z7629mms6s4cwef74vcwvy22gdx6a?amount=1.0"
+        let p = ScanPayloadParser.parse(raw)
+        guard case .crypto(let c) = p else {
+            return XCTFail("Expected .crypto, got \(p)")
+        }
+        XCTAssertEqual(c.chain, .bitcoinCash)
+        XCTAssertEqual(c.amount, "1.0")
     }
 }

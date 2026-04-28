@@ -33,6 +33,11 @@ enum ScanPayload: Equatable {
     case czechSPD(CzechSPDPayload)
     case paBySquare(PayBySquarePayload)
     case regionalPayment(RegionalPaymentPayload)
+    case magnet(MagnetPayload)
+    case richURL(RichURLPayload)
+    case gs1(GS1Payload)
+    case boardingPass(BoardingPassPayload)
+    case drivingLicense(DrivingLicensePayload)
     case text(String)
 
     struct ContactPayload: Equatable {
@@ -69,6 +74,11 @@ enum ScanPayload: Equatable {
         case .czechSPD:     return "SPD (CZ)"
         case .paBySquare:   return "Pay by Square (SK)"
         case .regionalPayment(let r): return r.scheme.rawValue
+        case .magnet:       return "Magnet"
+        case .richURL(let r): return r.kind.rawValue
+        case .gs1:          return "GS1"
+        case .boardingPass: return "Boarding Pass"
+        case .drivingLicense: return "Driver's Licence"
         case .text:         return "Text"
         }
     }
@@ -90,6 +100,22 @@ enum ScanPayloadParser {
         }
 
         let lower = trimmed.lowercased()
+
+        // ---- Identity & travel — high-confidence prefixes. ----
+
+        // IATA Bar Coded Boarding Pass (RP 1740c) — `M` + digit + 60+ chars.
+        if BoardingPassParser.looksLikeBoardingPass(trimmed) {
+            if let p = BoardingPassParser.parse(trimmed) {
+                return .boardingPass(p)
+            }
+        }
+
+        // AAMVA driver's licence — starts with `@\nANSI ` or `@\nAAMVA `.
+        if DrivingLicenseParser.looksLikeAAMVA(trimmed) {
+            if let p = DrivingLicenseParser.parse(trimmed) {
+                return .drivingLicense(p)
+            }
+        }
 
         // ---- Bank / receipt payloads. Matched first because they have very
         // specific prefixes / shapes that mustn't be misclassified as URLs. ----
@@ -233,11 +259,62 @@ enum ScanPayloadParser {
             // Fall through to .text if parsing failed somehow.
         }
 
-        // URL-ish
+        // magnet:?xt=urn:btih:…
+        if MagnetURIParser.looksLikeMagnet(trimmed) {
+            if let p = MagnetURIParser.parse(trimmed) {
+                return .magnet(p)
+            }
+        }
+
+        // GS1 Application Identifier — parens or FNC1-delimited form.
+        // (The Digital Link form is a URL and is handled below as part of
+        // the URL fallback; we re-check that path explicitly.)
+        if trimmed.hasPrefix("(") {
+            if GS1Parser.looksLikeGS1(trimmed),
+               let p = GS1Parser.parse(trimmed) {
+                return .gs1(p)
+            }
+        }
+        if trimmed.first == "\u{001D}" {
+            if let p = GS1Parser.parse(trimmed) {
+                return .gs1(p)
+            }
+        }
+
+        // URL-ish — try rich-URL recognition first (WhatsApp / Telegram /
+        // Wallet / App Store / Play / YouTube / Spotify / Apple Music).
+        // Maps share URLs are special-cased: we re-classify them as `.geo`
+        // when we can extract coordinates so the user gets the exact same
+        // smart action ("Open in Maps") as a `geo:` payload.
         if let url = URL(string: trimmed),
            let scheme = url.scheme?.lowercased(),
            ["http", "https"].contains(scheme) {
+            // GS1 Digital Link URL: try this BEFORE generic rich-URL
+            // recognition because the host can be any GS1 identifier
+            // resolver and we'd otherwise classify as a plain URL.
+            if GS1Parser.looksLikeGS1(trimmed),
+               let p = GS1Parser.parse(trimmed) {
+                return .gs1(p)
+            }
+            if let rich = RichURLParser.parse(url) {
+                // Maps URLs: prefer .geo when coordinates are available.
+                if (rich.kind == .googleMaps || rich.kind == .appleMaps),
+                   let lat = rich.fields.first(where: { $0.label == "Latitude" })?.value,
+                   let lon = rich.fields.first(where: { $0.label == "Longitude" })?.value,
+                   let latD = Double(lat), let lonD = Double(lon) {
+                    let q = rich.fields.first(where: { $0.label == "Query" })?.value
+                    return .geo(latitude: latD, longitude: lonD, query: q)
+                }
+                return .richURL(rich)
+            }
             return .url(url)
+        }
+
+        // Bare cryptocurrency address / Lightning token. Last-ditch before
+        // text fallback because these are otherwise indistinguishable from
+        // arbitrary alphanumeric strings.
+        if let bare = CryptoURIParser.parseBare(trimmed) {
+            return .crypto(bare)
         }
 
         return .text(trimmed)

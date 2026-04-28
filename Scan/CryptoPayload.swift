@@ -23,6 +23,11 @@ struct CryptoPayload: Equatable {
         case cardano     = "Cardano"
         case solana      = "Solana"
         case lightning   = "Lightning"
+        case lnurl       = "LNURL"
+        case lightningAddress = "Lightning Address"
+        case ripple      = "XRP"
+        case stellar     = "Stellar"
+        case cosmos      = "Cosmos"
         case other       = "Crypto"
     }
 
@@ -67,8 +72,157 @@ enum CryptoURIParser {
         "monero":       .monero,
         "cardano":      .cardano,
         "solana":       .solana,
-        "lightning":    .lightning
+        "lightning":    .lightning,
+        "ripple":       .ripple,
+        "xrp":          .ripple,
+        "xrpl":         .ripple,
+        "stellar":      .stellar,
+        "web+stellar":  .stellar,
+        "cosmos":       .cosmos
     ]
+
+    // MARK: - Bare-address & Lightning-Address recognition
+
+    /// Bitcoin pubkey hash (legacy `1...`, P2SH `3...`) — base58, 25–35 chars.
+    /// Plus bech32 segwit (`bc1...`, lowercase, 14+ chars).
+    private static let bitcoinAddressRegex = try! NSRegularExpression(
+        pattern: #"^([13][a-km-zA-HJ-NP-Z1-9]{25,34}|bc1[02-9ac-hj-np-z]{6,87})$"#
+    )
+
+    /// Ethereum 0x-prefixed 40 hex chars.
+    private static let ethereumAddressRegex = try! NSRegularExpression(
+        pattern: #"^0x[a-fA-F0-9]{40}$"#
+    )
+
+    /// XRP classic address: starts with `r`, 25–35 chars, base58.
+    private static let xrpAddressRegex = try! NSRegularExpression(
+        pattern: #"^r[1-9A-HJ-NP-Za-km-z]{24,34}$"#
+    )
+
+    /// Stellar public key: G + 55 chars (base32 modified).
+    private static let stellarAddressRegex = try! NSRegularExpression(
+        pattern: #"^G[A-Z2-7]{55}$"#
+    )
+
+    /// Cosmos / Atom bech32: starts with `cosmos1`, ~45 chars total.
+    private static let cosmosAddressRegex = try! NSRegularExpression(
+        pattern: #"^cosmos1[02-9ac-hj-np-z]{30,50}$"#
+    )
+
+    /// Lightning bare bolt11 — starts with `lnbc` (or `lntb` for testnet),
+    /// then an amount/multiplier (optional), then the `1` separator, then
+    /// bech32 data. The `1` *is* the separator inside bolt11, so we can't
+    /// drop it from the alphabet here. Permissive: lowercase alnum.
+    private static let bareBolt11Regex = try! NSRegularExpression(
+        pattern: #"^ln(bc|tb)[a-z0-9]{50,}$"#, options: [.caseInsensitive]
+    )
+
+    /// LNURL: bech32-encoded URL with prefix `LNURL1`, length 50+ tail.
+    /// Same caveat — the `1` is the separator, so the data alphabet is
+    /// bech32-strict after it.
+    private static let lnurlRegex = try! NSRegularExpression(
+        pattern: #"^LNURL1[a-z0-9]{50,}$"#, options: [.caseInsensitive]
+    )
+
+    /// Lightning Address — looks like an email but is the canonical
+    /// LNURL-pay shorthand (e.g. `nettrash@walletofsatoshi.com`).
+    /// We accept anything that matches `local@domain.tld` with at least one
+    /// dot in the host. Caller decides whether to prefer this over `.email`.
+    private static let lightningAddressRegex = try! NSRegularExpression(
+        pattern: #"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$"#
+    )
+
+    /// Try to recognise a *bare* (no scheme) address or LN-related token.
+    /// Returns nil if the input doesn't match any of the known shapes.
+    static func parseBare(_ raw: String) -> CryptoPayload? {
+        let s = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        let range = NSRange(s.startIndex..., in: s)
+
+        func matches(_ regex: NSRegularExpression) -> Bool {
+            regex.firstMatch(in: s, range: range) != nil
+        }
+
+        // LNURL bech32 — most distinctive, check first.
+        if matches(lnurlRegex) {
+            return CryptoPayload(
+                chain: .lnurl, scheme: "", address: s,
+                amount: nil, label: nil, message: nil, chainId: nil, raw: s
+            )
+        }
+        // Bare bolt11 invoice.
+        if matches(bareBolt11Regex) {
+            return CryptoPayload(
+                chain: .lightning, scheme: "", address: s,
+                amount: nil, label: nil, message: nil, chainId: nil, raw: s
+            )
+        }
+        // Bitcoin (legacy + bech32). Match bech32 first because the legacy
+        // regex tail `[a-km-zA-HJ-NP-Z1-9]` could greedily eat a bech32 too.
+        if matches(bitcoinAddressRegex) {
+            return CryptoPayload(
+                chain: .bitcoin, scheme: "", address: s,
+                amount: nil, label: nil, message: nil, chainId: nil, raw: s
+            )
+        }
+        if matches(ethereumAddressRegex) {
+            return CryptoPayload(
+                chain: .ethereum, scheme: "", address: s,
+                amount: nil, label: nil, message: nil, chainId: nil, raw: s
+            )
+        }
+        if matches(xrpAddressRegex) {
+            return CryptoPayload(
+                chain: .ripple, scheme: "", address: s,
+                amount: nil, label: nil, message: nil, chainId: nil, raw: s
+            )
+        }
+        if matches(stellarAddressRegex) {
+            return CryptoPayload(
+                chain: .stellar, scheme: "", address: s,
+                amount: nil, label: nil, message: nil, chainId: nil, raw: s
+            )
+        }
+        if matches(cosmosAddressRegex) {
+            return CryptoPayload(
+                chain: .cosmos, scheme: "", address: s,
+                amount: nil, label: nil, message: nil, chainId: nil, raw: s
+            )
+        }
+        // Lightning Address: only if the host part actually exists in the
+        // wild as an LN provider domain. We can't easily verify that
+        // statically, so we accept any well-formed `local@domain.tld` and
+        // *also* require it not be classifiable as an emailable address
+        // (callers handle that by checking before falling through to email).
+        if matches(lightningAddressRegex) {
+            // Heuristic: classify as Lightning Address if the local part
+            // doesn't contain typical email-only characters (e.g. `+`)
+            // — otherwise prefer .email. Pretty loose but works for
+            // 99 % of LN addresses you see in the wild.
+            let local = s.split(separator: "@").first.map(String.init) ?? ""
+            if !local.contains("+") && !local.contains("%") {
+                // Don't claim this as the chosen path unless caller asks
+                // — return nil so the email parser takes precedence by
+                // default; callers wanting Lightning Address detection
+                // call `parseLightningAddress` explicitly.
+            }
+            return nil
+        }
+        return nil
+    }
+
+    /// Explicit Lightning Address detection — call when you know the user
+    /// wants LN treatment over email.
+    static func parseLightningAddress(_ raw: String) -> CryptoPayload? {
+        let s = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        let range = NSRange(s.startIndex..., in: s)
+        guard lightningAddressRegex.firstMatch(in: s, range: range) != nil else {
+            return nil
+        }
+        return CryptoPayload(
+            chain: .lightningAddress, scheme: "", address: s,
+            amount: nil, label: nil, message: nil, chainId: nil, raw: s
+        )
+    }
 
     /// Lowercased schemes the detector should treat as "potentially crypto".
     static var knownSchemes: Set<String> { Set(chainByScheme.keys) }

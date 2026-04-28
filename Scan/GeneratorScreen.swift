@@ -157,6 +157,23 @@ struct GeneratorScreen: View {
             }
         }
         .navigationTitle("Generate")
+        // Drag-down anywhere in the form dismisses the keyboard
+        // interactively (matches Mail / Notes behaviour).
+        .scrollDismissesKeyboard(.interactively)
+        // Explicit tap anywhere outside a TextField also dismisses.
+        // `simultaneousGesture` lets the form's normal hit-testing
+        // (taps on toggles, pickers, buttons) keep working.
+        .simultaneousGesture(
+            TapGesture().onEnded { dismissKeyboard() }
+        )
+        // The Form scrolls; embed a "Done" toolbar above the keyboard for
+        // single-handed use cases where reaching outside the field is awkward.
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button("Done") { dismissKeyboard() }
+            }
+        }
         .sheet(isPresented: $showShare) {
             if let img = generatedImage {
                 ShareSheet(items: [img])
@@ -172,6 +189,20 @@ struct GeneratorScreen: View {
         } message: { msg in
             Text(msg)
         }
+    }
+
+    /// Resigns whatever's currently first responder. Routes through
+    /// `UIApplication.sendAction(_:to:from:for:)` because there's no
+    /// public SwiftUI primitive for "drop focus on whatever's editing"
+    /// outside `@FocusState`, and we have *five* TextFields in this view
+    /// — wiring `@FocusState` to all of them would need its own enum.
+    /// Sending `resignFirstResponder` to nil is the standard idiom and
+    /// works regardless of which field is editing.
+    private func dismissKeyboard() {
+        UIApplication.shared.sendAction(
+            #selector(UIResponder.resignFirstResponder),
+            to: nil, from: nil, for: nil
+        )
     }
 
     // MARK: - Input forms (per kind)

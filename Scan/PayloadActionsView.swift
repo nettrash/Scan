@@ -277,8 +277,73 @@ struct PayloadActionsView: View {
                 }
             }
 
+        case .magnet(let m):
+            LabelledFieldsList(fields: m.labelledFields)
+            if let url = URL(string: m.raw) {
+                Button {
+                    UIApplication.shared.open(url)
+                } label: {
+                    Label("Open in torrent client", systemImage: "link.badge.plus")
+                }
+            }
+
+        case .gs1(let g):
+            LabelledFieldsList(fields: g.labelledFields)
+            if let gtin = g.gtin,
+               let lookupURL = URL(string: "https://www.google.com/search?q=GTIN+\(gtin)") {
+                Button {
+                    UIApplication.shared.open(lookupURL)
+                } label: {
+                    Label("Look up GTIN \(gtin)", systemImage: "magnifyingglass")
+                }
+            }
+
+        case .boardingPass(let bp):
+            LabelledFieldsList(fields: bp.labelledFields)
+            // No "open in" action — boarding passes don't have a universal
+            // handler scheme. Copy / Share are the standard affordances.
+
+        case .drivingLicense(let dl):
+            LabelledFieldsList(fields: dl.labelledFields)
+            // Same as boarding pass — Copy / Share are the actions.
+            _ = dl
+
+        case .richURL(let r):
+            LabelledFieldsList(fields: r.labelledFields)
+            Button {
+                UIApplication.shared.open(r.url)
+            } label: {
+                Label(Self.richURLActionLabel(r.kind),
+                      systemImage: Self.richURLActionSymbol(r.kind))
+            }
+
         case .text:
             EmptyView()
+        }
+    }
+
+    private static func richURLActionLabel(_ kind: RichURLPayload.Kind) -> String {
+        switch kind {
+        case .whatsApp:    return "Open in WhatsApp"
+        case .telegram:    return "Open in Telegram"
+        case .appleWallet: return "Add to Wallet"
+        case .appStore:    return "Open in App Store"
+        case .playStore:   return "Open Play Store listing"
+        case .youtube:     return "Watch on YouTube"
+        case .spotify:     return "Open in Spotify"
+        case .appleMusic:  return "Open in Apple Music"
+        case .googleMaps, .appleMaps: return "Open in Maps"
+        }
+    }
+
+    private static func richURLActionSymbol(_ kind: RichURLPayload.Kind) -> String {
+        switch kind {
+        case .whatsApp, .telegram:    return "message"
+        case .appleWallet:            return "wallet.pass"
+        case .appStore, .playStore:   return "arrow.down.app"
+        case .youtube:                return "play.rectangle"
+        case .spotify, .appleMusic:   return "music.note"
+        case .googleMaps, .appleMaps: return "map"
         }
     }
 

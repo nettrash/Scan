@@ -128,6 +128,19 @@ private struct HistoryRow: View {
         case .czechSPD:     return "doc.plaintext"
         case .paBySquare:   return "square.grid.2x2"
         case .regionalPayment: return "arrow.up.forward.app"
+        case .magnet:       return "link.badge.plus"
+        case .gs1:          return "barcode.viewfinder"
+        case .boardingPass: return "airplane.departure"
+        case .drivingLicense: return "person.text.rectangle"
+        case .richURL(let r):
+            switch r.kind {
+            case .whatsApp, .telegram:    return "message"
+            case .appleWallet:            return "wallet.pass"
+            case .appStore, .playStore:   return "arrow.down.app"
+            case .youtube:                return "play.rectangle"
+            case .spotify, .appleMusic:   return "music.note"
+            case .googleMaps, .appleMaps: return "map"
+            }
         case .text:         return "qrcode"
         }
     }

@@ -854,4 +854,343 @@ final class ScanTests: XCTestCase {
         XCTAssertEqual(c.chain, .bitcoinCash)
         XCTAssertEqual(c.amount, "1.0")
     }
+
+    // MARK: - Pass 1: rich URLs / magnet / new chains / bare addresses
+
+    // Magnet
+
+    func testParsesMagnetURI() {
+        let raw = "magnet:?xt=urn:btih:c12fe1c06bba254a9dc9f519b335aa7c1367a88a&dn=ubuntu-22.04.iso&xl=4294967296&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3A80"
+        let p = ScanPayloadParser.parse(raw)
+        guard case .magnet(let m) = p else {
+            return XCTFail("Expected .magnet, got \(p)")
+        }
+        XCTAssertEqual(m.infoHash, "c12fe1c06bba254a9dc9f519b335aa7c1367a88a")
+        XCTAssertEqual(m.displayName, "ubuntu-22.04.iso")
+        XCTAssertEqual(m.exactLength, 4_294_967_296)
+        XCTAssertEqual(m.trackers, ["udp://tracker.openbittorrent.com:80"])
+    }
+
+    func testRejectsMagnetWithoutHashOrName() {
+        let raw = "magnet:?tr=http://example.com/announce"
+        let p = ScanPayloadParser.parse(raw)
+        if case .magnet = p { XCTFail("Should not classify as .magnet without xt or dn") }
+    }
+
+    // Rich URLs
+
+    func testRecognisesWhatsAppClickToChat() {
+        let raw = "https://wa.me/12025551212?text=Hello%20there"
+        let p = ScanPayloadParser.parse(raw)
+        guard case .richURL(let r) = p else {
+            return XCTFail("Expected .richURL, got \(p)")
+        }
+        XCTAssertEqual(r.kind, .whatsApp)
+        let dict = Dictionary(uniqueKeysWithValues: r.fields.map { ($0.label, $0.value) })
+        XCTAssertEqual(dict["Phone"], "12025551212")
+        XCTAssertEqual(dict["Message"], "Hello there")
+    }
+
+    func testRecognisesTelegramLink() {
+        let raw = "https://t.me/nettrash"
+        let p = ScanPayloadParser.parse(raw)
+        guard case .richURL(let r) = p, r.kind == .telegram else {
+            return XCTFail("Expected Telegram .richURL, got \(p)")
+        }
+        let dict = Dictionary(uniqueKeysWithValues: r.fields.map { ($0.label, $0.value) })
+        XCTAssertEqual(dict["Target"], "@nettrash")
+    }
+
+    func testRecognisesPkpassURL() {
+        let raw = "https://example.com/passes/boarding.pkpass"
+        let p = ScanPayloadParser.parse(raw)
+        guard case .richURL(let r) = p, r.kind == .appleWallet else {
+            return XCTFail("Expected Apple Wallet .richURL, got \(p)")
+        }
+        let dict = Dictionary(uniqueKeysWithValues: r.fields.map { ($0.label, $0.value) })
+        XCTAssertEqual(dict["Pass file"], "boarding.pkpass")
+    }
+
+    func testRecognisesAppStoreLink() {
+        let raw = "https://apps.apple.com/us/app/nettrash-scan/id6763932723"
+        let p = ScanPayloadParser.parse(raw)
+        guard case .richURL(let r) = p, r.kind == .appStore else {
+            return XCTFail("Expected App Store .richURL, got \(p)")
+        }
+        let dict = Dictionary(uniqueKeysWithValues: r.fields.map { ($0.label, $0.value) })
+        XCTAssertEqual(dict["App ID"], "6763932723")
+    }
+
+    func testRecognisesPlayStoreLink() {
+        let raw = "https://play.google.com/store/apps/details?id=me.nettrash.scan"
+        let p = ScanPayloadParser.parse(raw)
+        guard case .richURL(let r) = p, r.kind == .playStore else {
+            return XCTFail("Expected Play Store .richURL, got \(p)")
+        }
+        let dict = Dictionary(uniqueKeysWithValues: r.fields.map { ($0.label, $0.value) })
+        XCTAssertEqual(dict["Package"], "me.nettrash.scan")
+    }
+
+    func testRecognisesYouTubeShortLink() {
+        let raw = "https://youtu.be/dQw4w9WgXcQ"
+        let p = ScanPayloadParser.parse(raw)
+        guard case .richURL(let r) = p, r.kind == .youtube else {
+            return XCTFail("Expected YouTube .richURL, got \(p)")
+        }
+        let dict = Dictionary(uniqueKeysWithValues: r.fields.map { ($0.label, $0.value) })
+        XCTAssertEqual(dict["Video"], "dQw4w9WgXcQ")
+    }
+
+    func testRecognisesYouTubeWatchLink() {
+        let raw = "https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=42s"
+        let p = ScanPayloadParser.parse(raw)
+        guard case .richURL(let r) = p, r.kind == .youtube else {
+            return XCTFail("Expected YouTube .richURL, got \(p)")
+        }
+        let dict = Dictionary(uniqueKeysWithValues: r.fields.map { ($0.label, $0.value) })
+        XCTAssertEqual(dict["Video"], "dQw4w9WgXcQ")
+    }
+
+    func testRecognisesSpotifyTrackLink() {
+        let raw = "https://open.spotify.com/track/6rqhFgbbKwnb9MLmUQDhG6"
+        let p = ScanPayloadParser.parse(raw)
+        guard case .richURL(let r) = p, r.kind == .spotify else {
+            return XCTFail("Expected Spotify .richURL, got \(p)")
+        }
+        let dict = Dictionary(uniqueKeysWithValues: r.fields.map { ($0.label, $0.value) })
+        XCTAssertEqual(dict["Kind"], "Track")
+        XCTAssertEqual(dict["ID"], "6rqhFgbbKwnb9MLmUQDhG6")
+    }
+
+    func testGoogleMapsURLRoundsToGeo() {
+        // Google's `@<lat>,<lon>,<zoom>z` form.
+        let raw = "https://www.google.com/maps/place/Apple+Park/@37.3349,-122.009,17z"
+        let p = ScanPayloadParser.parse(raw)
+        guard case .geo(let lat, let lon, _) = p else {
+            return XCTFail("Expected .geo (re-classified from rich URL), got \(p)")
+        }
+        XCTAssertEqual(lat, 37.3349, accuracy: 0.001)
+        XCTAssertEqual(lon, -122.009, accuracy: 0.001)
+    }
+
+    func testAppleMapsURLRoundsToGeo() {
+        let raw = "https://maps.apple.com/?ll=37.3349,-122.009&q=Apple+Park"
+        let p = ScanPayloadParser.parse(raw)
+        guard case .geo(let lat, let lon, let q) = p else {
+            return XCTFail("Expected .geo, got \(p)")
+        }
+        XCTAssertEqual(lat, 37.3349, accuracy: 0.001)
+        XCTAssertEqual(lon, -122.009, accuracy: 0.001)
+        XCTAssertEqual(q, "Apple+Park")
+    }
+
+    // Crypto chains added in this pass
+
+    func testParsesXRPURI() {
+        let raw = "xrpl:r9cZA1mLK5R5Am25ArfXFmqgNwjZgnfk59"
+        let p = ScanPayloadParser.parse(raw)
+        guard case .crypto(let c) = p else {
+            return XCTFail("Expected .crypto, got \(p)")
+        }
+        XCTAssertEqual(c.chain, .ripple)
+    }
+
+    func testParsesStellarURI() {
+        let raw = "web+stellar:tx?xdr=AAAAAA"
+        let p = ScanPayloadParser.parse(raw)
+        guard case .crypto(let c) = p else {
+            return XCTFail("Expected .crypto, got \(p)")
+        }
+        XCTAssertEqual(c.chain, .stellar)
+    }
+
+    func testParsesCosmosURI() {
+        let raw = "cosmos:cosmos1abc?amount=1000000uatom"
+        let p = ScanPayloadParser.parse(raw)
+        guard case .crypto(let c) = p else {
+            return XCTFail("Expected .crypto, got \(p)")
+        }
+        XCTAssertEqual(c.chain, .cosmos)
+    }
+
+    // Bare addresses
+
+    func testRecognisesBareBitcoinAddress() {
+        let raw = "bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq"
+        let p = ScanPayloadParser.parse(raw)
+        guard case .crypto(let c) = p else {
+            return XCTFail("Expected .crypto, got \(p)")
+        }
+        XCTAssertEqual(c.chain, .bitcoin)
+        XCTAssertEqual(c.address, raw)
+    }
+
+    func testRecognisesBareEthereumAddress() {
+        let raw = "0x89205A3A3b2A69De6Dbf7f01ED13B2108B2c43e7"
+        let p = ScanPayloadParser.parse(raw)
+        guard case .crypto(let c) = p else {
+            return XCTFail("Expected .crypto, got \(p)")
+        }
+        XCTAssertEqual(c.chain, .ethereum)
+    }
+
+    func testRecognisesLNURL() {
+        // 60-char placeholder that matches the LNURL bech32 shape.
+        let raw = "LNURL1DP68GURN8GHJ7AMPD3KX2AR0VEEKZAR0WD5XJTNRDAKJ7TNHV4KX2EPCV4ENXAR"
+        let p = ScanPayloadParser.parse(raw)
+        guard case .crypto(let c) = p else {
+            return XCTFail("Expected .crypto, got \(p)")
+        }
+        XCTAssertEqual(c.chain, .lnurl)
+    }
+
+    func testRecognisesBareLightningInvoice() {
+        // Stub of a bolt11 — short for the test, but begins with `lnbc`.
+        let raw = "lnbc1pvjluezpp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqypqdpl"
+        let p = ScanPayloadParser.parse(raw)
+        guard case .crypto(let c) = p else {
+            return XCTFail("Expected .crypto, got \(p)")
+        }
+        XCTAssertEqual(c.chain, .lightning)
+    }
+
+    // vCard 4.0
+
+    func testParsesVCard4() {
+        let v = """
+        BEGIN:VCARD
+        VERSION:4.0
+        FN:Jane Doe
+        N:Doe;Jane;;;
+        TEL;TYPE=cell:+15551234567
+        EMAIL;TYPE=work:jane@example.com
+        END:VCARD
+        """
+        let p = ScanPayloadParser.parse(v)
+        guard case .contact(let c) = p else {
+            return XCTFail("Expected .contact, got \(p)")
+        }
+        XCTAssertEqual(c.fullName, "Jane Doe")
+        XCTAssertEqual(c.phones, ["+15551234567"])
+        XCTAssertEqual(c.emails, ["jane@example.com"])
+    }
+
+    // MARK: - Pass 2: GS1 / IATA BCBP / AAMVA
+
+    // GS1 — parens form
+
+    func testParsesGS1ParensForm() {
+        let raw = "(01)09506000134352(17)201225(10)ABC123(21)SN-001"
+        let p = ScanPayloadParser.parse(raw)
+        guard case .gs1(let g) = p else {
+            return XCTFail("Expected .gs1, got \(p)")
+        }
+        XCTAssertEqual(g.form, .parens)
+        XCTAssertEqual(g.gtin,     "09506000134352")
+        XCTAssertEqual(g.expiry,   "201225")
+        XCTAssertEqual(g.batchLot, "ABC123")
+        XCTAssertEqual(g.serial,   "SN-001")
+        // Date rendering pivots: 20 -> 2020.
+        let labels = Dictionary(uniqueKeysWithValues: g.labelledFields.map { ($0.label, $0.value) })
+        XCTAssertEqual(labels["Expiry (17)"], "2020-12-25")
+    }
+
+    // GS1 — Digital Link
+
+    func testParsesGS1DigitalLink() {
+        let raw = "https://id.gs1.org/01/09506000134352/10/ABC123"
+        let p = ScanPayloadParser.parse(raw)
+        guard case .gs1(let g) = p else {
+            return XCTFail("Expected .gs1, got \(p)")
+        }
+        XCTAssertEqual(g.form, .digitalLink)
+        XCTAssertEqual(g.gtin,     "09506000134352")
+        XCTAssertEqual(g.batchLot, "ABC123")
+    }
+
+    // GS1 — FNC1-separated form (no parens, GS=)
+
+    func testParsesGS1FNC1Form() {
+        let raw = "0109506000134352\u{001D}10ABC123\u{001D}21SN-001"
+        let p = ScanPayloadParser.parse(raw)
+        guard case .gs1(let g) = p else {
+            return XCTFail("Expected .gs1, got \(p)")
+        }
+        XCTAssertEqual(g.gtin, "09506000134352")
+        XCTAssertEqual(g.batchLot, "ABC123")
+        XCTAssertEqual(g.serial, "SN-001")
+    }
+
+    // IATA BCBP
+
+    func testParsesIATABoardingPass() {
+        // RP 1740c minimum mandatory section: exactly 60 chars, every
+        // field at the right fixed-position offset.
+        let raw = "M1NETTRASH/IVAN       EABC123 LHRJFKBA  0175020M013D0028 100"
+        XCTAssertEqual(raw.count, 60, "Test fixture must be exactly 60 chars")
+        let p = ScanPayloadParser.parse(raw)
+        guard case .boardingPass(let bp) = p else {
+            return XCTFail("Expected .boardingPass, got \(p)")
+        }
+        XCTAssertEqual(bp.formatCode, "M")
+        XCTAssertEqual(bp.numberOfLegs, 1)
+        XCTAssertEqual(bp.passengerName, "NETTRASH/IVAN")
+        XCTAssertTrue(bp.electronicTicket)
+        XCTAssertEqual(bp.legs.count, 1)
+        let leg = bp.legs[0]
+        XCTAssertEqual(leg.pnr, "ABC123")
+        XCTAssertEqual(leg.from, "LHR")
+        XCTAssertEqual(leg.to,   "JFK")
+        XCTAssertEqual(leg.carrier, "BA")
+        XCTAssertEqual(leg.dateJulian, 20)
+    }
+
+    func testRejectsNonBoardingPassPayload() {
+        // Same length but starts with `X` instead of `M`.
+        let raw = "X1NETTRASH/IVAN       EABC123 LHRJFKBA  0175020M013D0028 100"
+        let p = ScanPayloadParser.parse(raw)
+        if case .boardingPass = p { XCTFail("Expected fall-through, got .boardingPass") }
+    }
+
+    // AAMVA driver's licence
+
+    func testParsesAAMVADriverLicense() {
+        // Minimal AAMVA fixture — header + a few common element IDs.
+        let raw = """
+        @
+        ANSI 636026100002DL00410288ZV03190008DLDAQABC1234567
+        DCSDOE
+        DACJOHN
+        DADM
+        DBA12312030
+        DBB04151985
+        DBC1
+        DAG123 MAIN ST
+        DAICOLUMBIA
+        DAJSC
+        DAK29201
+        """
+        let p = ScanPayloadParser.parse(raw)
+        guard case .drivingLicense(let dl) = p else {
+            return XCTFail("Expected .drivingLicense, got \(p)")
+        }
+        XCTAssertEqual(dl.issuerIIN, "636026")
+        XCTAssertEqual(dl.issuerName, "South Carolina")
+        XCTAssertEqual(dl.licenseNumber, "ABC1234567")
+        XCTAssertEqual(dl.firstName, "JOHN")
+        XCTAssertEqual(dl.middleName, "M")
+        XCTAssertEqual(dl.lastName, "DOE")
+        XCTAssertEqual(dl.sex, "Male")
+        XCTAssertEqual(dl.city, "COLUMBIA")
+        XCTAssertEqual(dl.state, "SC")
+        XCTAssertEqual(dl.postalCode, "29201")
+        XCTAssertNotNil(dl.dateOfBirth)
+        XCTAssertNotNil(dl.expiry)
+    }
+
+    func testRejectsNonAAMVAPayload() {
+        let raw = "@\nNotAAMVAStuff"
+        let p = ScanPayloadParser.parse(raw)
+        if case .drivingLicense = p { XCTFail("Should not classify as AAMVA") }
+    }
 }

@@ -11,7 +11,62 @@ build-phase script via `agvtool next-version -all`.
 
 ## [Unreleased]
 
-This is the work that will become **1.0.0** once tagged.
+_(nothing yet)_
+
+## [1.1.0] — 2026-04-28
+
+Public release on the App Store: <https://apps.apple.com/us/app/nettrash-scan/id6763932723>.
+
+### App Store
+
+- **Listed publicly.** Bundle ID `me.nettrash.Scan`, App Store ID `6763932723`. The README, the nettrash.me homepage, and the new App-Store tab on the personal site all link to the listing.
+- **App Review Information note.** New `AppStoreReviewNotes.md` at the repo root holds the verbatim text we paste into App Store Connect's *App Review Information → Notes* field on every submission. Walks the reviewer through the testing flow (real device vs Simulator), suggested payload fixtures, what each `NSxxxUsageDescription` is for, and links to the privacy policy + source.
+- **Privacy policy now hosted at** <https://nettrash.me/appstore/scan/privacy.html>. Same content as `PRIVACY.md`; the markdown stays canonical, the HTML mirror is generated and copied into `dist/` by Trunk on every nettrash.me deploy.
+
+### Marketing version
+
+- Bumped to **1.1** across all six `MARKETING_VERSION` build configurations (Debug + Release × app + tests + UI tests). `CURRENT_PROJECT_VERSION` continues to auto-increment via the `agvtool bump` scheme post-action.
+
+### App icon refresh
+
+- Yellow corner brackets removed; the QR motif is now scaled to ~70 % of the canvas (was ~40 %) on the same deep-blue radial gradient. The icon now reads as a *scanner* at a glance instead of getting lost in dock / Spotlight thumbnails. Generated via `outputs/make_ios_scan_icon.py` so future tweaks are reproducible.
+
+### Generator-tab UX
+
+- **Tap-outside-to-dismiss the keyboard.** Three layered ways to put the keyboard away: an interactive scroll-dismiss (drag down anywhere in the form, matches Mail / Notes), a `simultaneousGesture` tap-anywhere fallback that doesn't steal taps from the toggles / pickers / buttons, and a *Done* keyboard toolbar accessory that appears whenever a field is editing.
+
+### New payload types — Pass 1 (lightweight recognitions)
+
+- **Magnet URIs** (`magnet:?xt=urn:btih:…&dn=…&xl=…&tr=…`). Surface info-hash, display name, exact length, tracker list. "Open in torrent client" smart action.
+- **Rich URLs** — recognises specific HTTP(S) URLs and offers the right smart action instead of a generic "Open in Safari":
+  - WhatsApp click-to-chat (`wa.me/<phone>?text=…`, `api.whatsapp.com/send?phone=…`)
+  - Telegram (`t.me/<target>`)
+  - Apple Wallet `.pkpass`
+  - App Store / Google Play store-listing URLs (extract App ID / package name)
+  - YouTube watch / `youtu.be` short / Shorts URLs (extract video ID)
+  - Spotify, Apple Music
+- **Maps URLs (Google + Apple) re-classify to `.geo`** when coordinates can be pulled out, so the user gets the same "Open in Maps" smart action as a `geo:` payload.
+- **vCard 4.0** transparently supported — the existing parser doesn't gate on `VERSION:`, both 3.0 and 4.0 line shapes go through the same handler.
+- **More crypto chains.** `Crypto.Chain` gained XRP / Ripple, Stellar, Cosmos, LNURL, Lightning Address. Schemes recognised: `xrp://`, `xrpl://`, `ripple://`, `stellar:`, `web+stellar:`, `cosmos:`.
+- **Bare crypto address detection.** Strings without a scheme but matching well-known address formats are now classified as `.crypto`: legacy + bech32 Bitcoin, Ethereum `0x…`, XRP `r…`, Stellar `G…`, Cosmos `cosmos1…`, bare bolt11 invoices (`lnbc…` / `lntb…`), LNURL bech32 (`LNURL1…`).
+
+### New payload types — Pass 2 (full spec-driven parsers)
+
+- **GS1 Application Identifier.** Three forms supported: parens (`(01)09506000134352(17)201225(10)ABC123`), GS1 Digital Link (`https://example.com/01/<gtin>/10/<batch>?…`), and FNC1-separated (the GS character `0x1D` between elements). Registry of ~40 common AIs with friendly names + length info; date AIs (11 / 12 / 13 / 15 / 16 / 17) render as `YYYY-MM-DD`. Smart action: GTIN web lookup.
+- **IATA Bar Coded Boarding Pass (RP 1740c, version M).** Surfaces format code, leg count, passenger name, e-ticket flag, plus the 60-char mandatory leg's PNR / from / to / carrier / flight number / Julian date / cabin / seat / sequence / status. Multi-leg conditional sections vary too much across carriers to parse reliably without per-airline rules; the leg count is reported so the user knows there's more.
+- **AAMVA driver's licence (PDF417).** US / Canada DLs. Header parsing extracts the 6-digit IIN; the registry maps ~50 IINs to friendly jurisdiction names (every US state + DC, every Canadian province). Element-ID walker pulls `DCS` / `DAC` / `DAD` (names), `DAQ` (licence number), `DBA` / `DBB` / `DBD` (expiry / DOB / issued — auto-detects MM/DD/YYYY vs YYYY/MM/DD), `DBC` (sex), `DAG` / `DAI` / `DAJ` / `DAK` (address). Element extractor only accepts triplets that follow a record terminator, so letter-triples inside other values don't false-match.
+
+### Tests
+
+- 38 new tests across the parser suite, taking the count from 38 → 90.
+  - Pass 1: 20 tests — magnet, rich URLs, Maps→Geo re-classification, new chains, bare addresses, vCard 4.0.
+  - Pass 2: 7 tests — GS1 (parens / Digital Link / FNC1), BCBP (positive + reject), AAMVA (positive + reject).
+  - Fixed `testParsesSwissQRBill` — fixture was off by one blank line in the unused-ultimate-creditor block, which had been silently failing because of the next item.
+- **Bug-fix: `testParsesICalendarAllDayEvent` was outside the `ScanTests` class.** A stray `}` ended the class one line too early, leaving the function as a free top-level function that XCTest never discovered and never ran. Restored to its proper place. As a result the existing all-day VEVENT test now actually executes.
+
+## [1.0.0] — 2026-04-26
+
+First public release. The notes below cover the development work that became 1.0.0.
 
 ### Added
 

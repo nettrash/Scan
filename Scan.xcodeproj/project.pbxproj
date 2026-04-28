@@ -31,6 +31,11 @@
 		E5C0DE000000000000000F02 /* CryptoPayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000000F01 /* CryptoPayload.swift */; };
 		E5C0DE000000000000001002 /* CalendarPayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000001001 /* CalendarPayload.swift */; };
 		E5C0DE000000000000001102 /* RegionalPaymentPayloads.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000001101 /* RegionalPaymentPayloads.swift */; };
+		E5C0DE000000000000001A02 /* MagnetPayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000001A01 /* MagnetPayload.swift */; };
+		E5C0DE000000000000001B02 /* RichURLPayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000001B01 /* RichURLPayload.swift */; };
+		E5C0DE000000000000001C02 /* GS1Payload.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000001C01 /* GS1Payload.swift */; };
+		E5C0DE000000000000001D02 /* BoardingPassPayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000001D01 /* BoardingPassPayload.swift */; };
+		E5C0DE000000000000001E02 /* DrivingLicensePayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000001E01 /* DrivingLicensePayload.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -79,6 +84,11 @@
 		E5C0DE000000000000000F01 /* CryptoPayload.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoPayload.swift; sourceTree = "<group>"; };
 		E5C0DE000000000000001001 /* CalendarPayload.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarPayload.swift; sourceTree = "<group>"; };
 		E5C0DE000000000000001101 /* RegionalPaymentPayloads.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegionalPaymentPayloads.swift; sourceTree = "<group>"; };
+		E5C0DE000000000000001A01 /* MagnetPayload.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MagnetPayload.swift; sourceTree = "<group>"; };
+		E5C0DE000000000000001B01 /* RichURLPayload.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RichURLPayload.swift; sourceTree = "<group>"; };
+		E5C0DE000000000000001C01 /* GS1Payload.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GS1Payload.swift; sourceTree = "<group>"; };
+		E5C0DE000000000000001D01 /* BoardingPassPayload.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardingPassPayload.swift; sourceTree = "<group>"; };
+		E5C0DE000000000000001E01 /* DrivingLicensePayload.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrivingLicensePayload.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -145,6 +155,11 @@
 				E5C0DE000000000000000F01 /* CryptoPayload.swift */,
 				E5C0DE000000000000001001 /* CalendarPayload.swift */,
 				E5C0DE000000000000001101 /* RegionalPaymentPayloads.swift */,
+				E5C0DE000000000000001A01 /* MagnetPayload.swift */,
+				E5C0DE000000000000001B01 /* RichURLPayload.swift */,
+				E5C0DE000000000000001C01 /* GS1Payload.swift */,
+				E5C0DE000000000000001D01 /* BoardingPassPayload.swift */,
+				E5C0DE000000000000001E01 /* DrivingLicensePayload.swift */,
 				E5C0DE000000000000000101 /* Symbology.swift */,
 				E54267792AB57CF400BFED1E /* Assets.xcassets */,
 				E542677E2AB57CF400BFED1E /* Persistence.swift */,
@@ -327,6 +342,11 @@
 				E5C0DE000000000000000F02 /* CryptoPayload.swift in Sources */,
 				E5C0DE000000000000001002 /* CalendarPayload.swift in Sources */,
 				E5C0DE000000000000001102 /* RegionalPaymentPayloads.swift in Sources */,
+				E5C0DE000000000000001A02 /* MagnetPayload.swift in Sources */,
+				E5C0DE000000000000001B02 /* RichURLPayload.swift in Sources */,
+				E5C0DE000000000000001C02 /* GS1Payload.swift in Sources */,
+				E5C0DE000000000000001D02 /* BoardingPassPayload.swift in Sources */,
+				E5C0DE000000000000001E02 /* DrivingLicensePayload.swift in Sources */,
 				E54267822AB57CF400BFED1E /* Scan.xcdatamodeld in Sources */,
 				E54267762AB57CF200BFED1E /* ScanApp.swift in Sources */,
 			);
@@ -492,7 +512,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 14;
+				CURRENT_PROJECT_VERSION = 15;
 				DEVELOPMENT_ASSET_PATHS = "\"Scan/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -529,7 +549,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 14;
+				CURRENT_PROJECT_VERSION = 15;
 				DEVELOPMENT_ASSET_PATHS = "\"Scan/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -564,7 +584,7 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 14;
+				CURRENT_PROJECT_VERSION = 15;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -587,7 +607,7 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 14;
+				CURRENT_PROJECT_VERSION = 15;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -609,7 +629,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 14;
+				CURRENT_PROJECT_VERSION = 15;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -631,7 +651,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 14;
+				CURRENT_PROJECT_VERSION = 15;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (

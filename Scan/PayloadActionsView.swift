@@ -306,7 +306,6 @@ struct PayloadActionsView: View {
         case .drivingLicense(let dl):
             LabelledFieldsList(fields: dl.labelledFields)
             // Same as boarding pass — Copy / Share are the actions.
-            _ = dl
 
         case .richURL(let r):
             LabelledFieldsList(fields: r.labelledFields)

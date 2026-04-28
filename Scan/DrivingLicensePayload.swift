@@ -102,7 +102,7 @@ enum DrivingLicenseParser {
         // Step 2: data elements appear after the subfile-designator
         // "DL" header (for driver licence). Each element is a 3-character
         // code followed by its value, terminated by a line break (\n) or
-        // an ASCII record separator ( or).
+        // an ASCII record separator (0x1E or 0x1F).
         let body = raw
 
         // Common AAMVA element IDs — see spec appendix D.

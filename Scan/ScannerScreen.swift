@@ -20,8 +20,11 @@ struct ScannerScreen: View {
 
     // Scanner state
     @State private var torchOn = false
-    @State private var lastScan: ScannedCode?
-    @State private var showResult = false
+    /// The code currently displayed in the result sheet. Bound to
+    /// `.sheet(item:)` so SwiftUI presents/dismisses atomically — no
+    /// race between the dismiss animation and a fresh scan of the same
+    /// payload (which previously could leave the sheet empty).
+    @State private var sheetCode: ScannedCode?
     @State private var failureReason: String?
     @State private var lastValue: String?
     @State private var lastValueAt: Date = .distantPast
@@ -43,7 +46,7 @@ struct ScannerScreen: View {
             CameraScannerView(
                 onScan: handleScan,
                 onFailure: { failureReason = $0 },
-                isPaused: showResult || isDecoding,
+                isPaused: sheetCode != nil || isDecoding,
                 isTorchOn: torchOn
             )
             .ignoresSafeArea()
@@ -138,20 +141,13 @@ struct ScannerScreen: View {
         } message: { msg in
             Text(msg)
         }
-        .sheet(isPresented: $showResult, onDismiss: {
-            lastScan = nil
-            // Reset the reticle to its default centred position so the
-            // next scan starts from a neutral hint.
-            detectedRect = nil
-        }) {
-            if let lastScan {
-                ScanResultSheet(
-                    scan: lastScan,
-                    onSave: { notes in saveScan(lastScan, notes: notes) },
-                    onDismiss: { showResult = false }
-                )
-                .presentationDetents([.medium, .large])
-            }
+        .sheet(item: $sheetCode) { scan in
+            ScanResultSheet(
+                scan: scan,
+                onSave: { notes in saveScan(scan, notes: notes) },
+                onDismiss: { sheetCode = nil }
+            )
+            .presentationDetents([.medium, .large])
         }
     }
 
@@ -183,21 +179,21 @@ struct ScannerScreen: View {
     // MARK: - Live scan handling
 
     private func handleScan(_ code: ScannedCode) {
-        // Snap the reticle to the detected code's bounds. We do this even
-        // on a debounced repeat so the reticle keeps tracking the code if
-        // it moves while the result sheet is still about to appear.
-        if let rect = code.previewRect {
-            detectedRect = rect
-        }
         // Debounce duplicate decodes from the same code in quick succession.
+        // We do the dedupe check *before* updating the reticle so a
+        // re-detection of the just-shown code doesn't snap the corner
+        // brackets back to the code's position (which read as them
+        // "coming back" after the result sheet was dismissed).
         let now = Date()
         if code.value == lastValue, now.timeIntervalSince(lastValueAt) < dedupeWindow {
             return
         }
+        if let rect = code.previewRect {
+            detectedRect = rect
+        }
         lastValue = code.value
         lastValueAt = now
-        lastScan = code
-        showResult = true
+        sheetCode = code
         UINotificationFeedbackGenerator().notificationOccurred(.success)
     }
 
@@ -244,11 +240,10 @@ struct ScannerScreen: View {
             presentImportError("No barcodes were found in that image.")
             return
         }
-        lastScan = first
         // Don't apply the live-scan debounce to imports.
         lastValue = first.value
         lastValueAt = Date()
-        showResult = true
+        sheetCode = first
         UINotificationFeedbackGenerator().notificationOccurred(.success)
     }
 

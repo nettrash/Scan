@@ -9,7 +9,12 @@
 import SwiftUI
 import AVFoundation
 
-struct ScannedCode: Equatable {
+struct ScannedCode: Equatable, Identifiable {
+    /// Stable per-instance ID so SwiftUI's `.sheet(item:)` distinguishes
+    /// "same payload scanned again" from "still showing the previous one"
+    /// — without an ID per instance, re-scanning the same value would
+    /// not trigger a re-presentation.
+    let id: UUID = UUID()
     let value: String
     let symbology: Symbology
     let avType: String
@@ -19,6 +24,15 @@ struct ScannedCode: Equatable {
     /// the code came from a still image rather than the live camera, so
     /// callers should treat its absence as "no on-screen position".
     let previewRect: CGRect?
+
+    static func == (lhs: ScannedCode, rhs: ScannedCode) -> Bool {
+        lhs.id == rhs.id
+            && lhs.value == rhs.value
+            && lhs.symbology == rhs.symbology
+            && lhs.avType == rhs.avType
+            && lhs.timestamp == rhs.timestamp
+            && lhs.previewRect == rhs.previewRect
+    }
 }
 
 struct CameraScannerView: UIViewControllerRepresentable {

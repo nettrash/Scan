@@ -1,8 +1,11 @@
 # Scan
 
-![build](https://github.com/nettrash/Scan/actions/workflows/ios.yml/badge.svg)
+[![build](https://github.com/nettrash/Scan/actions/workflows/ios.yml/badge.svg)](https://github.com/nettrash/Scan/actions/workflows/ios.yml)
+[![App Store](https://img.shields.io/badge/App_Store-Download-0D96F6?logo=apple&logoColor=white)](https://apps.apple.com/us/app/nettrash-scan/id6763932723)
 
 An iOS app for reading and generating 1D and 2D barcodes. Built in SwiftUI on top of AVFoundation, Vision, and Core Image — no third-party dependencies. The point of the app is not just to *decode* a code, but to *understand* what's in it: scan a Wi-Fi QR and we'll show the SSID and offer to open Wi-Fi Settings; scan a SEPA invoice and we'll surface the IBAN, beneficiary, and amount as separate copyable rows; scan a Russian receipt and we'll show the fiscal markers; and so on.
+
+📱 **Available on the App Store:** <https://apps.apple.com/us/app/nettrash-scan/id6763932723> — bundle ID `me.nettrash.Scan`, App Store ID `6763932723`. Use that link to install on a real iPhone or iPad. Source-built copies via Xcode are still recommended for testing local changes.
 
 ## Features
 
@@ -97,7 +100,17 @@ The app declares the following usage descriptions:
 
 The app never reads the user's address book, calendar, or photo library — every privileged action is mediated by a system-supplied edit-and-save UI.
 
+## Installing
+
+If you just want to use the app, install it from the App Store — it's free, ad-free, and tracker-free:
+
+> **App Store:** <https://apps.apple.com/us/app/nettrash-scan/id6763932723>
+
+The store listing is the right answer for end users, and is also the binary under "App Review Information" notes during App Store Connect submissions. Bundle ID `me.nettrash.Scan`, App Store ID `6763932723`.
+
 ## Building
+
+To build from source (recommended for testing local changes):
 
 ```sh
 git clone https://github.com/nettrash/Scan.git

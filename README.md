@@ -3,7 +3,7 @@
 [![build](https://github.com/nettrash/Scan/actions/workflows/ios.yml/badge.svg)](https://github.com/nettrash/Scan/actions/workflows/ios.yml)
 [![App Store](https://img.shields.io/badge/App_Store-Download-0D96F6?logo=apple&logoColor=white)](https://apps.apple.com/us/app/nettrash-scan/id6763932723)
 
-An iOS app for reading and generating 1D and 2D barcodes. Built in SwiftUI on top of AVFoundation, Vision, and Core Image — no third-party dependencies. The point of the app is not just to *decode* a code, but to *understand* what's in it: scan a Wi-Fi QR and we'll show the SSID and offer to open Wi-Fi Settings; scan a SEPA invoice and we'll surface the IBAN, beneficiary, and amount as separate copyable rows; scan a Russian receipt and we'll show the fiscal markers; and so on.
+An iOS app for reading and generating 1D and 2D barcodes. Built in SwiftUI on top of AVFoundation, Vision, and Core Image — no third-party dependencies. The point of the app is not just to *decode* a code, but to *understand* what's in it: scan a Wi-Fi QR and we'll show the SSID and offer to open Wi-Fi Settings; scan a SEPA invoice and we'll surface the IBAN, beneficiary, and amount as separate copyable rows; scan a fiscal receipt and we'll show the fiscal markers; and so on.
 
 📱 **Available on the App Store:** <https://apps.apple.com/us/app/nettrash-scan/id6763932723> — bundle ID `me.nettrash.Scan`, App Store ID `6763932723`. Use that link to install on a real iPhone or iPad. Source-built copies via Xcode are still recommended for testing local changes.
 
@@ -29,9 +29,9 @@ The decoded string is parsed and rendered as structured fields with per-row tap-
 | Authentication | `otpauth://` |
 | Retail | EAN-8 / EAN-13 / UPC-E / ITF-14 product codes |
 | Cryptocurrency | Bitcoin (BIP-21), Ethereum (EIP-681 with chain ID), Litecoin, Bitcoin Cash, Dogecoin, Monero, Cardano, Solana, Lightning (BOLT-11) |
-| Bank payments | EPC SEPA Payment QR / GiroCode (EU), Swiss QR-bill (SPC), Czech SPD (Spayd), Slovak Pay by Square (recognition only — decoding needs LZMA), Russian unified payment (ST00012 / ST00011), EMVCo Merchant QR with nested-template drilling for Pix, PayNow, PromptPay, CoDi, UPI-via-EMVCo, DuitNow, QRIS, FPS, NAPAS, NETS and friends, Indian UPI (`upi://pay`), Bezahlcode (German legacy `bank://` / `bezahlcode://`), Serbian NBS IPS QR (Prenesi — PR / PT / PK) |
+| Bank payments | EPC SEPA Payment QR / GiroCode (EU), Swiss QR-bill (SPC), Czech SPD (Spayd), Slovak Pay by Square (recognition only — decoding needs LZMA), EMVCo Merchant QR with nested-template drilling for Pix, PayNow, PromptPay, CoDi, UPI-via-EMVCo, DuitNow, QRIS, FPS, NAPAS, NETS and friends, Indian UPI (`upi://pay`), Bezahlcode (German legacy `bank://` / `bezahlcode://`), Serbian NBS IPS QR (Prenesi — PR / PT / PK) |
 | Mobile-payment apps | Swish (Sweden, base64-JSON-encoded `swish://`), Vipps (Norway), MobilePay (Denmark / Finland), Bizum (Spain), iDEAL (Netherlands) |
-| Receipts | Russian FNS retail receipt, Serbian SUF fiscal receipt |
+| Receipts | Serbian SUF fiscal receipt |
 
 ### Smart actions
 
@@ -48,7 +48,6 @@ Per payload type:
 - **UPI** — Open in UPI app (iOS picks an installed UPI app — PhonePe, GPay, Paytm, BHIM…).
 - **Mobile-payment apps** — Open in *<scheme>* via the registered URI scheme.
 - **Serbian SUF receipt** — Open the official PURS verification page.
-- **Russian FNS receipt** — Date in the user's timezone, amount, fiscal markers (FN / FD / FPD), receipt type (Sale / Refund / Expense / Expense refund).
 - All payloads — Copy raw / Share via system share sheet.
 
 ### Generation
@@ -130,7 +129,7 @@ xcodebuild test \
 
 ## Testing
 
-Parser tests (`ScanTests/ScanTests.swift`) cover real-world payloads for every format the app claims to decompose — vCard, Wi-Fi, geo, mailto, sms, EPC, Russian unified payment + FNS, EMVCo, Bitcoin / Ethereum / Lightning, Swiss QR-bill, iCalendar (UTC and all-day), Serbian SUF / IPS, and round-trip checks for the composers. Run with ⌘U in Xcode or:
+Parser tests (`ScanTests/ScanTests.swift`) cover real-world payloads for every format the app claims to decompose — vCard, Wi-Fi, geo, mailto, sms, EPC, EMVCo, Bitcoin / Ethereum / Lightning, Swiss QR-bill, iCalendar (UTC and all-day), Serbian SUF / IPS, and round-trip checks for the composers. Run with ⌘U in Xcode or:
 
 ```sh
 xcodebuild test -scheme Scan -destination 'platform=iOS Simulator,name=iPhone 15'
@@ -158,7 +157,7 @@ Scan/
 │
 ├─ Symbology.swift                 AVFoundation + Vision symbology mapping
 ├─ ScanPayload.swift               payload enum + master parser
-├─ BankPaymentPayloads.swift       EPC, Swiss, Russian, FNS, EMVCo (with nested drilling), Serbian
+├─ BankPaymentPayloads.swift       EPC, Swiss, EMVCo (with nested drilling), Serbian
 ├─ RegionalPaymentPayloads.swift   UPI, Czech SPD, Pay by Square, Bezahlcode, Swish, Vipps, MobilePay, Bizum, iDEAL
 ├─ CryptoPayload.swift             BIP-21 / EIP-681 / BOLT-11 parser
 ├─ CalendarPayload.swift           RFC 5545 VEVENT parser
@@ -173,7 +172,7 @@ Things that have been considered and could land if there's demand:
 - Switch the live scanner to VisionKit's `DataScannerViewController` for built-in viewfinder UI, region-of-interest, and live highlight of recognised codes.
 - Translation framework integration on iOS 18+ — "Translate" smart action for text / URL / contact payloads.
 - Real decoding of Slovak Pay by Square payloads — would need an LZMA Swift package (e.g. `SWCompression`) since iOS doesn't ship LZMA natively. Today we recognise the format and let the user route the raw token to a banking app via Share / Copy.
-- Localised field labels (currently English even for the Russian, Serbian, and Czech formats).
+- Localised field labels (currently English even for the Serbian and Czech formats).
 - Boarding-pass (BCBP), AAMVA driver's-licence, GS1 Application Identifier decoders.
 
 ## License

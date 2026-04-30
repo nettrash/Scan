@@ -153,9 +153,6 @@ labelled, copyable fields. Recognised:
     plus all-base32hex check); decoding requires LZMA which iOS doesn't
     ship, so the result sheet labels the format and offers Copy / Share
     so the raw token can be passed to a banking app
-  - **Russian unified payment** (`ST00012` / `ST00011`) — pipe-separated
-    fields with friendly English labels for the well-known keys; `Sum`
-    converted from kopecks to rubles
   - **EMVCo Merchant QR** — top-level TLV walker plus recursive drilling
     into Tag 62 (Additional Data: Bill number / Mobile number / Store
     label / Reference label / Customer label / Terminal label / Purpose
@@ -186,8 +183,6 @@ labelled, copyable fields. Recognised:
   - **iDEAL** (Netherlands, `ideal://`) — IBAN, amount, beneficiary,
     description, reference
 - **Receipts**:
-  - **Russian FNS retail receipt** — Europe/Moscow timestamp parsed to a
-    `Date`, sale / refund / expense / expense-refund classification
   - **Serbian SUF fiscal receipt** — recognised by `suf.purs.gov.rs`
     host (exact match or proper subdomain — lookalike domains rejected);
     "Verify Receipt" action opens the official PURS verification page
@@ -260,7 +255,7 @@ labelled, copyable fields. Recognised:
 
 - `ScanTests` covers parser fidelity for every recognised format —
   URL, mailto, tel, smsto, geo, Wi-Fi (with escape sequences), vCard,
-  MECARD, EAN-13, EPC, Russian ST00012, Russian FNS, EMVCo (top-level +
+  MECARD, EAN-13, EPC, EMVCo (top-level +
   the nested-template drill into a Pix merchant-account block),
   Bitcoin, Ethereum (with chain ID), Lightning, Swiss QR-bill, iCalendar
   (UTC and all-day), Serbian SUF, NBS IPS, UPI (and a UPI-without-payee

@@ -13,6 +13,27 @@ build-phase script via `agvtool next-version -all`.
 
 _(nothing yet)_
 
+## [1.7] — 2026-05-01
+
+Camera UX: pinch-to-zoom + centred-frame scanning.
+
+### Pinch-to-zoom
+
+`ScannerViewController` now installs a `UIPinchGestureRecognizer` on its host view. Each gesture frame multiplies the camera's *current* `videoZoomFactor` by `recognizer.scale` and re-applies, clamped to `[device.minAvailableVideoZoomFactor, min(device.maxAvailableVideoZoomFactor, 8.0)]`. The 8× cap is a quality floor — beyond that you're amplifying noise, not gaining detail. `device.lockForConfiguration()` is best-effort; if another thread holds the lock we skip a frame and pick up the next one (zoom is naturally interpolated by AVFoundation either way).
+
+A new `pinchStartZoom` private field captures the zoom at gesture start so a single pinch is monotonic — without it, multiplying `device.videoZoomFactor` by every incremental `recognizer.scale` would drift exponentially.
+
+### Region-of-interest cropping
+
+`AVCaptureMetadataOutput.rectOfInterest` is now set to a centred 78 % × 78 % rect of the preview layer, mapped through `previewLayer.metadataOutputRectConverted(fromLayerRect:)` to AV's normalised (0..1, top-left-origin) coordinate space. AVFoundation server-side filters out codes whose bounds don't intersect — saves recogniser cycles and stops a stray code at the edge of the frame from competing with the one the user is centring on.
+
+`applyRectOfInterest()` runs:
+- on every successful `viewDidLayoutSubviews` (rotation / split-screen / window resize all re-derive the rect),
+- in `buildSession()` once the preview layer is ready (initial setup),
+- with explicit clamping to `[0, 1]` because `metadataOutputRectConverted` can return briefly out-of-range values during layout transitions.
+
+The 78 % factor is sized to be *slightly larger* than the SwiftUI reticle (260 × 260 pt) on a typical phone, so anything visually inside the corner brackets is also inside the ROI — there's no "I framed the code in the reticle but it's not detecting" gotcha.
+
 ## [1.6] — 2026-05-01
 
 Share-to-Scan + PDF support.

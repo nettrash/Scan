@@ -29,31 +29,26 @@ enum WhatsNew {
     /// the user dismisses the sheet, so we don't re-show it on the
     /// next launch. Keep this in sync with `MARKETING_VERSION` in
     /// `Scan.xcodeproj/project.pbxproj`.
-    static let version = "1.6"
+    static let version = "1.7"
 
     /// Headline shown above the items.
-    static let headline = "What's new in 1.6"
+    static let headline = "What's new in 1.7"
 
     static let items: [WhatsNewItem] = [
         WhatsNewItem(
-            systemImage: "square.and.arrow.up.on.square",
-            title: "Share to Scan",
-            detail: "Scan now shows up in the iOS share sheet for images and PDFs. Long-press a photo, tap Share → Scan, and the result sheet appears without leaving the source app — Photos, Mail, Messages, anywhere a picture can be shared."
+            systemImage: "plus.magnifyingglass",
+            title: "Pinch to zoom",
+            detail: "Pinch the camera preview to zoom in on far-away or small codes. Posters, warehouse labels, fridge magnets — anything you couldn't quite frame before now snaps into focus."
         ),
         WhatsNewItem(
-            systemImage: "doc.fill",
-            title: "PDF support",
-            detail: "Multi-page boarding passes and receipts that arrive as PDFs are now decoded page-by-page. Both the share sheet and the in-app Files importer route through the same PDFKit walker."
-        ),
-        WhatsNewItem(
-            systemImage: "rectangle.stack",
-            title: "Multi-image batches",
-            detail: "Share up to 10 images or PDFs in one go. Scan aggregates the recognised codes into a single list and lets you act on each one individually."
+            systemImage: "viewfinder.rectangular",
+            title: "Centred-frame scanning",
+            detail: "The recogniser now only acts on codes inside the centred reticle area, so a stray code at the edge of the frame won't compete with the one you're aiming at. Aim the reticle at what you want; everything else is ignored."
         ),
         WhatsNewItem(
             systemImage: "arrow.triangle.2.circlepath",
-            title: "Carried over from 1.2 — 1.5",
-            detail: "Settings, History favourites + CSV export, custom QR colours / logos / SVG + PDF export, multi-code disambiguation, WPA3 + Passpoint, stablecoin tokens, identity-flow detection, loyalty cards, Universal Links, iCloud sync surface — all here."
+            title: "Carried over from 1.2 — 1.6",
+            detail: "Settings tab, History favourites + CSV export, QR colours / logos / SVG + PDF export, multi-code disambiguation, WPA3 + Passpoint, stablecoin tokens, identity-flow detection, loyalty cards, Universal Links, iCloud sync surface, Share to Scan + PDF — all here."
         ),
     ]
 }

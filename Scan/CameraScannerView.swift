@@ -73,24 +73,38 @@ protocol ScannerViewControllerDelegate: AnyObject {
     func scanner(_ vc: ScannerViewController, didFailWith reason: String)
 }
 
-final class ScannerViewController: UIViewController, AVCaptureMetadataOutputObjectsDelegate {
+final class ScannerViewController: UIViewController, AVCaptureMetadataOutputObjectsDelegate, UIGestureRecognizerDelegate {
     weak var delegate: ScannerViewControllerDelegate?
 
     private let session = AVCaptureSession()
     private let sessionQueue = DispatchQueue(label: "me.nettrash.Scan.sessionQueue")
     private var previewLayer: AVCaptureVideoPreviewLayer?
+    private var metadataOutput: AVCaptureMetadataOutput?
+    private weak var captureDevice: AVCaptureDevice?
     private var hasConfigured = false
+
+    /// Fraction of the preview's shorter side used for the centred
+    /// region-of-interest. Codes outside this rect are not delivered
+    /// by AVFoundation — saves cycles and stops a stray code at the
+    /// edge of the frame from competing with the centred one the
+    /// user is actually trying to scan. The 0.78 factor is sized to
+    /// be slightly larger than the SwiftUI reticle (260×260 pt) on a
+    /// typical phone preview, so anything visually inside the
+    /// brackets is also inside the ROI.
+    private let roiFraction: CGFloat = 0.78
 
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .black
         configureSessionIfNeeded()
+        installPinchGesture()
     }
 
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         previewLayer?.frame = view.bounds
         updatePreviewOrientation()
+        applyRectOfInterest()
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -202,9 +216,95 @@ final class ScannerViewController: UIViewController, AVCaptureMetadataOutputObje
                 layer.frame = self.view.bounds
                 self.view.layer.addSublayer(layer)
                 self.previewLayer = layer
+                self.metadataOutput = output
+                self.captureDevice = device
                 self.updatePreviewOrientation()
+                self.applyRectOfInterest()
                 self.startIfPossible()
             }
+        }
+    }
+
+    // MARK: - Region-of-interest
+
+    /// Compute a centred square ROI in the preview layer's coordinate
+    /// space, then ask the preview layer to convert that to the
+    /// metadata output's normalised coordinate space (0..1, top-left
+    /// origin) and apply it. Re-runs on every layout pass so rotation
+    /// and split-screen resizes don't leave a stale rect.
+    private func applyRectOfInterest() {
+        guard let previewLayer = previewLayer,
+              let output = metadataOutput,
+              previewLayer.bounds.width > 0,
+              previewLayer.bounds.height > 0
+        else { return }
+
+        let layerSize = previewLayer.bounds.size
+        let side = min(layerSize.width, layerSize.height) * roiFraction
+        let layerRect = CGRect(
+            x: (layerSize.width  - side) / 2,
+            y: (layerSize.height - side) / 2,
+            width: side,
+            height: side
+        )
+        let metadataRect = previewLayer.metadataOutputRectConverted(fromLayerRect: layerRect)
+        // metadataOutputRectConverted can return out-of-range values
+        // briefly during layout — clamp to [0,1] so we never hand
+        // AVFoundation a garbage rect (it logs noisy warnings and
+        // falls back to full-frame in that case).
+        let clamped = CGRect(
+            x: metadataRect.origin.x.clamped(to: 0...1),
+            y: metadataRect.origin.y.clamped(to: 0...1),
+            width: max(0, min(metadataRect.width,
+                              1 - metadataRect.origin.x.clamped(to: 0...1))),
+            height: max(0, min(metadataRect.height,
+                               1 - metadataRect.origin.y.clamped(to: 0...1)))
+        )
+        if clamped.width > 0 && clamped.height > 0 {
+            output.rectOfInterest = clamped
+        }
+    }
+
+    // MARK: - Pinch-to-zoom
+
+    private var pinchStartZoom: CGFloat = 1.0
+
+    /// Attaches a single pinch recogniser to the controller's view.
+    /// Lives in `viewDidLoad` because the view is in scope and
+    /// pinch state survives layout / orientation changes.
+    private func installPinchGesture() {
+        let pinch = UIPinchGestureRecognizer(target: self, action: #selector(handlePinch(_:)))
+        pinch.delegate = self
+        view.addGestureRecognizer(pinch)
+    }
+
+    @objc
+    private func handlePinch(_ recognizer: UIPinchGestureRecognizer) {
+        guard let device = captureDevice else { return }
+
+        switch recognizer.state {
+        case .began:
+            pinchStartZoom = device.videoZoomFactor
+        case .changed:
+            let target = pinchStartZoom * recognizer.scale
+            // `min/maxAvailableVideoZoomFactor` reflect the
+            // *currently usable* range — they collapse around the
+            // active format's natural zoom on multi-lens devices,
+            // so reading them every frame is safer than caching.
+            let lower = max(device.minAvailableVideoZoomFactor, 1.0)
+            let upper = min(device.maxAvailableVideoZoomFactor, 8.0) // cap at 8× — anything more is just blur
+            let clamped = max(lower, min(upper, target))
+            do {
+                try device.lockForConfiguration()
+                device.videoZoomFactor = clamped
+                device.unlockForConfiguration()
+            } catch {
+                // Zoom is best-effort. A locked configuration on
+                // another thread loses to that thread; we'll pick
+                // up the next pinch frame.
+            }
+        default:
+            break
         }
     }
 
@@ -275,5 +375,17 @@ final class ScannerViewController: UIViewController, AVCaptureMetadataOutputObje
         }
         guard !batch.isEmpty else { return }
         delegate?.scanner(self, didDecodeBatch: batch)
+    }
+}
+
+// MARK: - Helpers
+
+private extension Comparable {
+    /// Clamp a value to a closed range. Used by the ROI mapping to
+    /// guard against the brief out-of-range values that
+    /// `metadataOutputRectConverted(fromLayerRect:)` can return
+    /// during layout transitions.
+    func clamped(to range: ClosedRange<Self>) -> Self {
+        min(max(self, range.lowerBound), range.upperBound)
     }
 }

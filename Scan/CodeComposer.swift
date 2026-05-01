@@ -77,9 +77,29 @@ enum CodeComposer {
     enum WifiSecurity: String, CaseIterable, Identifiable {
         case wpa  = "WPA"
         case wep  = "WEP"
+        /// WPA3 — uses the SAE handshake. Many devices that emit a
+        /// WPA3-personal QR use this exact tag in the `T:` field;
+        /// some still emit `WPA` with a SAE-only network and let the
+        /// client fall back. We recognise both.
+        case wpa3 = "SAE"
+        /// Hotspot 2.0 / Passpoint. Not formally part of the original
+        /// `WIFI:` spec but increasingly used in the wild — some
+        /// vendors encode `T:HS20` for cafes / airport networks that
+        /// support 802.11u/Passpoint provisioning. We recognise it
+        /// for display only; iOS doesn't expose a programmatic API
+        /// to install the matching profile.
+        case passpoint = "HS20"
         case open = "nopass"
         var id: String { rawValue }
-        var displayName: String { self == .open ? "None" : rawValue }
+        var displayName: String {
+            switch self {
+            case .open:      return "None"
+            case .wpa:       return "WPA / WPA2"
+            case .wep:       return "WEP"
+            case .wpa3:      return "WPA3 (SAE)"
+            case .passpoint: return "Passpoint (HS20)"
+            }
+        }
     }
 
     /// Build a WIFI: payload per the de facto standard documented at

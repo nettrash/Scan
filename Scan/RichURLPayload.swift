@@ -27,6 +27,12 @@ struct RichURLPayload: Equatable {
         case appleMusic   = "Apple Music"
         case googleMaps   = "Google Maps"
         case appleMaps    = "Apple Maps"
+        /// New in 1.4. Identity-flow URLs — DigiD (NL government
+        /// SSO), EUDI Wallet (EU Digital Identity), and the generic
+        /// OpenID4VC verifier / issuer endpoints they're built on.
+        /// Special-cased so the result sheet can show a security
+        /// warning before the user taps "Continue in browser".
+        case digitalIdentity = "Digital identity"
     }
 
     let kind: Kind
@@ -186,6 +192,18 @@ enum RichURLParser {
             return RichURLPayload(kind: .googleMaps, url: url, fields: [])
         }
 
+        // -- Digital identity flows ------------------------------------
+        // DigiD (Netherlands SSO): digid.nl + login.digid.nl
+        // EUDI Wallet (EU Digital Identity reference & national wallets):
+        //   *.eudiw.dev, eudi-wallet.* preview hosts
+        //   OpenID4VC verifier / issuer endpoints often served from
+        //   government domains. We detect the well-known *brands*
+        //   here; if a flow uses a generic openid-credential-offer
+        //   URL, we'll still pick it up via the path-suffix check.
+        if let identity = digitalIdentityPayload(url: url, host: host, path: path) {
+            return identity
+        }
+
         // -- Apple Maps share -----------------------------------------
         // maps.apple.com/?ll=<lat>,<lon>&q=<query>
         if host == "maps.apple.com" {
@@ -203,6 +221,58 @@ enum RichURLParser {
         }
 
         return nil
+    }
+
+    // MARK: - Digital identity (1.4)
+
+    /// Recognise URLs that look like DigiD / EUDI Wallet / generic
+    /// OpenID4VC identity flows. Returns nil if nothing matches —
+    /// the caller falls back to plain `.url` in that case.
+    ///
+    /// Keep this conservative: we only flag well-known brands plus a
+    /// path-level signal (`openid-credential-offer`, `openid4vp`,
+    /// `oidvp`) so that an arbitrary `https://example.com/login`
+    /// doesn't get mis-classified and trigger the security warning.
+    private static func digitalIdentityPayload(
+        url: URL,
+        host: String,
+        path: String
+    ) -> RichURLPayload? {
+        let lowerPath = path.lowercased()
+        let isDigiD = host.hasSuffix("digid.nl") || host == "mijn.digid.nl"
+        let isEUDI  = host.hasSuffix("eudiw.dev")
+            || host.hasSuffix("eu-digital-identity-wallet.eu")
+            || host.hasSuffix("ec.europa.eu") && lowerPath.contains("eudi")
+        // OpenID for Verifiable Credentials path markers — these
+        // aren't tied to a specific brand but reliably identify an
+        // identity flow over plain HTTPS.
+        let isOpenID4VC = lowerPath.contains("openid-credential-offer")
+            || lowerPath.contains("openid4vp")
+            || lowerPath.contains("/oidvp/")
+            || lowerPath.contains("authorize")
+                && (url.queryItem("response_type") == "vp_token"
+                    || url.queryItem("client_id_scheme") != nil)
+
+        guard isDigiD || isEUDI || isOpenID4VC else { return nil }
+
+        var fields: [LabelledField] = []
+        if isDigiD {
+            fields.append(.init(label: "Provider", value: "DigiD (Netherlands)"))
+        } else if isEUDI {
+            fields.append(.init(label: "Provider", value: "EU Digital Identity Wallet"))
+        } else {
+            fields.append(.init(label: "Protocol", value: "OpenID for Verifiable Credentials"))
+        }
+        fields.append(.init(label: "Host", value: host))
+        // Surface a high-signal subset of the query so the user can
+        // see *what* the flow is asking for (presentation_definition,
+        // request_uri, …) without dumping the full URL into the sheet.
+        for key in ["client_id", "response_type", "scope", "request_uri", "presentation_definition_uri"] {
+            if let v = url.queryItem(key) {
+                fields.append(.init(label: key, value: v))
+            }
+        }
+        return RichURLPayload(kind: .digitalIdentity, url: url, fields: fields)
     }
 
     // MARK: - Helpers

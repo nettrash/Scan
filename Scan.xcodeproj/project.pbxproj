@@ -36,6 +36,31 @@
 		E5C0DE000000000000001C02 /* GS1Payload.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000001C01 /* GS1Payload.swift */; };
 		E5C0DE000000000000001D02 /* BoardingPassPayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000001D01 /* BoardingPassPayload.swift */; };
 		E5C0DE000000000000001E02 /* DrivingLicensePayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000001E01 /* DrivingLicensePayload.swift */; };
+		E5C0DE000000000000001F02 /* ScanSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000001F01 /* ScanSettings.swift */; };
+		E5C0DE000000000000002002 /* WhatsNew.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000002001 /* WhatsNew.swift */; };
+		E5C0DE000000000000002102 /* HistoryCSV.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000002101 /* HistoryCSV.swift */; };
+		E5C0DE000000000000002202 /* QRSvg.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000002201 /* QRSvg.swift */; };
+		E5C0DE000000000000002302 /* DeepLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000002301 /* DeepLink.swift */; };
+		E5C0DE000000000000002402 /* ScannedCode.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000002401 /* ScannedCode.swift */; };
+		/* === Share Extension target — own sources === */
+		E5C0DE000000000000005011 /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000005010 /* ShareViewController.swift */; };
+		E5C0DE000000000000005013 /* ShareView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000005012 /* ShareView.swift */; };
+		/* === Share Extension target — shared parser sources (dual membership with the main Scan target) === */
+		E5C0DE000000000000005060 /* Symbology.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000000101 /* Symbology.swift */; };
+		E5C0DE000000000000005061 /* ScanPayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000000201 /* ScanPayload.swift */; };
+		E5C0DE000000000000005062 /* ImageDecoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000000801 /* ImageDecoder.swift */; };
+		E5C0DE000000000000005063 /* BankPaymentPayloads.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000000E01 /* BankPaymentPayloads.swift */; };
+		E5C0DE000000000000005064 /* CryptoPayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000000F01 /* CryptoPayload.swift */; };
+		E5C0DE000000000000005065 /* CalendarPayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000001001 /* CalendarPayload.swift */; };
+		E5C0DE000000000000005066 /* RegionalPaymentPayloads.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000001101 /* RegionalPaymentPayloads.swift */; };
+		E5C0DE000000000000005067 /* MagnetPayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000001A01 /* MagnetPayload.swift */; };
+		E5C0DE000000000000005068 /* RichURLPayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000001B01 /* RichURLPayload.swift */; };
+		E5C0DE000000000000005069 /* GS1Payload.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000001C01 /* GS1Payload.swift */; };
+		E5C0DE00000000000000506A /* BoardingPassPayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000001D01 /* BoardingPassPayload.swift */; };
+		E5C0DE00000000000000506B /* DrivingLicensePayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000001E01 /* DrivingLicensePayload.swift */; };
+		E5C0DE00000000000000506C /* ScannedCode.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000002401 /* ScannedCode.swift */; };
+		/* === Embed share extension into main Scan.app === */
+		E5C0DE000000000000005051 /* ScanShareExtension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000005002 /* ScanShareExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -53,6 +78,13 @@
 			remoteGlobalIDString = E54267712AB57CF200BFED1E;
 			remoteInfo = Scan;
 		};
+		E5C0DE000000000000005040 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E542676A2AB57CF200BFED1E /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = E5C0DE000000000000005001;
+			remoteInfo = ScanShareExtension;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
@@ -63,7 +95,9 @@
 		E542677C2AB57CF400BFED1E /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		E542677E2AB57CF400BFED1E /* Persistence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Persistence.swift; sourceTree = "<group>"; };
 		E54267812AB57CF400BFED1E /* Scan.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Scan.xcdatamodel; sourceTree = "<group>"; };
+		E5C0DE000000000000003001 /* Scan 2.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "Scan 2.xcdatamodel"; sourceTree = "<group>"; };
 		E54267832AB57CF400BFED1E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		E5C0DE000000000000004001 /* Scan.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Scan.entitlements; sourceTree = "<group>"; };
 		E54267882AB57CF400BFED1E /* ScanTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ScanTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		E542678C2AB57CF400BFED1E /* ScanTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanTests.swift; sourceTree = "<group>"; };
 		E54267922AB57CF400BFED1E /* ScanUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ScanUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -89,6 +123,17 @@
 		E5C0DE000000000000001C01 /* GS1Payload.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GS1Payload.swift; sourceTree = "<group>"; };
 		E5C0DE000000000000001D01 /* BoardingPassPayload.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardingPassPayload.swift; sourceTree = "<group>"; };
 		E5C0DE000000000000001E01 /* DrivingLicensePayload.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrivingLicensePayload.swift; sourceTree = "<group>"; };
+		E5C0DE000000000000001F01 /* ScanSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanSettings.swift; sourceTree = "<group>"; };
+		E5C0DE000000000000002001 /* WhatsNew.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhatsNew.swift; sourceTree = "<group>"; };
+		E5C0DE000000000000002101 /* HistoryCSV.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryCSV.swift; sourceTree = "<group>"; };
+		E5C0DE000000000000002201 /* QRSvg.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRSvg.swift; sourceTree = "<group>"; };
+		E5C0DE000000000000002301 /* DeepLink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepLink.swift; sourceTree = "<group>"; };
+		E5C0DE000000000000002401 /* ScannedCode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScannedCode.swift; sourceTree = "<group>"; };
+		/* === Share Extension target — files === */
+		E5C0DE000000000000005002 /* ScanShareExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ScanShareExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		E5C0DE000000000000005010 /* ShareViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareViewController.swift; sourceTree = "<group>"; };
+		E5C0DE000000000000005012 /* ShareView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareView.swift; sourceTree = "<group>"; };
+		E5C0DE000000000000005014 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -113,6 +158,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		E5C0DE000000000000005021 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -120,6 +172,7 @@
 			isa = PBXGroup;
 			children = (
 				E54267742AB57CF200BFED1E /* Scan */,
+				E5C0DE000000000000005003 /* ScanShareExtension */,
 				E542678B2AB57CF400BFED1E /* ScanTests */,
 				E54267952AB57CF400BFED1E /* ScanUITests */,
 				E54267732AB57CF200BFED1E /* Products */,
@@ -130,10 +183,21 @@
 			isa = PBXGroup;
 			children = (
 				E54267722AB57CF200BFED1E /* Scan.app */,
+				E5C0DE000000000000005002 /* ScanShareExtension.appex */,
 				E54267882AB57CF400BFED1E /* ScanTests.xctest */,
 				E54267922AB57CF400BFED1E /* ScanUITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		E5C0DE000000000000005003 /* ScanShareExtension */ = {
+			isa = PBXGroup;
+			children = (
+				E5C0DE000000000000005010 /* ShareViewController.swift */,
+				E5C0DE000000000000005012 /* ShareView.swift */,
+				E5C0DE000000000000005014 /* Info.plist */,
+			);
+			path = ScanShareExtension;
 			sourceTree = "<group>";
 		};
 		E54267742AB57CF200BFED1E /* Scan */ = {
@@ -160,10 +224,17 @@
 				E5C0DE000000000000001C01 /* GS1Payload.swift */,
 				E5C0DE000000000000001D01 /* BoardingPassPayload.swift */,
 				E5C0DE000000000000001E01 /* DrivingLicensePayload.swift */,
+				E5C0DE000000000000001F01 /* ScanSettings.swift */,
+				E5C0DE000000000000002001 /* WhatsNew.swift */,
+				E5C0DE000000000000002101 /* HistoryCSV.swift */,
+				E5C0DE000000000000002201 /* QRSvg.swift */,
+				E5C0DE000000000000002301 /* DeepLink.swift */,
+				E5C0DE000000000000002401 /* ScannedCode.swift */,
 				E5C0DE000000000000000101 /* Symbology.swift */,
 				E54267792AB57CF400BFED1E /* Assets.xcassets */,
 				E542677E2AB57CF400BFED1E /* Persistence.swift */,
 				E54267832AB57CF400BFED1E /* Info.plist */,
+				E5C0DE000000000000004001 /* Scan.entitlements */,
 				E54267802AB57CF400BFED1E /* Scan.xcdatamodeld */,
 				E542677B2AB57CF400BFED1E /* Preview Content */,
 			);
@@ -205,15 +276,34 @@
 				E542676E2AB57CF200BFED1E /* Sources */,
 				E542676F2AB57CF200BFED1E /* Frameworks */,
 				E54267702AB57CF200BFED1E /* Resources */,
+				E5C0DE000000000000005050 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				E5C0DE000000000000005041 /* PBXTargetDependency */,
 			);
 			name = Scan;
 			productName = Scan;
 			productReference = E54267722AB57CF200BFED1E /* Scan.app */;
 			productType = "com.apple.product-type.application";
+		};
+		E5C0DE000000000000005001 /* ScanShareExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E5C0DE000000000000005030 /* Build configuration list for PBXNativeTarget "ScanShareExtension" */;
+			buildPhases = (
+				E5C0DE000000000000005020 /* Sources */,
+				E5C0DE000000000000005021 /* Frameworks */,
+				E5C0DE000000000000005022 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = ScanShareExtension;
+			productName = ScanShareExtension;
+			productReference = E5C0DE000000000000005002 /* ScanShareExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 		E54267872AB57CF400BFED1E /* ScanTests */ = {
 			isa = PBXNativeTarget;
@@ -272,6 +362,9 @@
 						CreatedOnToolsVersion = 14.3.1;
 						TestTargetID = E54267712AB57CF200BFED1E;
 					};
+					E5C0DE000000000000005001 = {
+						CreatedOnToolsVersion = 14.3.1;
+					};
 				};
 			};
 			buildConfigurationList = E542676D2AB57CF200BFED1E /* Build configuration list for PBXProject "Scan" */;
@@ -288,6 +381,7 @@
 			projectRoot = "";
 			targets = (
 				E54267712AB57CF200BFED1E /* Scan */,
+				E5C0DE000000000000005001 /* ScanShareExtension */,
 				E54267872AB57CF400BFED1E /* ScanTests */,
 				E54267912AB57CF400BFED1E /* ScanUITests */,
 			);
@@ -318,7 +412,28 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		E5C0DE000000000000005022 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		E5C0DE000000000000005050 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				E5C0DE000000000000005051 /* ScanShareExtension.appex in Embed App Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		E542676E2AB57CF200BFED1E /* Sources */ = {
@@ -347,6 +462,12 @@
 				E5C0DE000000000000001C02 /* GS1Payload.swift in Sources */,
 				E5C0DE000000000000001D02 /* BoardingPassPayload.swift in Sources */,
 				E5C0DE000000000000001E02 /* DrivingLicensePayload.swift in Sources */,
+				E5C0DE000000000000001F02 /* ScanSettings.swift in Sources */,
+				E5C0DE000000000000002002 /* WhatsNew.swift in Sources */,
+				E5C0DE000000000000002102 /* HistoryCSV.swift in Sources */,
+				E5C0DE000000000000002202 /* QRSvg.swift in Sources */,
+				E5C0DE000000000000002302 /* DeepLink.swift in Sources */,
+				E5C0DE000000000000002402 /* ScannedCode.swift in Sources */,
 				E54267822AB57CF400BFED1E /* Scan.xcdatamodeld in Sources */,
 				E54267762AB57CF200BFED1E /* ScanApp.swift in Sources */,
 			);
@@ -369,6 +490,28 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		E5C0DE000000000000005020 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E5C0DE000000000000005011 /* ShareViewController.swift in Sources */,
+				E5C0DE000000000000005013 /* ShareView.swift in Sources */,
+				E5C0DE000000000000005060 /* Symbology.swift in Sources */,
+				E5C0DE000000000000005061 /* ScanPayload.swift in Sources */,
+				E5C0DE000000000000005062 /* ImageDecoder.swift in Sources */,
+				E5C0DE000000000000005063 /* BankPaymentPayloads.swift in Sources */,
+				E5C0DE000000000000005064 /* CryptoPayload.swift in Sources */,
+				E5C0DE000000000000005065 /* CalendarPayload.swift in Sources */,
+				E5C0DE000000000000005066 /* RegionalPaymentPayloads.swift in Sources */,
+				E5C0DE000000000000005067 /* MagnetPayload.swift in Sources */,
+				E5C0DE000000000000005068 /* RichURLPayload.swift in Sources */,
+				E5C0DE000000000000005069 /* GS1Payload.swift in Sources */,
+				E5C0DE00000000000000506A /* BoardingPassPayload.swift in Sources */,
+				E5C0DE00000000000000506B /* DrivingLicensePayload.swift in Sources */,
+				E5C0DE00000000000000506C /* ScannedCode.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -381,6 +524,11 @@
 			isa = PBXTargetDependency;
 			target = E54267712AB57CF200BFED1E /* Scan */;
 			targetProxy = E54267932AB57CF400BFED1E /* PBXContainerItemProxy */;
+		};
+		E5C0DE000000000000005041 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = E5C0DE000000000000005001 /* ScanShareExtension */;
+			targetProxy = E5C0DE000000000000005040 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -511,28 +659,19 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_ENTITLEMENTS = Scan/Scan.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 23;
+				CURRENT_PROJECT_VERSION = 35;
 				DEVELOPMENT_ASSET_PATHS = "\"Scan/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = Scan;
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
-				INFOPLIST_KEY_NSCalendarsUsageDescription = "Scan can add events from a scanned iCalendar QR to your calendar. You'll be shown the system 'Add Event' sheet first and can edit or cancel before saving.";
-				INFOPLIST_KEY_NSCalendarsWriteOnlyAccessUsageDescription = "Scan can add events from a scanned iCalendar QR to your calendar. The app only needs write access — it never reads your existing events.";
-				INFOPLIST_KEY_NSCameraUsageDescription = "Scan needs the camera to read 1D and 2D barcodes such as QR, EAN, UPC, Code 128, PDF417, Aztec and Data Matrix.";
-				INFOPLIST_KEY_NSContactsUsageDescription = "Scan can save a scanned vCard or MECARD as a new entry in your Contacts. You'll be shown the system 'New Contact' form first and can edit or cancel before saving.";
-				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "Scan can save the codes you generate to your Photos library so you can print or share them later.";
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
-				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Scan/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1;
+				MARKETING_VERSION = 1.6;
 				PRODUCT_BUNDLE_IDENTIFIER = me.nettrash.Scan;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -548,28 +687,19 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Scan/Scan.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 23;
+				CURRENT_PROJECT_VERSION = 35;
 				DEVELOPMENT_ASSET_PATHS = "\"Scan/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = Scan;
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
-				INFOPLIST_KEY_NSCalendarsUsageDescription = "Scan can add events from a scanned iCalendar QR to your calendar. You'll be shown the system 'Add Event' sheet first and can edit or cancel before saving.";
-				INFOPLIST_KEY_NSCalendarsWriteOnlyAccessUsageDescription = "Scan can add events from a scanned iCalendar QR to your calendar. The app only needs write access — it never reads your existing events.";
-				INFOPLIST_KEY_NSCameraUsageDescription = "Scan needs the camera to read 1D and 2D barcodes such as QR, EAN, UPC, Code 128, PDF417, Aztec and Data Matrix.";
-				INFOPLIST_KEY_NSContactsUsageDescription = "Scan can save a scanned vCard or MECARD as a new entry in your Contacts. You'll be shown the system 'New Contact' form first and can edit or cancel before saving.";
-				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "Scan can save the codes you generate to your Photos library so you can print or share them later.";
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
-				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Scan/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1;
+				MARKETING_VERSION = 1.6;
 				PRODUCT_BUNDLE_IDENTIFIER = me.nettrash.Scan;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -584,7 +714,7 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 23;
+				CURRENT_PROJECT_VERSION = 35;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -592,7 +722,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1;
+				MARKETING_VERSION = 1.6;
 				PRODUCT_BUNDLE_IDENTIFIER = nettrash.ScanTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
@@ -607,7 +737,7 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 23;
+				CURRENT_PROJECT_VERSION = 35;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -615,7 +745,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1;
+				MARKETING_VERSION = 1.6;
 				PRODUCT_BUNDLE_IDENTIFIER = nettrash.ScanTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
@@ -629,7 +759,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 23;
+				CURRENT_PROJECT_VERSION = 35;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -637,7 +767,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1;
+				MARKETING_VERSION = 1.6;
 				PRODUCT_BUNDLE_IDENTIFIER = nettrash.ScanUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
@@ -651,7 +781,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 23;
+				CURRENT_PROJECT_VERSION = 35;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -659,13 +789,61 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1;
+				MARKETING_VERSION = 1.6;
 				PRODUCT_BUNDLE_IDENTIFIER = nettrash.ScanUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_TARGET_NAME = Scan;
+			};
+			name = Release;
+		};
+		E5C0DE000000000000005031 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 35;
+				DEVELOPMENT_TEAM = V4WM2SJ8Q9;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = ScanShareExtension/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.6;
+				PRODUCT_BUNDLE_IDENTIFIER = me.nettrash.Scan.ScanShareExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		E5C0DE000000000000005032 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 35;
+				DEVELOPMENT_TEAM = V4WM2SJ8Q9;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = ScanShareExtension/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.6;
+				PRODUCT_BUNDLE_IDENTIFIER = me.nettrash.Scan.ScanShareExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
 		};
@@ -708,15 +886,25 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
+		E5C0DE000000000000005030 /* Build configuration list for PBXNativeTarget "ScanShareExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E5C0DE000000000000005031 /* Debug */,
+				E5C0DE000000000000005032 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 /* End XCConfigurationList section */
 
 /* Begin XCVersionGroup section */
 		E54267802AB57CF400BFED1E /* Scan.xcdatamodeld */ = {
 			isa = XCVersionGroup;
 			children = (
+				E5C0DE000000000000003001 /* Scan 2.xcdatamodel */,
 				E54267812AB57CF400BFED1E /* Scan.xcdatamodel */,
 			);
-			currentVersion = E54267812AB57CF400BFED1E /* Scan.xcdatamodel */;
+			currentVersion = E5C0DE000000000000003001 /* Scan 2.xcdatamodel */;
 			path = Scan.xcdatamodeld;
 			sourceTree = "<group>";
 			versionGroupType = wrapper.xcdatamodel;

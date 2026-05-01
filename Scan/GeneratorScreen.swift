@@ -3,13 +3,18 @@
 //  Scan
 //
 //  Lets the user construct a 1D / 2D code from text, a URL, a contact, or
-//  Wi-Fi credentials. Live preview, share sheet, save-to-Photos, and copy
-//  buttons.
+//  Wi-Fi credentials. Live preview, share sheet, save-to-Photos, copy.
+//
+//  In 1.3 the screen also exposes:
+//   - foreground / background colour pickers (with a contrast warning),
+//   - a logo image picker (QR only),
+//   - SVG / PDF export alongside the existing PNG share path.
 //
 
 import SwiftUI
 import UIKit
 import Photos
+import PhotosUI
 
 struct GeneratorScreen: View {
 
@@ -50,9 +55,17 @@ struct GeneratorScreen: View {
     @State private var wifiSecurity: CodeComposer.WifiSecurity = .wpa
     @State private var wifiHidden: Bool     = false
 
+    // MARK: - Style
+
+    @State private var foregroundColor: Color = .black
+    @State private var backgroundColor: Color = .white
+    @State private var qrErrorCorrection: QRErrorCorrection = .medium
+    @State private var logoItem: PhotosPickerItem?
+    @State private var logoImage: UIImage?
+
     // MARK: - UX state
 
-    @State private var showShare = false
+    @State private var shareItems: ShareItems?
     @State private var copiedFlash = false
     @State private var savedFlash = false
     @State private var saveError: String?
@@ -94,8 +107,31 @@ struct GeneratorScreen: View {
 
     private var generatedImage: UIImage? {
         guard !encodedString.isEmpty else { return nil }
-        return CodeGenerator.image(for: encodedString, symbology: symbology, scale: 12)
+        return CodeGenerator.image(
+            for: encodedString,
+            symbology: symbology,
+            scale: 12,
+            foreground: UIColor(foregroundColor),
+            background: UIColor(backgroundColor),
+            errorCorrection: qrErrorCorrection,
+            logo: symbology.supportsLogo ? logoImage : nil
+        )
     }
+
+    /// Relative luminance contrast ratio per WCAG. Values in [1, 21];
+    /// QR scanners typically need ≥ 3 for reliable decoding (the
+    /// scanner threshold logic is more lenient than human readability,
+    /// but going below 3 gets noticeably hit-and-miss, so that's our
+    /// warning floor).
+    private var contrastRatio: Double {
+        let l1 = relativeLuminance(of: UIColor(foregroundColor))
+        let l2 = relativeLuminance(of: UIColor(backgroundColor))
+        let lighter = max(l1, l2)
+        let darker  = min(l1, l2)
+        return (lighter + 0.05) / (darker + 0.05)
+    }
+
+    private var contrastIsSafe: Bool { contrastRatio >= 3.0 }
 
     // MARK: - Body
 
@@ -130,6 +166,12 @@ struct GeneratorScreen: View {
                 }
             }
 
+            styleSection
+
+            if symbology.supportsLogo {
+                logoSection
+            }
+
             Section("Preview") {
                 if let img = generatedImage {
                     VStack(spacing: 12) {
@@ -146,6 +188,15 @@ struct GeneratorScreen: View {
                                     .stroke(.secondary.opacity(0.2))
                             )
                             .accessibilityLabel("Generated \(symbology.rawValue) code")
+
+                        if !contrastIsSafe {
+                            Label(
+                                "Contrast \(String(format: "%.1f", contrastRatio)):1 is below the safe threshold (3:1). Some scanners will struggle.",
+                                systemImage: "exclamationmark.triangle"
+                            )
+                            .font(.footnote)
+                            .foregroundStyle(.orange)
+                        }
                     }
                     .frame(maxWidth: .infinity)
 
@@ -157,27 +208,38 @@ struct GeneratorScreen: View {
             }
         }
         .navigationTitle("Generate")
-        // Drag-down anywhere in the form dismisses the keyboard
-        // interactively (matches Mail / Notes behaviour).
+        // `.scrollDismissesKeyboard(.interactively)` already
+        // covers drag-to-dismiss; the keyboard's `Done` toolbar
+        // button below covers explicit dismiss. The earlier
+        // `.simultaneousGesture(TapGesture()...)` had to be
+        // removed — iOS 26 routes its tap through the Button hit
+        // path, intercepting *every* Button tap inside the Form
+        // (Choose logo, Share PNG, Share SVG, Share PDF, …).
+        // SwiftUI Buttons inside a Form already cooperate with
+        // scroll-dismiss-keyboard; we don't need a redundant tap
+        // recogniser layered on top.
         .scrollDismissesKeyboard(.interactively)
-        // Explicit tap anywhere outside a TextField also dismisses.
-        // `simultaneousGesture` lets the form's normal hit-testing
-        // (taps on toggles, pickers, buttons) keep working.
-        .simultaneousGesture(
-            TapGesture().onEnded { dismissKeyboard() }
-        )
-        // The Form scrolls; embed a "Done" toolbar above the keyboard for
-        // single-handed use cases where reaching outside the field is awkward.
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
                 Spacer()
                 Button("Done") { dismissKeyboard() }
             }
         }
-        .sheet(isPresented: $showShare) {
-            if let img = generatedImage {
-                ShareSheet(items: [img])
+        // Logo picker is now driven by the `PhotosPicker` *view* in
+        // `logoSection` rather than an `.photosPicker(isPresented:)`
+        // modifier — the modifier-based variant silently did nothing
+        // when stacked alongside `.sheet(item:)` and `.alert(...)`.
+        .onValueChange(of: logoItem) { newItem in
+            guard let newItem else { logoImage = nil; return }
+            Task {
+                if let data = try? await newItem.loadTransferable(type: Data.self),
+                   let img = UIImage(data: data) {
+                    await MainActor.run { logoImage = img }
+                }
             }
+        }
+        .sheet(item: $shareItems) { wrapped in
+            ShareSheet(items: wrapped.items)
         }
         .alert("Couldn't save",
                isPresented: Binding(
@@ -191,13 +253,7 @@ struct GeneratorScreen: View {
         }
     }
 
-    /// Resigns whatever's currently first responder. Routes through
-    /// `UIApplication.sendAction(_:to:from:for:)` because there's no
-    /// public SwiftUI primitive for "drop focus on whatever's editing"
-    /// outside `@FocusState`, and we have *five* TextFields in this view
-    /// — wiring `@FocusState` to all of them would need its own enum.
-    /// Sending `resignFirstResponder` to nil is the standard idiom and
-    /// works regardless of which field is editing.
+    /// Resigns whatever's currently first responder.
     private func dismissKeyboard() {
         UIApplication.shared.sendAction(
             #selector(UIResponder.resignFirstResponder),
@@ -266,14 +322,134 @@ struct GeneratorScreen: View {
         }
     }
 
-    // MARK: - Action row (Share / Save / Copy)
+    // MARK: - Style section
+
+    @ViewBuilder
+    private var styleSection: some View {
+        Section {
+            ColorPicker("Foreground", selection: $foregroundColor, supportsOpacity: false)
+            ColorPicker("Background", selection: $backgroundColor, supportsOpacity: false)
+            if symbology == .qr {
+                Picker("Error correction", selection: $qrErrorCorrection) {
+                    ForEach(QRErrorCorrection.allCases) { lvl in
+                        Text(lvl.displayName).tag(lvl)
+                    }
+                }
+                .pickerStyle(.menu)
+            }
+            HStack {
+                Button {
+                    foregroundColor = .black
+                    backgroundColor = .white
+                } label: {
+                    Label("Reset to black on white", systemImage: "arrow.uturn.backward")
+                        .font(.footnote)
+                }
+                Spacer()
+            }
+        } header: {
+            Text("Style")
+        } footer: {
+            if symbology == .qr {
+                Text("Error correction is auto-set to High whenever a logo is added — keep it on Medium for the smallest QR otherwise.")
+            } else {
+                Text("Colour customisation works on every supported symbology. Aim for a contrast ratio of at least 3:1.")
+            }
+        }
+    }
+
+    // MARK: - Logo section
+
+    @ViewBuilder
+    private var logoSection: some View {
+        Section {
+            HStack(spacing: 14) {
+                if let logoImage {
+                    Image(uiImage: logoImage)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 48, height: 48)
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(.secondary.opacity(0.3))
+                        )
+                } else {
+                    Image(systemName: "photo")
+                        .font(.title)
+                        .foregroundStyle(.secondary)
+                        .frame(width: 48, height: 48)
+                        .background(.secondary.opacity(0.1), in: RoundedRectangle(cornerRadius: 8))
+                }
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(logoImage == nil ? "No logo" : "Logo set")
+                        .font(.body)
+                    Text(logoImage == nil
+                         ? "Add an image to embed at the centre of the QR."
+                         : "QR will use High error correction to keep it scannable.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                Spacer()
+            }
+            // Use PhotosPicker as a *view*, not the modifier-based
+            // .photosPicker(isPresented:). The previous setup had a
+            // Button → flip @State Bool → .photosPicker(isPresented:)
+            // dance, which silently did nothing — the picker was
+            // never actually attached to the right level of the
+            // view hierarchy when the Bool flipped, presumably
+            // because of the multiple-modal-modifier stack on this
+            // Form (.sheet for share, .alert for save errors,
+            // .photosPicker for logo). The view-based variant is
+            // self-contained: it *is* the tappable label, and the
+            // picker presents itself when tapped.
+            PhotosPicker(
+                selection: $logoItem,
+                matching: .images,
+                preferredItemEncoding: .compatible
+            ) {
+                Label(
+                    logoImage == nil ? "Choose logo…" : "Change logo…",
+                    systemImage: "photo.badge.plus"
+                )
+            }
+            if logoImage != nil {
+                Button(role: .destructive) {
+                    logoItem = nil
+                    logoImage = nil
+                } label: {
+                    Label("Remove", systemImage: "xmark.circle")
+                }
+            }
+        } header: {
+            Text("Logo")
+        } footer: {
+            Text("Logos are placed at ~22% of the QR canvas with a white punch behind them — well within the 30% recovery margin of High error correction.")
+        }
+    }
+
+    // MARK: - Action row (Share / Save / Copy / Vector)
 
     @ViewBuilder
     private func actionsRow(image: UIImage) -> some View {
         Button {
-            showShare = true
+            shareItems = ShareItems(items: [image])
         } label: {
-            Label("Share", systemImage: "square.and.arrow.up")
+            Label("Share PNG", systemImage: "square.and.arrow.up")
+        }
+
+        if symbology == .qr {
+            Button {
+                exportSVG()
+            } label: {
+                Label("Share SVG", systemImage: "doc.richtext")
+            }
+
+            Button {
+                exportPDF()
+            } label: {
+                Label("Share PDF", systemImage: "doc.fill")
+            }
         }
 
         Button {
@@ -293,12 +469,53 @@ struct GeneratorScreen: View {
         .disabled(copiedFlash)
     }
 
+    // MARK: - Vector export
+
+    private func exportSVG() {
+        guard let matrix = CodeGenerator.qrModuleMatrix(
+            for: encodedString,
+            errorCorrection: logoImage == nil ? qrErrorCorrection : .high
+        ) else {
+            saveError = "Couldn't build a vector for this content."
+            return
+        }
+        let svg = QRSvg.svg(
+            for: matrix,
+            foreground: UIColor(foregroundColor),
+            background: UIColor(backgroundColor)
+        )
+        do {
+            let url = try QRSvg.writeSVG(svg)
+            shareItems = ShareItems(items: [url])
+        } catch {
+            saveError = error.localizedDescription
+        }
+    }
+
+    private func exportPDF() {
+        guard let matrix = CodeGenerator.qrModuleMatrix(
+            for: encodedString,
+            errorCorrection: logoImage == nil ? qrErrorCorrection : .high
+        ) else {
+            saveError = "Couldn't build a vector for this content."
+            return
+        }
+        let data = QRSvg.pdfData(
+            for: matrix,
+            foreground: UIColor(foregroundColor),
+            background: UIColor(backgroundColor)
+        )
+        do {
+            let url = try QRSvg.writePDF(data)
+            shareItems = ShareItems(items: [url])
+        } catch {
+            saveError = error.localizedDescription
+        }
+    }
+
     // MARK: - Helpers
 
     private func copyToClipboard(image: UIImage) {
-        // Put both representations on the pasteboard explicitly so the user
-        // can paste the image *or* the encoded string depending on the
-        // destination app.
         UIPasteboard.general.setObjects([image, encodedString as NSString])
         UIImpactFeedbackGenerator(style: .light).impactOccurred()
         copiedFlash = true
@@ -306,12 +523,8 @@ struct GeneratorScreen: View {
     }
 
     private func saveToPhotos(image: UIImage) {
-        // Use the modern PHPhotoLibrary API so we can request *add-only*
-        // permission specifically (NSPhotoLibraryAddUsageDescription).
         let proceed = {
             PHPhotoLibrary.shared().performChanges({
-                // The request registers itself with the surrounding change
-                // block; the returned object is intentionally unused.
                 _ = PHAssetCreationRequest.creationRequestForAsset(from: image)
             }, completionHandler: { success, error in
                 Task { @MainActor in
@@ -344,4 +557,25 @@ struct GeneratorScreen: View {
             saveError = "Allow Photos access in Settings to save generated codes."
         }
     }
+}
+
+// MARK: - Helpers (luminance, share-items wrapper)
+
+/// Wraps an array of share-sheet items so it can drive `.sheet(item:)`.
+/// We use this rather than three separate `@State` flags for PNG /
+/// SVG / PDF — one binding, three call sites, one share-sheet
+/// presentation lifecycle.
+private struct ShareItems: Identifiable {
+    let id = UUID()
+    let items: [Any]
+}
+
+private func relativeLuminance(of color: UIColor) -> Double {
+    var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
+    guard color.getRed(&r, green: &g, blue: &b, alpha: &a) else { return 0 }
+    func c(_ v: CGFloat) -> Double {
+        let v = Double(v)
+        return v <= 0.03928 ? v / 12.92 : pow((v + 0.055) / 1.055, 2.4)
+    }
+    return 0.2126 * c(r) + 0.7152 * c(g) + 0.0722 * c(b)
 }

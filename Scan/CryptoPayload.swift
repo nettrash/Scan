@@ -7,6 +7,15 @@
 //  the user what's actually inside the QR before they tap "Open in
 //  Wallet".
 //
+//  In 1.4 also recognises the major stablecoins (USDC / USDT / DAI) on
+//  Ethereum (ERC-20), Tron (TRC-20), and Solana (SPL) — both as
+//  EIP-681 token-transfer URIs (`ethereum:CONTRACT@1/transfer?address=…`),
+//  as Solana Pay SPL-token URIs (`solana:RECIPIENT?spl-token=MINT`),
+//  and as bare Tron addresses (`T…`, base58, 34 chars). When the
+//  contract / mint matches a well-known stablecoin it surfaces the
+//  symbol + chain so the result sheet can read "USDC on Ethereum"
+//  instead of "ERC-20 transfer to 0xA0b8…".
+//
 
 import Foundation
 
@@ -28,25 +37,83 @@ struct CryptoPayload: Equatable {
         case ripple      = "XRP"
         case stellar     = "Stellar"
         case cosmos      = "Cosmos"
+        /// New in 1.4. TRON's mainnet — host of TRC-20 stablecoins
+        /// (USDT-TRC20 is the most-traded stablecoin globally by
+        /// volume, despite being underrepresented in Western wallet
+        /// docs). Bare addresses start with `T` and are 34 chars.
+        case tron        = "TRON"
         case other       = "Crypto"
+    }
+
+    /// New in 1.4. Surfaces *what* is being moved when a transfer is
+    /// against a token contract rather than the chain's native asset
+    /// (e.g. an ERC-20 USDC payment looks like `ethereum:CONTRACT@1/transfer?…`
+    /// — the destination in the URI's path is the token contract,
+    /// not the recipient). `chain` here is the L1 the contract lives
+    /// on, not necessarily the same as the host's `chain` for Solana
+    /// SPL where chain stays `.solana` and the recipient is the
+    /// path part.
+    struct Token: Equatable {
+        let symbol: String     // "USDC", "USDT", "DAI"
+        let contract: String   // canonical-cased contract / mint address
+        let chain: Chain       // .ethereum / .tron / .solana
     }
 
     let chain: Chain
     let scheme: String
     /// For most chains, the destination address.
     /// For Lightning, the entire bolt11 invoice (the part after `lightning:`).
+    /// For ERC-20 token transfers, the *recipient* extracted from the
+    /// `address=` query param (not the contract — that lives in `token`).
     let address: String
     let amount: String?
     let label: String?
     let message: String?
     /// EIP-681 chain ID for Ethereum (`@137` etc.). Nil otherwise.
     let chainId: String?
+    /// Token context for ERC-20 / TRC-20 / SPL transfers. Nil for
+    /// native-asset payments.
+    let token: Token?
     /// The original URI — what we'd hand to a wallet app via UIApplication.open.
     let raw: String
 
+    /// Convenience initialiser preserving the pre-1.4 signature so
+    /// every site that constructed a CryptoPayload (the bare-address
+    /// path, parser fallbacks, tests) keeps compiling without
+    /// touching every call.
+    init(
+        chain: Chain,
+        scheme: String,
+        address: String,
+        amount: String?,
+        label: String?,
+        message: String?,
+        chainId: String?,
+        raw: String,
+        token: Token? = nil
+    ) {
+        self.chain   = chain
+        self.scheme  = scheme
+        self.address = address
+        self.amount  = amount
+        self.label   = label
+        self.message = message
+        self.chainId = chainId
+        self.token   = token
+        self.raw     = raw
+    }
+
     var labelledFields: [LabelledField] {
         var rows: [LabelledField] = []
-        rows.append(.init(label: "Chain", value: chain.rawValue))
+        // Token-aware header. "USDC on Ethereum" is more useful than
+        // a raw ERC-20 contract address, so when `token` is present
+        // we lead with that.
+        if let token = token {
+            rows.append(.init(label: "Token", value: "\(token.symbol) on \(token.chain.rawValue)"))
+            rows.append(.init(label: "Contract", value: token.contract))
+        } else {
+            rows.append(.init(label: "Chain", value: chain.rawValue))
+        }
         rows.append(.init(label: chain == .lightning ? "Invoice" : "Address",
                           value: address))
         if let a = amount   { rows.append(.init(label: "Amount", value: a)) }
@@ -78,7 +145,37 @@ enum CryptoURIParser {
         "xrpl":         .ripple,
         "stellar":      .stellar,
         "web+stellar":  .stellar,
-        "cosmos":       .cosmos
+        "cosmos":       .cosmos,
+        "tron":         .tron,
+        "tronlink":     .tron,
+    ]
+
+    /// Well-known stablecoin contracts. Keyed on lowercased contract /
+    /// mint address so detection is case-insensitive (Ethereum
+    /// addresses are checksum-cased and Solana mints are base58-cased).
+    /// Restricted to the heavyweight stablecoins because that's where
+    /// 95 % of "what *is* this token?" confusion happens; extending
+    /// the registry is a matter of dropping more entries here.
+    private static let knownTokens: [String: CryptoPayload.Token] = [
+        // ERC-20 — Ethereum mainnet
+        "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48":
+            .init(symbol: "USDC", contract: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", chain: .ethereum),
+        "0xdac17f958d2ee523a2206206994597c13d831ec7":
+            .init(symbol: "USDT", contract: "0xdAC17F958D2ee523a2206206994597C13D831ec7", chain: .ethereum),
+        "0x6b175474e89094c44da98b954eedeac495271d0f":
+            .init(symbol: "DAI",  contract: "0x6B175474E89094C44Da98b954EedeAC495271d0F", chain: .ethereum),
+
+        // TRC-20 — Tron mainnet
+        "tr7nhqjekqxgtci8q8zy4pl8otszgjlj6t":
+            .init(symbol: "USDT", contract: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t", chain: .tron),
+        "thb4cqifcwoyalsl6bwuthba5krshxtrjq":
+            .init(symbol: "USDC", contract: "THb4CqiFcwoyaL5L6bWuThbA5krsHXtrJq", chain: .tron),
+
+        // SPL — Solana mainnet
+        "epjfwdd5aufqssqem2qn1xzybapc8g4weggkzwytdt1v":
+            .init(symbol: "USDC", contract: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", chain: .solana),
+        "es9vmfrzacermjfrf4h2fyd4kconky11mcce8benwnyb":
+            .init(symbol: "USDT", contract: "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB", chain: .solana),
     ]
 
     // MARK: - Bare-address & Lightning-Address recognition
@@ -107,6 +204,13 @@ enum CryptoURIParser {
     /// Cosmos / Atom bech32: starts with `cosmos1`, ~45 chars total.
     private static let cosmosAddressRegex = try! NSRegularExpression(
         pattern: #"^cosmos1[02-9ac-hj-np-z]{30,50}$"#
+    )
+
+    /// Tron base58 address: starts with `T`, exactly 34 chars total.
+    /// Strict on length because the alphabet alone overlaps with
+    /// Bitcoin's regex too much to disambiguate otherwise.
+    private static let tronAddressRegex = try! NSRegularExpression(
+        pattern: #"^T[1-9A-HJ-NP-Za-km-z]{33}$"#
     )
 
     /// Lightning bare bolt11 — starts with `lnbc` (or `lntb` for testnet),
@@ -156,6 +260,21 @@ enum CryptoURIParser {
                 amount: nil, label: nil, message: nil, chainId: nil, raw: s
             )
         }
+        // Tron addresses — 34-char, T-prefixed, base58. Check before
+        // Bitcoin so the `T1...` shape doesn't get swallowed by the
+        // legacy-Bitcoin regex (which would mis-classify it).
+        if matches(tronAddressRegex) {
+            // If it matches a known TRC-20 contract address, surface
+            // the token. Bare-address scans of *contracts* aren't
+            // typical (users scan recipient addresses, not contracts)
+            // but the registry lookup is cheap and avoids surprises.
+            let token = knownTokens[s.lowercased()]
+            return CryptoPayload(
+                chain: .tron, scheme: "", address: s,
+                amount: nil, label: nil, message: nil, chainId: nil,
+                raw: s, token: token
+            )
+        }
         // Bitcoin (legacy + bech32). Match bech32 first because the legacy
         // regex tail `[a-km-zA-HJ-NP-Z1-9]` could greedily eat a bech32 too.
         if matches(bitcoinAddressRegex) {
@@ -165,9 +284,13 @@ enum CryptoURIParser {
             )
         }
         if matches(ethereumAddressRegex) {
+            // Same registry trick for ERC-20 contract addresses
+            // scanned in isolation.
+            let token = knownTokens[s.lowercased()]
             return CryptoPayload(
                 chain: .ethereum, scheme: "", address: s,
-                amount: nil, label: nil, message: nil, chainId: nil, raw: s
+                amount: nil, label: nil, message: nil, chainId: nil,
+                raw: s, token: token
             )
         }
         if matches(xrpAddressRegex) {
@@ -248,7 +371,7 @@ enum CryptoURIParser {
             )
         }
 
-        // BIP-21 / EIP-681 form:  scheme:address[@chainId]?key=val&key=val
+        // BIP-21 / EIP-681 form:  scheme:address[@chainId][/function]?key=val&key=val
         // Some non-conforming wallets emit `scheme://address?…`; tolerate that.
         var workingBody = body
         if workingBody.hasPrefix("//") {
@@ -260,42 +383,84 @@ enum CryptoURIParser {
 
         var address = pathPart
         var chainId: String?
+        /// EIP-681 function name on the path — e.g. `transfer`, `approve`.
+        /// We only act on `transfer` (everything else is unusual enough
+        /// to display as raw); the parser captures it for future use.
+        var function: String?
         if chain == .ethereum, let at = pathPart.firstIndex(of: "@") {
             address = String(pathPart[..<at])
-            chainId = String(pathPart[pathPart.index(after: at)...])
-                .split(separator: "/").first.map(String.init)  // strip function part
+            let afterAt = pathPart[pathPart.index(after: at)...]
+            let fn = afterAt.split(separator: "/", maxSplits: 1).map(String.init)
+            chainId = fn.first
+            function = fn.count > 1 ? fn[1] : nil
         }
         guard !address.isEmpty else { return nil }
 
-        var amount: String?
-        var label: String?
-        var message: String?
+        // Parse query params. Spec says case-sensitive, but real-world
+        // wallets vary — we lowercase at the lookup site.
+        var params: [String: String] = [:]
         for pair in queryPart.split(separator: "&") {
             let kv = pair.split(separator: "=", maxSplits: 1).map(String.init)
             guard kv.count == 2 else { continue }
             let k = kv[0].lowercased()
             let v = kv[1].removingPercentEncoding ?? kv[1]
-            switch k {
-            case "amount", "value":
-                amount = v
-            case "label":
-                label = v
-            case "message":
-                message = v
-            default:
-                break
+            params[k] = v
+        }
+
+        var amount: String? = params["amount"] ?? params["value"]
+        let label:  String? = params["label"]
+        let message: String? = params["message"]
+
+        // EIP-681 ERC-20 transfer: the path's `address` is the token
+        // *contract*, the recipient is in the `address=` query param,
+        // and the amount is in `uint256=`. When we recognise the
+        // contract as a known stablecoin we surface the symbol + chain.
+        var resolvedAddress = address
+        var token: CryptoPayload.Token? = nil
+        if chain == .ethereum && function?.lowercased() == "transfer",
+           let recipient = params["address"], !recipient.isEmpty {
+            token = knownTokens[address.lowercased()]
+                ?? .init(symbol: "ERC-20", contract: address, chain: .ethereum)
+            resolvedAddress = recipient
+            // EIP-681's amount param for a token transfer is `uint256`,
+            // not `amount` — but some wallets emit both. Prefer
+            // uint256 if present.
+            if let raw = params["uint256"] { amount = raw }
+        }
+
+        // Solana Pay SPL token: `solana:RECIPIENT?spl-token=MINT&amount=…`.
+        // Recipient stays in the path; the token comes from the query.
+        if chain == .solana, let mint = params["spl-token"], !mint.isEmpty {
+            token = knownTokens[mint.lowercased()]
+                ?? .init(symbol: "SPL", contract: mint, chain: .solana)
+        }
+
+        // TRC-20: `tron:CONTRACT?address=RECIPIENT&amount=…` mirrors
+        // the EIP-681 layout for some wallets, but most TRC-20 QRs
+        // emit the recipient *as* the path and the contract via a
+        // separate `contract=` field. Handle both shapes.
+        if chain == .tron {
+            if let recipient = params["address"], !recipient.isEmpty,
+               address.hasPrefix("T") {
+                token = knownTokens[address.lowercased()]
+                    ?? .init(symbol: "TRC-20", contract: address, chain: .tron)
+                resolvedAddress = recipient
+            } else if let contract = params["contract"], !contract.isEmpty {
+                token = knownTokens[contract.lowercased()]
+                    ?? .init(symbol: "TRC-20", contract: contract, chain: .tron)
             }
         }
 
         return CryptoPayload(
             chain: chain,
             scheme: scheme,
-            address: address,
+            address: resolvedAddress,
             amount: amount,
             label: label,
             message: message,
             chainId: chainId,
-            raw: raw
+            raw: raw,
+            token: token
         )
     }
 }

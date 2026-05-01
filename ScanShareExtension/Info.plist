@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleDevelopmentRegion</key>
+    <string>$(DEVELOPMENT_LANGUAGE)</string>
+    <key>CFBundleDisplayName</key>
+    <string>Scan</string>
+    <key>CFBundleExecutable</key>
+    <string>$(EXECUTABLE_NAME)</string>
+    <key>CFBundleIdentifier</key>
+    <string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+    <key>CFBundleInfoDictionaryVersion</key>
+    <string>6.0</string>
+    <key>CFBundleName</key>
+    <string>$(PRODUCT_NAME)</string>
+    <key>CFBundlePackageType</key>
+    <string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
+    <key>CFBundleShortVersionString</key>
+    <string>$(MARKETING_VERSION)</string>
+    <key>CFBundleVersion</key>
+    <string>$(CURRENT_PROJECT_VERSION)</string>
+    <key>NSExtension</key>
+    <dict>
+        <!--
+            Action extensions sit alongside the share sheet but with
+            "Action" semantics; share-services is the right point for
+            "I want this content delivered to my app, with my own UI
+            and an option to act on it locally". The sheet shows the
+            extension's view controller modally over the host app.
+        -->
+        <key>NSExtensionPointIdentifier</key>
+        <string>com.apple.share-services</string>
+        <key>NSExtensionPrincipalClass</key>
+        <string>$(PRODUCT_MODULE_NAME).ShareViewController</string>
+        <key>NSExtensionAttributes</key>
+        <dict>
+            <!--
+                Activation rule: the share sheet only offers Scan when
+                the source is sharing at least one image *or* one PDF.
+                The compound predicate is the canonical way to mix
+                content types — the SUBQUERY-ANY style worked back in
+                iOS 8 but Apple's documented approach since iOS 13 is
+                the explicit numeric keys below.
+
+                MaxItems=10 caps the batch — share extensions are
+                memory-rate-limited (~120 MB on most devices) and
+                a 50-page PDF or 30 photos at full resolution can
+                push past that. 10 items covers every practical
+                share flow without OOMing the extension process.
+            -->
+            <key>NSExtensionActivationRule</key>
+            <dict>
+                <key>NSExtensionActivationSupportsImageWithMaxCount</key>
+                <integer>10</integer>
+                <key>NSExtensionActivationSupportsFileWithMaxCount</key>
+                <integer>10</integer>
+            </dict>
+        </dict>
+    </dict>
+</dict>
+</plist>

@@ -3,7 +3,8 @@
 //  Scan
 //
 //  Lists previously saved ScanRecord rows with swipe-to-delete and a
-//  navigation link to ScanDetailView.
+//  navigation link to ScanDetailView. As of 1.2 also supports
+//  favourite-pinning and CSV export of the visible rows.
 //
 
 import SwiftUI
@@ -13,12 +14,21 @@ struct HistoryScreen: View {
     @Environment(\.managedObjectContext) private var viewContext
 
     @FetchRequest(
-        sortDescriptors: [NSSortDescriptor(keyPath: \ScanRecord.timestamp, ascending: false)],
+        // Sort favourites first (descending on the boolean), then by
+        // timestamp newest-first within each bucket. Core Data emits
+        // a single SQL `ORDER BY` so this is cheap.
+        sortDescriptors: [
+            NSSortDescriptor(keyPath: \ScanRecord.isFavorite, ascending: false),
+            NSSortDescriptor(keyPath: \ScanRecord.timestamp,  ascending: false),
+        ],
         animation: .default
     )
     private var records: FetchedResults<ScanRecord>
 
     @State private var search = ""
+    @State private var favouritesOnly = false
+    @State private var exportError: String?
+    @State private var showExportError = false
 
     var body: some View {
         Group {
@@ -36,28 +46,83 @@ struct HistoryScreen: View {
                         } label: {
                             HistoryRow(record: record)
                         }
+                        .swipeActions(edge: .leading, allowsFullSwipe: true) {
+                            Button {
+                                toggleFavourite(record)
+                            } label: {
+                                Label(record.isFavorite ? "Unstar" : "Star",
+                                      systemImage: record.isFavorite ? "star.slash" : "star.fill")
+                            }
+                            .tint(.yellow)
+                        }
                     }
                     .onDelete(perform: deleteRecords)
                 }
                 .searchable(text: $search, prompt: "Search history")
                 .toolbar {
+                    ToolbarItem(placement: .navigationBarLeading) {
+                        Toggle(isOn: $favouritesOnly) {
+                            Label("Favourites only", systemImage: favouritesOnly ? "star.fill" : "star")
+                        }
+                        .toggleStyle(.button)
+                        .tint(.yellow)
+                    }
                     ToolbarItem(placement: .navigationBarTrailing) {
                         EditButton()
+                    }
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Menu {
+                            Button {
+                                exportFiltered()
+                            } label: {
+                                Label("Export visible as CSV (\(filtered.count))", systemImage: "tablecells")
+                            }
+                            Button {
+                                exportAll()
+                            } label: {
+                                Label("Export all as CSV (\(records.count))", systemImage: "square.and.arrow.up")
+                            }
+                        } label: {
+                            Label("Export", systemImage: "square.and.arrow.up")
+                        }
                     }
                 }
             }
         }
         .navigationTitle("History")
+        // ShareLink presented via a transient `.sheet(item:)` driven
+        // by the `exportShareURLBox` state — avoids pre-computing the
+        // CSV until the user asks for it (history can be large enough
+        // that doing it on every render would be wasteful) and
+        // bypasses SwiftUI's "ShareLink only takes literal Transferables"
+        // limitation. Reuses the `ShareSheet` UIKit bridge already
+        // declared in `PayloadActionsView.swift`.
+        .sheet(item: $exportShareURLBox) { box in
+            ShareSheet(items: [box.url])
+        }
+        .alert("Export failed", isPresented: $showExportError, presenting: exportError) { _ in
+            Button("OK", role: .cancel) {}
+        } message: { msg in
+            Text(msg)
+        }
     }
+
+    // MARK: - Filtering
 
     private var filtered: [ScanRecord] {
         let term = search.trimmingCharacters(in: .whitespaces).lowercased()
-        guard !term.isEmpty else { return Array(records) }
-        return records.filter { r in
-            (r.value ?? "").lowercased().contains(term) ||
-            (r.symbology ?? "").lowercased().contains(term) ||
-            (r.notes ?? "").lowercased().contains(term)
+        var result: [ScanRecord] = Array(records)
+        if favouritesOnly {
+            result = result.filter { $0.isFavorite }
         }
+        if !term.isEmpty {
+            result = result.filter { r in
+                (r.value ?? "").lowercased().contains(term) ||
+                (r.symbology ?? "").lowercased().contains(term) ||
+                (r.notes ?? "").lowercased().contains(term)
+            }
+        }
+        return result
     }
 
     private func deleteRecords(offsets: IndexSet) {
@@ -65,6 +130,36 @@ struct HistoryScreen: View {
             let target = filtered
             offsets.map { target[$0] }.forEach(viewContext.delete)
             try? viewContext.save()
+        }
+    }
+
+    private func toggleFavourite(_ record: ScanRecord) {
+        withAnimation {
+            record.isFavorite.toggle()
+            try? viewContext.save()
+        }
+    }
+
+    // MARK: - CSV export
+
+    /// Wrap the URL so we can use `.sheet(item:)` (needs Identifiable).
+    private struct ShareURL: Identifiable {
+        let id = UUID()
+        let url: URL
+    }
+
+    @State private var exportShareURLBox: ShareURL?
+
+    private func exportFiltered() { export(filtered) }
+    private func exportAll()      { export(Array(records)) }
+
+    private func export(_ rows: [ScanRecord]) {
+        do {
+            let url = try HistoryCSV.write(rows)
+            exportShareURLBox = ShareURL(url: url)
+        } catch {
+            exportError = error.localizedDescription
+            showExportError = true
         }
     }
 }
@@ -79,9 +174,16 @@ private struct HistoryRow: View {
                 .frame(width: 32, height: 32)
                 .foregroundStyle(Color.accentColor)
             VStack(alignment: .leading, spacing: 3) {
-                Text(record.value ?? "")
-                    .lineLimit(1)
-                    .font(.body)
+                HStack(spacing: 6) {
+                    Text(record.value ?? "")
+                        .lineLimit(1)
+                        .font(.body)
+                    if record.isFavorite {
+                        Image(systemName: "star.fill")
+                            .foregroundStyle(.yellow)
+                            .font(.caption2)
+                    }
+                }
                 HStack(spacing: 6) {
                     if let s = record.symbology, !s.isEmpty {
                         Text(s)
@@ -140,6 +242,7 @@ private struct HistoryRow: View {
             case .youtube:                return "play.rectangle"
             case .spotify, .appleMusic:   return "music.note"
             case .googleMaps, .appleMaps: return "map"
+            case .digitalIdentity:        return "person.text.rectangle"
             }
         case .text:         return "qrcode"
         }
@@ -173,3 +276,8 @@ struct ContentUnavailableViewCompat: View {
         ContentUnavailableView(title, systemImage: systemImage, description: Text(description))
     }
 }
+
+// `ShareSheet` (UIKit-bridged `UIActivityViewController`) is already
+// declared in `PayloadActionsView.swift` with property `items: [Any]`.
+// We reuse that one — duplicating it here would cause an "Invalid
+// redeclaration" error.

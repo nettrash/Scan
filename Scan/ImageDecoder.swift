@@ -10,6 +10,7 @@
 import Foundation
 import Vision
 import UIKit
+import PDFKit
 
 enum ImageDecoder {
 
@@ -44,7 +45,9 @@ enum ImageDecoder {
     }
 
     /// Decode from a file URL, handling security-scoped resources from the
-    /// document picker.
+    /// document picker. Auto-detects PDFs by file extension and routes
+    /// through `decode(pdfData:)` so multi-page boarding-pass /
+    /// receipt PDFs don't fail the image-load path.
     static func decode(url: URL) async throws -> [ScannedCode] {
         let scoped = url.startAccessingSecurityScopedResource()
         defer { if scoped { url.stopAccessingSecurityScopedResource() } }
@@ -54,7 +57,96 @@ enum ImageDecoder {
         } catch {
             throw DecodeError.loadFailed
         }
+        if url.pathExtension.lowercased() == "pdf" {
+            return try await decode(pdfData: data)
+        }
         return try await decode(data: data)
+    }
+
+    /// Decode every page of a PDF. Each page is rasterised at 2× the
+    /// page's natural point size before going through Vision —
+    /// high-density-sized QR / Aztec inside boarding passes and
+    /// receipts only resolve cleanly above the 1× threshold. Results
+    /// are flattened across pages and de-duplicated on `value` so a
+    /// repeated barcode (header / footer markers in some receipts)
+    /// doesn't show up twice.
+    static func decode(pdfData data: Data) async throws -> [ScannedCode] {
+        guard let document = PDFDocument(data: data) else {
+            throw DecodeError.loadFailed
+        }
+        var seen = Set<String>()
+        var codes: [ScannedCode] = []
+        for index in 0 ..< document.pageCount {
+            guard let page = document.page(at: index) else { continue }
+            let pageRect = page.bounds(for: .mediaBox)
+            let scale: CGFloat = 2
+            let renderSize = CGSize(width: pageRect.width * scale,
+                                    height: pageRect.height * scale)
+            let format = UIGraphicsImageRendererFormat()
+            format.scale = 1
+            format.opaque = true
+            let renderer = UIGraphicsImageRenderer(size: renderSize, format: format)
+            let image = renderer.image { ctx in
+                // PDFKit pages are drawn from the current PDF
+                // coordinate space (origin bottom-left, +y up). Flip
+                // to UIKit's top-down before drawing the page.
+                UIColor.white.setFill()
+                ctx.fill(CGRect(origin: .zero, size: renderSize))
+                ctx.cgContext.translateBy(x: 0, y: renderSize.height)
+                ctx.cgContext.scaleBy(x: scale, y: -scale)
+                page.draw(with: .mediaBox, to: ctx.cgContext)
+            }
+            let pageCodes = (try? await decode(image)) ?? []
+            for code in pageCodes where seen.insert(code.value).inserted {
+                codes.append(code)
+            }
+        }
+        if codes.isEmpty {
+            throw DecodeError.noBarcodeFound
+        }
+        return codes
+    }
+
+    /// Decode a list of file URLs (mixed images + PDFs) and aggregate.
+    /// Failures on individual entries are swallowed so one bad input
+    /// doesn't poison the whole batch — the caller sees at most one
+    /// `DecodeError.noBarcodeFound` if nothing was readable across
+    /// the whole list.
+    static func decodeBatch(urls: [URL]) async throws -> [ScannedCode] {
+        var seen = Set<String>()
+        var codes: [ScannedCode] = []
+        for url in urls {
+            let partial = (try? await decode(url: url)) ?? []
+            for code in partial where seen.insert(code.value).inserted {
+                codes.append(code)
+            }
+        }
+        if codes.isEmpty {
+            throw DecodeError.noBarcodeFound
+        }
+        return codes
+    }
+
+    /// Decode an in-memory list of (Data, isPdf) tuples — the form
+    /// the Share Extension hands us via `NSItemProvider`. Mirrors
+    /// `decodeBatch(urls:)` but skips the file-system round-trip,
+    /// which extensions are heavily memory-rate-limited on (iOS
+    /// hard-caps share extensions at 120 MB on most devices).
+    static func decodeBatch(items: [(data: Data, isPdf: Bool)]) async throws -> [ScannedCode] {
+        var seen = Set<String>()
+        var codes: [ScannedCode] = []
+        for item in items {
+            let partial = (try? await (item.isPdf
+                ? decode(pdfData: item.data)
+                : decode(data: item.data))) ?? []
+            for code in partial where seen.insert(code.value).inserted {
+                codes.append(code)
+            }
+        }
+        if codes.isEmpty {
+            throw DecodeError.noBarcodeFound
+        }
+        return codes
     }
 
     // MARK: - Internals

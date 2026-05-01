@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!--
+        Universal Links: claim the /scan/* path on nettrash.me. Apple's
+        swcd daemon fetches https://nettrash.me/.well-known/apple-app-site-association
+        on first install (and re-fetches periodically) and cross-checks
+        the appIDs there against this entitlement.
+
+        `?mode=developer` switches Apple's CDN cache off — useful while
+        iterating on the AASA file. Drop it for App Store builds.
+    -->
+    <key>com.apple.developer.associated-domains</key>
+    <array>
+        <string>applinks:nettrash.me</string>
+        <string>webcredentials:nettrash.me</string>
+    </array>
+
+    <!--
+        CloudKit: backs `NSPersistentCloudKitContainer` in
+        `Persistence.swift`. Without these three keys the container
+        runs in local-only mode (Core Data still works, but no
+        cross-device sync). With them, history rows replicate to the
+        user's iCloud account whenever they're signed into iCloud at
+        the system level.
+
+        Container ID convention: `iCloud.<bundle-id>`. If the app
+        ever ships under a different bundle ID, update this AND
+        provision the matching CloudKit container in the Apple
+        Developer dashboard before shipping — a bundle whose
+        entitlement points at a non-existent container fails silently
+        (sync logs show "schema not found").
+    -->
+    <key>com.apple.developer.icloud-services</key>
+    <array>
+        <string>CloudKit</string>
+    </array>
+    <key>com.apple.developer.icloud-container-identifiers</key>
+    <array>
+        <string>iCloud.me.nettrash.Scan</string>
+    </array>
+    <key>com.apple.developer.ubiquity-kvstore-identifier</key>
+    <string>$(TeamIdentifierPrefix)me.nettrash.Scan</string>
+</dict>
+</plist>

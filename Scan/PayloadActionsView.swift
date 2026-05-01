@@ -16,12 +16,21 @@ struct PayloadActionsView: View {
     let payload: ScanPayload
     let raw: String
 
+    @Environment(\.managedObjectContext) private var viewContext
+
     @State private var showShare = false
     @State private var showAddContact = false
     @State private var showAddCalendar = false
     @State private var calendarStore: EKEventStore?
     @State private var calendarError: String?
     @State private var copied = false
+    /// Loyalty-card "save with merchant" alert. The text field is
+    /// stored locally; `showLoyaltyAlert` toggles the alert and
+    /// `loyaltySaved` flips a confirmation tick once the row is in
+    /// Core Data.
+    @State private var showLoyaltyAlert = false
+    @State private var loyaltyMerchant = ""
+    @State private var loyaltySaved = false
 
     var body: some View {
         Section("Actions") {
@@ -72,6 +81,45 @@ struct PayloadActionsView: View {
         } message: { msg in
             Text(msg)
         }
+        .alert("Save as loyalty card", isPresented: $showLoyaltyAlert) {
+            TextField("Merchant (e.g. Tesco, IKEA)", text: $loyaltyMerchant)
+                .autocorrectionDisabled()
+            Button("Save") { saveAsLoyaltyCard() }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Saved scans tagged \"Loyalty: …\" are favourited so they pin to the top of History.")
+        }
+    }
+
+    /// Persist the current `raw` payload as a favourited History row
+    /// with `notes = "Loyalty: <merchant>"`. The History screen's
+    /// search field matches the notes, and the `isFavorite` flag
+    /// keeps the row pinned. Empty merchant input is allowed —
+    /// "Loyalty: " alone is still a valid filter target.
+    private func saveAsLoyaltyCard() {
+        let trimmed = loyaltyMerchant.trimmingCharacters(in: .whitespacesAndNewlines)
+        let record = ScanRecord(context: viewContext)
+        record.id = UUID()
+        record.value = raw
+        // Try to surface the symbology if we have one.
+        if case .productCode(_, let system) = payload {
+            record.symbology = system
+        } else {
+            record.symbology = "Loyalty"
+        }
+        record.timestamp = Date()
+        record.notes = trimmed.isEmpty ? "Loyalty" : "Loyalty: \(trimmed)"
+        record.isFavorite = true
+        do {
+            try viewContext.save()
+            loyaltySaved = true
+            UINotificationFeedbackGenerator().notificationOccurred(.success)
+        } catch {
+            // Surface the failure via the existing copied/saved
+            // flicker — a dedicated alert would be heavy for what's
+            // typically a transient Core Data issue.
+            loyaltySaved = false
+        }
     }
 
     @ViewBuilder
@@ -113,7 +161,19 @@ struct PayloadActionsView: View {
             VStack(alignment: .leading, spacing: 6) {
                 Label("Wi-Fi network: \(ssid)", systemImage: "wifi")
                 if let security, !security.isEmpty {
-                    Text("Security: \(security)").font(.caption).foregroundStyle(.secondary)
+                    Text("Security: \(friendlyWifiSecurity(security))")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    if security.uppercased() == "HS20" {
+                        // iOS doesn't have a public API for
+                        // programmatically installing a Passpoint
+                        // profile, and dropping the user into a
+                        // generic Wi-Fi settings doesn't help much
+                        // either. Be explicit about the limitation.
+                        Text("Passpoint profiles must be installed manually — pass this QR's contents to your IT team or the venue's portal.")
+                            .font(.caption)
+                            .foregroundStyle(.orange)
+                    }
                 }
                 if hidden {
                     Text("Hidden network").font(.caption).foregroundStyle(.secondary)
@@ -214,6 +274,21 @@ struct PayloadActionsView: View {
                     Label("Look up product", systemImage: "magnifyingglass")
                 }
             }
+            // Loyalty-card affordance — surfacing it here is the
+            // pragmatic answer to "let me Add to Wallet this loyalty
+            // barcode": iOS PassKit needs a server-signed `.pkpass`
+            // we can't mint client-side, so instead we save a
+            // favourited History row tagged with the merchant name.
+            // The user re-finds the code via History → Favourites
+            // (and the merchant tag makes search trivial).
+            Button {
+                loyaltyMerchant = ""
+                showLoyaltyAlert = true
+            } label: {
+                Label(loyaltySaved ? "Saved as loyalty card" : "Save as loyalty card",
+                      systemImage: loyaltySaved ? "checkmark" : "creditcard.and.123")
+            }
+            .disabled(loyaltySaved)
 
         case .crypto(let p):
             LabelledFieldsList(fields: p.labelledFields)
@@ -309,6 +384,17 @@ struct PayloadActionsView: View {
 
         case .richURL(let r):
             LabelledFieldsList(fields: r.labelledFields)
+            // Digital identity flows can be coerced into impersonation:
+            // a stranger's QR will *try* to log you in to their flow as
+            // *you*. Always make the user confirm they initiated it.
+            if r.kind == .digitalIdentity {
+                Label(
+                    "Identity flow — only continue if you started this login yourself.",
+                    systemImage: "exclamationmark.shield"
+                )
+                .font(.footnote)
+                .foregroundStyle(.orange)
+            }
             Button {
                 UIApplication.shared.open(r.url)
             } label: {
@@ -332,6 +418,7 @@ struct PayloadActionsView: View {
         case .spotify:     return "Open in Spotify"
         case .appleMusic:  return "Open in Apple Music"
         case .googleMaps, .appleMaps: return "Open in Maps"
+        case .digitalIdentity:        return "Continue in browser"
         }
     }
 
@@ -343,6 +430,7 @@ struct PayloadActionsView: View {
         case .youtube:                return "play.rectangle"
         case .spotify, .appleMusic:   return "music.note"
         case .googleMaps, .appleMaps: return "map"
+        case .digitalIdentity:        return "person.text.rectangle"
         }
     }
 
@@ -578,5 +666,22 @@ func requestCalendarAccess(completion: @escaping (EKEventStore?) -> Void) {
     let store = EKEventStore()
     store.requestWriteOnlyAccessToEvents { granted, _ in
         DispatchQueue.main.async { completion(granted ? store : nil) }
+    }
+}
+
+// MARK: - Wi-Fi security friendly label (1.4: WPA3 + Passpoint)
+
+/// Map the raw `T:` field of a `WIFI:` payload to a user-friendly
+/// label. Anything we don't recognise is passed through verbatim so a
+/// future security tag still surfaces *something* in the result sheet
+/// instead of being silently dropped.
+internal func friendlyWifiSecurity(_ raw: String) -> String {
+    switch raw.uppercased() {
+    case "WPA", "WPA2": return "WPA / WPA2"
+    case "WEP":         return "WEP"
+    case "SAE", "WPA3": return "WPA3 (SAE)"
+    case "HS20", "PASSPOINT", "OSU": return "Passpoint (HS20)"
+    case "NOPASS", "NONE", "":       return "None"
+    default:                         return raw
     }
 }

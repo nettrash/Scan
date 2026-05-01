@@ -13,6 +13,136 @@ build-phase script via `agvtool next-version -all`.
 
 _(nothing yet)_
 
+## [1.6] — 2026-05-01
+
+Share-to-Scan + PDF support.
+
+### Share Extension (new target)
+
+- New `ScanShareExtension` app-extension target wired into `Scan.xcodeproj`. Scan now shows up in the iOS share sheet for images and PDFs; the result + actions render *inline* without leaving the source app.
+- `ScanShareExtension/Info.plist` declares `com.apple.share-services` as the extension point, with `NSExtensionActivationSupportsImageWithMaxCount = 10` and `NSExtensionActivationSupportsFileWithMaxCount = 10` — the share sheet only offers Scan when the source provides at least one image or PDF, capped at 10 items per share to stay inside the share-extension memory budget (~120 MB on most devices).
+- `ShareViewController.swift` is the UIKit bridge — extracts every `NSItemProvider` matching the image / PDF type IDs and hands them to a `UIHostingController`-wrapped SwiftUI view.
+- `ShareView.swift` runs through three states: Loading (decoding), Ready (renders single-result detail or a list when ≥ 2 codes), Failed (no decodable barcodes). Each result row offers Copy and "Open in Scan", the latter handing off via the existing `https://nettrash.me/scan/<base64url-payload>` Universal Link wired up in 1.5 — no shared App Group required for v1.
+- Parser sources are dual-membered between the main `Scan` target and the extension via additional PBXBuildFile entries pointing at the same fileRefs. Twelve files cross over: `Symbology`, `ScanPayload`, `ImageDecoder`, and the per-payload parsers under `BankPaymentPayloads` / `CryptoPayload` / `CalendarPayload` / `RegionalPaymentPayloads` / `MagnetPayload` / `RichURLPayload` / `GS1Payload` / `BoardingPassPayload` / `DrivingLicensePayload`. No new framework target — for ~12 small files this is simpler than introducing one.
+- `XCODE_SETUP.md` in the extension folder documents the manual recovery if any of the pbxproj surgery needs touching up in Xcode.
+
+### PDF support
+
+- `ImageDecoder.decode(pdfData:)` walks every page of a `PDFDocument` via PDFKit, rasterises each at 2× the page's natural point size, and runs the existing Vision path on the resulting bitmap. Boarding-pass PDFKit-flipped coordinate space is handled with an explicit `translateBy` + `scaleBy(1, -1)` so the page draws the right way up.
+- `ImageDecoder.decode(url:)` now auto-routes `.pdf` URLs to the PDF path so the in-app Files importer also benefits.
+- `ImageDecoder.decodeBatch(urls:)` and `decodeBatch(items:)` aggregate decoded codes across N inputs (mixed images + PDFs) with `Set`-based dedup on `value`. The Share Extension uses `decodeBatch(items:)` to avoid file-system round-trips.
+
+### Generator (no changes; just version bump)
+
+The earlier 1.5 bug fixes (Form gesture intercept, strict same-value dedupe, banner ✕ button) all carry forward.
+
+## [1.5] — 2026-05-01
+
+Architectural pass — Universal Links + iCloud sync surface.
+
+### Universal Links
+
+- New `Scan/Scan/DeepLink.swift` decodes `https://nettrash.me/scan/<base64url-payload>` URLs back into the original payload string. URL-safe base64 (`-_`, no padding) keeps the path round-trippable for arbitrary binary payloads (vCards with newlines, EMVCo merchant blobs with `&` and `=`, …) while staying short enough for the URL to be shareable.
+- `DeepLinkDispatcher` (singleton, `ObservableObject`) is the bridge between `ScanApp.onContinueUserActivity(NSUserActivityTypeBrowsingWeb)` / `.onOpenURL(...)` and the SwiftUI tree. The single-slot `pending` value survives a cold-start race where `ContentView` may not yet be in the hierarchy when the link fires.
+- `DeepLinkResultSheet` re-uses the existing `PayloadActionsView` so the displayed fields and smart actions match a freshly-scanned code exactly. The only difference is a single "Save to History" button instead of the camera path's notes flow — deep-link arrivals are typically one-offs.
+- New `Scan/Scan/Scan.entitlements` declares `applinks:nettrash.me` and `webcredentials:nettrash.me` in `com.apple.developer.associated-domains`. Wired into both Debug and Release build configs via `CODE_SIGN_ENTITLEMENTS = Scan/Scan.entitlements;`.
+
+### iCloud sync (now actually syncing)
+
+- The same entitlements file declares `com.apple.developer.icloud-services = [CloudKit]` and `com.apple.developer.icloud-container-identifiers = [iCloud.me.nettrash.Scan]`. `Persistence.swift` already used `NSPersistentCloudKitContainer`, but without the entitlements the container ran in local-only mode. With these in place, history rows now replicate to the user's iCloud account when they're signed in at the system level.
+- New "Sync" section in the Settings tab. Reads `FileManager.default.ubiquityIdentityToken` to surface a `Signed in` / `Signed out` label and an explanatory line directing the user to Settings → iCloud when off.
+
+### Server-side
+
+- `nettrash.me/frontend/assets/.well-known/apple-app-site-association` lists the `appIDs` (`V4WM2SJ8Q9.me.nettrash.Scan`) and the `/scan/*` path scope.
+- `nginx.conf` adds a `location ^~ /.well-known/` block serving the file as `application/json` with `Cache-Control: no-store` and `try_files $uri =404` (no SPA fallback). The verifier insists on a hard 404 for missing files, not the SPA shell.
+- `frontend/index.html` gets a new `<link data-trunk rel="copy-dir" href="assets/.well-known">` so Trunk copies the directory verbatim into `dist/`.
+
+## [1.4] — 2026-05-01
+
+Payload-recognition pass — four new flavours.
+
+### Wi-Fi: WPA3 + Passpoint
+
+- `CodeComposer.WifiSecurity` gains `.wpa3` (`SAE`) and `.passpoint` (`HS20`) cases. The display labels are now friendly ("WPA / WPA2", "WPA3 (SAE)", "Passpoint (HS20)") rather than the raw `T:` token.
+- `PayloadActionsView`'s `.wifi` case routes the raw `security` string through a new `friendlyWifiSecurity(_:)` helper. Unknown tokens still pass through verbatim so a future security flavour shows *something* in the result sheet rather than nothing.
+- Passpoint payloads now surface an explicit caveat ("install the profile manually") because iOS doesn't expose a programmatic Passpoint provisioning API.
+
+### Crypto: USDC / USDT / DAI
+
+- `CryptoPayload.Token { symbol, contract, chain }` is the new home for ERC-20 / TRC-20 / SPL token context. `labelledFields` leads with "USDC on Ethereum" + the contract address when a token is recognised, instead of dumping the contract as the destination.
+- New `CryptoPayload.Chain.tron` plus `tron:` / `tronlink:` schemes recognised, with a strict 34-char base58 regex for bare Tron addresses (`T…`) — checked before Bitcoin's regex so the legacy-Bitcoin pattern doesn't swallow them.
+- `CryptoURIParser.parse` now handles three transfer shapes:
+  - **EIP-681 ERC-20** (`ethereum:CONTRACT@1/transfer?address=RECIPIENT&uint256=AMOUNT`) — recognised when the path's function segment is `/transfer`. Path's "address" is the *contract*, recipient is in the query, amount comes from `uint256=`.
+  - **Solana Pay SPL** (`solana:RECIPIENT?spl-token=MINT&amount=…`) — recipient stays in the path, mint comes from the query.
+  - **TRC-20** (`tron:CONTRACT?address=RECIPIENT` or `tron:RECIPIENT?contract=…`) — both shapes handled.
+- Built-in `knownTokens` registry covers USDC, USDT, DAI on Ethereum; USDT, USDC on Tron; USDC, USDT on Solana. Lookups are case-insensitive (lowercased keys) so checksum / base58 casing variations resolve cleanly. Unknown contracts still surface a generic `ERC-20` / `TRC-20` / `SPL` token tag with the contract baked in.
+- `parseBare` enriches `0x…` and `T…` matches with token registry lookup, so a scan of just a stablecoin contract address still surfaces the symbol.
+
+### Digital identity: DigiD + EUDI + OpenID4VC
+
+- `RichURLPayload.Kind.digitalIdentity` is the new tag. Detection lives in `RichURLParser.digitalIdentityPayload(...)`, conservative on purpose so that arbitrary `https://example.com/login` doesn't get mis-flagged. Triggers on:
+  - DigiD hosts (`*.digid.nl`, `mijn.digid.nl`)
+  - EUDI Wallet hosts (`*.eudiw.dev`, `*.eu-digital-identity-wallet.eu`, `ec.europa.eu` paths containing "eudi")
+  - Path-level OpenID4VC markers (`openid-credential-offer`, `openid4vp`, `/oidvp/`, or an `authorize` endpoint with `response_type=vp_token` / `client_id_scheme`).
+- The result sheet renders an orange `exclamationmark.shield` warning above the action button: "Identity flow — only continue if you started this login yourself." This makes the impersonation vector (a stranger's QR trying to log *you* into *their* session) hard to miss.
+- New `Continue in browser` action label + `person.text.rectangle` icon. History row icon also updated to match.
+
+### Loyalty cards
+
+- New "Save as loyalty card" affordance on `.productCode` payloads. The user is prompted for a merchant name (Tesco, IKEA, …) and the row is persisted directly via `@Environment(\.managedObjectContext)` with `notes = "Loyalty: <merchant>"`, `symbology = "Loyalty"`, and `isFavorite = true`. The favourite flag pins it to the top of History; the merchant tag makes the search field find it instantly.
+- Apple Wallet / PassKit integration is *deliberately* not done client-side: a real `.pkpass` requires server-side signing with a Wallet certificate, which isn't viable for an offline app. The favourited History row is the pragmatic equivalent.
+
+## [1.3] — 2026-05-01
+
+Generator + scanner UX pass.
+
+### Generator
+
+- **Foreground / background colour pickers** in `GeneratorScreen.swift`. Live preview re-renders on every change. WCAG relative-luminance contrast ratio is computed locally and the screen surfaces a warning when the chosen pair drops below 3:1 — the practical floor for reliable scanning.
+- **QR error-correction picker** (L / M / Q / H) exposed alongside the colour controls, with the level forced to `H` whenever a logo is set so callers don't have to remember.
+- **Logo embedding** for QR via `PhotosPicker` + a centred `~22 %`-of-canvas composite with a white rounded "punch" behind the logo. Punch is forced white regardless of the user's background colour, so the finder pattern keeps maximum contrast.
+- **SVG and PDF exports** — new `QRSvg.swift`. SVG is run-length-encoded per row (so a typical 33-module QR emits ~120 `<rect>`s instead of ~600). PDF is drawn via `UIGraphicsPDFRenderer` for true vector output that prints cleanly at any size. Both exports honour the user's foreground / background colours and ride through the existing share-sheet pipeline (the new `ShareItems` wrapper handles three different export targets behind one `.sheet(item:)` binding).
+- **Reset-to-default** button on the Style section so a user that messed with colours can get back to plain black-on-white in one tap.
+- `CodeGenerator.swift` reworked: now takes `foreground`, `background`, `errorCorrection`, and `logo` parameters. Recolouring goes through `CIFilter.falseColor` *before* rasterisation so module edges stay crisp. New `qrModuleMatrix(for:)` helper exposes the unscaled QR module bitmap for vector exporters to consume without re-encoding.
+
+### Scanner
+
+- **Multi-code disambiguation.** `CameraScannerView.swift` now emits the full array of recognised codes (deduped on `value` with order preserved) via a new `onScanBatch` callback. `ScannerScreen.swift` renders numbered chips at each code's bounding rect when more than one is in frame, with a translucent backdrop and a "Multiple codes — tap one" banner. Tapping a chip routes through the normal scan pipeline (haptic / sound / continuous-scan / save). Single-code framing keeps the existing direct-to-sheet path.
+- The reticle continues to track the *largest* detected rect during multi-code framing, so the user has a clear primary anchor while still seeing all alternatives.
+
+## [1.2] — 2026-05-01
+
+Polish + History pass on top of 1.1's payload coverage. `MARKETING_VERSION` bumped to `1.2` across all six configurations (Debug + Release × app + tests + UI tests). `CURRENT_PROJECT_VERSION` continues to auto-increment via the `agvtool bump` scheme post-action.
+
+### Scanner UX
+
+- **Live preview no longer freezes when a code is recognised.** The result sheet now slides up over a still-running camera feed instead of pausing the `AVCaptureSession`. Sheet-level dedupe (`lastValue` + `lastValueAt`) keeps re-detections of the same payload from re-presenting the sheet, so the user can keep the phone steady or flip to a different code without having to tap to "resume". The session is still paused while a still image from Photos / Files is being decoded — that path needs the recogniser's full attention and the preview would otherwise sit behind the progress indicator.
+- **Corner reticle releases back to its default centred position when no codes are visible.** The reticle previously stayed locked on the last detection forever, which read as "stuck" once the code left the frame. A 0.5 s grace-period watchdog (`reticleResetGrace`) now clears `detectedRect` when the camera hasn't reported a recognised code for a short while, and `handleScan` updates the reticle on every detection — including dedupe-suppressed ones — so the brackets stay locked while the user is still pointing at a code, not just on the first frame.
+
+### Settings tab (new)
+
+- New `SettingsScreen.swift` and a fourth tab on `ContentView`. Three `@AppStorage`-backed toggles, all centralised in `ScanSettingsKey`:
+  - **Haptic on scan** (default ON) — gates `UINotificationFeedbackGenerator().notificationOccurred(.success)` in the scanner path.
+  - **Sound on scan** (default OFF) — `AudioToolbox` plays `SystemSoundID 1057` ("Tink") through `ScanSound.playScanned()`.
+  - **Continuous scanning** (default OFF) — described below.
+- "Test feedback" button fires both feedback channels at once so users can compare them before deciding which to leave on.
+- About block surfaces the marketing version + build, plus links to the GitHub source and privacy policy.
+
+### Continuous-scanning mode (new)
+
+When `continuousScan` is on, recognised codes save straight to History instead of presenting the result sheet, and an inline banner shows the latest auto-saved value. Tap the banner to open the result sheet manually for that scan. Image-import path (Photos / Files) deliberately ignores the toggle — those are explicit one-off operations and benefit from the standard sheet acknowledgement.
+
+### History favourites + CSV export (new)
+
+- **Core Data model bumped to v2** (`Scan 2.xcdatamodel`). New attribute `isFavorite: Bool` (optional, scalar, default `NO`). Lightweight migration runs automatically — a 1.1 user's existing scans materialise as un-favourited and the iCloud-backed CKContainer accepts the schema change without requiring a reset.
+- **Star a scan to pin it.** Leading swipe action on each row, plus a yellow "Favourites only" filter chip in the toolbar. The Core Data fetch sorts on `(isFavorite DESC, timestamp DESC)` so favourites bubble to the top globally.
+- **Export to CSV.** New toolbar menu with two entries — *Visible* (respects the search + favourites filter) and *All* (the full list). `HistoryCSV.swift` writes RFC 4180-compliant output (CRLF, double-quote-escaping where needed) with columns `timestamp,symbology,value,notes,favourite`. The file is handed to a UIKit-bridged `UIActivityViewController` so the user can drop it into Files, AirDrop, e-mail, etc.
+
+### What's-New sheet (new)
+
+`WhatsNewSheet.swift` ships the per-version highlights as a literal `[WhatsNewItem]` array. `ContentView` checks `@AppStorage(ScanSettingsKey.lastSeenVersion)` against `CFBundleShortVersionString` on every launch — if they differ *and* the running build matches the bundled `WhatsNew.version`, the sheet auto-presents. Dismissal stamps the storage so it doesn't re-present on subsequent launches; build/version mismatches silently catch the storage up so the next legitimate version bump shows correctly.
+
 ## [1.1.0] — 2026-04-28
 
 Public release on the App Store: <https://apps.apple.com/us/app/nettrash-scan/id6763932723>.

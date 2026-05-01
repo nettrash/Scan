@@ -2,15 +2,100 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>NSCameraUsageDescription</key>
-	<string>Scan needs the camera to read 1D and 2D barcodes such as QR, EAN, UPC, Code 128, PDF417, Aztec and Data Matrix.</string>
-	<key>NSContactsUsageDescription</key>
-	<string>Scan can save a scanned vCard or MECARD as a new entry in your Contacts. You'll be shown the system 'New Contact' form first and can edit or cancel before saving.</string>
-	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>Scan can save the codes you generate to your Photos library so you can print or share them later.</string>
-	<key>NSCalendarsUsageDescription</key>
-	<string>Scan can add events from a scanned iCalendar QR to your calendar. You'll be shown the system 'Add Event' sheet first and can edit or cancel before saving.</string>
-	<key>NSCalendarsWriteOnlyAccessUsageDescription</key>
-	<string>Scan can add events from a scanned iCalendar QR to your calendar. The app only needs write access — it never reads your existing events.</string>
+    <!-- Bundle metadata. Build numbers / versions come from the
+         INFOPLIST_KEY_* / agvtool-managed CURRENT_PROJECT_VERSION
+         flow; everything else is hard-coded here. -->
+    <key>CFBundleDevelopmentRegion</key>
+    <string>$(DEVELOPMENT_LANGUAGE)</string>
+    <key>CFBundleDisplayName</key>
+    <string>Scan</string>
+    <key>CFBundleExecutable</key>
+    <string>$(EXECUTABLE_NAME)</string>
+    <key>CFBundleIdentifier</key>
+    <string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+    <key>CFBundleInfoDictionaryVersion</key>
+    <string>6.0</string>
+    <key>CFBundleName</key>
+    <string>$(PRODUCT_NAME)</string>
+    <key>CFBundlePackageType</key>
+    <string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
+    <key>CFBundleShortVersionString</key>
+    <string>$(MARKETING_VERSION)</string>
+    <key>CFBundleVersion</key>
+    <string>$(CURRENT_PROJECT_VERSION)</string>
+
+    <!--
+        Custom URL scheme registration. Used by the Share Extension
+        (`ScanShareExtension`) to hand off to the main app from the
+        share-sheet result. We *can't* use the Universal Link
+        `https://nettrash.me/scan/<base64url>` for that handoff
+        because iOS bypasses the UL handler when the URL is opened
+        from the same app's process group — including share
+        extensions — and falls back to opening it in Safari, which
+        then navigates to nettrash.me. The custom scheme has no such
+        self-app restriction.
+
+        Naming: `me.nettrash.scan` is reverse-DNS-namespaced to
+        avoid collisions with other apps that might have grabbed
+        `scan://`. Universal Link handling for the https form is
+        unaffected — it still works for links arriving from outside
+        the app (Mail, Messages, Safari).
+    -->
+    <key>CFBundleURLTypes</key>
+    <array>
+        <dict>
+            <key>CFBundleURLName</key>
+            <string>me.nettrash.scan.deeplink</string>
+            <key>CFBundleURLSchemes</key>
+            <array>
+                <string>me.nettrash.scan</string>
+            </array>
+        </dict>
+    </array>
+
+    <key>LSApplicationCategoryType</key>
+    <string>public.app-category.utilities</string>
+
+    <!-- Privacy-string permissions (NSxxxUsageDescription). -->
+    <key>NSCameraUsageDescription</key>
+    <string>Scan needs the camera to read 1D and 2D barcodes such as QR, EAN, UPC, Code 128, PDF417, Aztec and Data Matrix.</string>
+    <key>NSContactsUsageDescription</key>
+    <string>Scan can save a scanned vCard or MECARD as a new entry in your Contacts. You'll be shown the system 'New Contact' form first and can edit or cancel before saving.</string>
+    <key>NSPhotoLibraryAddUsageDescription</key>
+    <string>Scan can save the codes you generate to your Photos library so you can print or share them later.</string>
+    <key>NSCalendarsUsageDescription</key>
+    <string>Scan can add events from a scanned iCalendar QR to your calendar. You'll be shown the system 'Add Event' sheet first and can edit or cancel before saving.</string>
+    <key>NSCalendarsWriteOnlyAccessUsageDescription</key>
+    <string>Scan can add events from a scanned iCalendar QR to your calendar. The app only needs write access — it never reads your existing events.</string>
+
+    <!-- Scene + launch-screen scaffolding (the equivalent of
+         INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES /
+         UILaunchScreen_Generation = YES). -->
+    <key>UIApplicationSceneManifest</key>
+    <dict>
+        <key>UIApplicationSupportsMultipleScenes</key>
+        <false/>
+        <key>UISceneConfigurations</key>
+        <dict/>
+    </dict>
+    <key>UIApplicationSupportsIndirectInputEvents</key>
+    <true/>
+    <key>UILaunchScreen</key>
+    <dict/>
+    <key>UISupportedInterfaceOrientations</key>
+    <array>
+        <string>UIInterfaceOrientationLandscapeLeft</string>
+        <string>UIInterfaceOrientationLandscapeRight</string>
+        <string>UIInterfaceOrientationPortrait</string>
+        <string>UIInterfaceOrientationPortraitUpsideDown</string>
+    </array>
+    <!-- iPad supports all four orientations as well. -->
+    <key>UISupportedInterfaceOrientations~ipad</key>
+    <array>
+        <string>UIInterfaceOrientationLandscapeLeft</string>
+        <string>UIInterfaceOrientationLandscapeRight</string>
+        <string>UIInterfaceOrientationPortrait</string>
+        <string>UIInterfaceOrientationPortraitUpsideDown</string>
+    </array>
 </dict>
 </plist>

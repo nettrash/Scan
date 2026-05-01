@@ -9,36 +9,20 @@
 import SwiftUI
 import AVFoundation
 
-struct ScannedCode: Equatable, Identifiable {
-    /// Stable per-instance ID so SwiftUI's `.sheet(item:)` distinguishes
-    /// "same payload scanned again" from "still showing the previous one"
-    /// — without an ID per instance, re-scanning the same value would
-    /// not trigger a re-presentation.
-    let id: UUID = UUID()
-    let value: String
-    let symbology: Symbology
-    let avType: String
-    let timestamp: Date
-    /// Bounding rectangle of the detected code, expressed in the preview
-    /// view's own coordinate system (top-left origin, points). `nil` when
-    /// the code came from a still image rather than the live camera, so
-    /// callers should treat its absence as "no on-screen position".
-    let previewRect: CGRect?
-
-    static func == (lhs: ScannedCode, rhs: ScannedCode) -> Bool {
-        lhs.id == rhs.id
-            && lhs.value == rhs.value
-            && lhs.symbology == rhs.symbology
-            && lhs.avType == rhs.avType
-            && lhs.timestamp == rhs.timestamp
-            && lhs.previewRect == rhs.previewRect
-    }
-}
+// `ScannedCode` lives in its own file (`ScannedCode.swift`) so that
+// the share-extension target can pull it in without also pulling in
+// the AVCaptureSession code below.
 
 struct CameraScannerView: UIViewControllerRepresentable {
-    /// Streamed each time a new code is decoded. The host view is responsible
-    /// for debouncing duplicates and pausing the session as appropriate.
+    /// Streamed each time a *single* recognised code is decoded. Kept
+    /// for callers that don't care about multi-code disambiguation —
+    /// it fires on every batch where there's exactly one code, and is
+    /// silenced when there are multiple (host picks via `onScanBatch`).
     var onScan: (ScannedCode) -> Void
+    /// Streamed every time the camera reports recognised codes — even
+    /// when more than one is in frame at once. Host renders a chooser
+    /// when `count > 1`. Empty arrays are *not* delivered.
+    var onScanBatch: ([ScannedCode]) -> Void = { _ in }
     /// Called with a user-facing failure reason when the camera can't start.
     var onFailure: (String) -> Void
     /// When true, the session is paused; toggle to resume after handling a result.
@@ -66,8 +50,15 @@ struct CameraScannerView: UIViewControllerRepresentable {
         var parent: CameraScannerView
         init(_ parent: CameraScannerView) { self.parent = parent }
 
-        func scanner(_ vc: ScannerViewController, didDecode code: ScannedCode) {
-            parent.onScan(code)
+        func scanner(_ vc: ScannerViewController, didDecodeBatch codes: [ScannedCode]) {
+            guard !codes.isEmpty else { return }
+            parent.onScanBatch(codes)
+            // Single-code convenience: only fire `onScan` when there's
+            // unambiguously one thing in frame. Multi-code batches go
+            // through the chooser UI in the host instead.
+            if codes.count == 1, let only = codes.first {
+                parent.onScan(only)
+            }
         }
         func scanner(_ vc: ScannerViewController, didFailWith reason: String) {
             parent.onFailure(reason)
@@ -78,7 +69,7 @@ struct CameraScannerView: UIViewControllerRepresentable {
 // MARK: - UIKit scanner
 
 protocol ScannerViewControllerDelegate: AnyObject {
-    func scanner(_ vc: ScannerViewController, didDecode code: ScannedCode)
+    func scanner(_ vc: ScannerViewController, didDecodeBatch codes: [ScannedCode])
     func scanner(_ vc: ScannerViewController, didFailWith reason: String)
 }
 
@@ -254,25 +245,35 @@ final class ScannerViewController: UIViewController, AVCaptureMetadataOutputObje
     func metadataOutput(_ output: AVCaptureMetadataOutput,
                         didOutput metadataObjects: [AVMetadataObject],
                         from connection: AVCaptureConnection) {
+        // Collect *all* readable codes in the frame — the SwiftUI
+        // host decides what to do with multiplicity (single-code path
+        // goes straight through; multi-code path renders a chooser).
+        // Dedupe on `value` while preserving order so the same payload
+        // recognised twice in a frame doesn't show as two chooser chips.
+        var seen = Set<String>()
+        var batch: [ScannedCode] = []
+        let now = Date()
         for obj in metadataObjects {
             guard let readable = obj as? AVMetadataMachineReadableCodeObject,
                   let value = readable.stringValue,
-                  !value.isEmpty else { continue }
+                  !value.isEmpty,
+                  !seen.contains(value) else { continue }
+            seen.insert(value)
             // Transform the metadata object into the preview layer's
             // coordinate space — the resulting `bounds` is then in points
             // inside the view (top-left origin), ready to drive the
             // SwiftUI overlay reticle.
             let transformed = previewLayer?.transformedMetadataObject(for: readable)
                 as? AVMetadataMachineReadableCodeObject
-            let scanned = ScannedCode(
+            batch.append(ScannedCode(
                 value: value,
                 symbology: Symbology(readable.type),
                 avType: readable.type.rawValue,
-                timestamp: Date(),
+                timestamp: now,
                 previewRect: transformed?.bounds
-            )
-            delegate?.scanner(self, didDecode: scanned)
-            return
+            ))
         }
+        guard !batch.isEmpty else { return }
+        delegate?.scanner(self, didDecodeBatch: batch)
     }
 }

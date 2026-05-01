@@ -9,6 +9,7 @@
 //
 
 import SwiftUI
+import Combine
 import CoreData
 import AVFoundation
 import UIKit
@@ -18,8 +19,18 @@ import UniformTypeIdentifiers
 struct ScannerScreen: View {
     @Environment(\.managedObjectContext) private var viewContext
 
+    // User preferences (Settings tab)
+    @AppStorage(ScanSettingsKey.hapticOnScan)   private var hapticOnScan: Bool   = true
+    @AppStorage(ScanSettingsKey.soundOnScan)    private var soundOnScan: Bool    = false
+    @AppStorage(ScanSettingsKey.continuousScan) private var continuousScan: Bool = false
+
     // Scanner state
     @State private var torchOn = false
+    /// In continuous-scan mode, the most recent value that was
+    /// auto-saved. Used to drive a small banner so the user has
+    /// confirmation that something *was* recognised — and a tap
+    /// target if they want to open the result sheet for it.
+    @State private var lastContinuousScan: ScannedCode?
     /// The code currently displayed in the result sheet. Bound to
     /// `.sheet(item:)` so SwiftUI presents/dismisses atomically — no
     /// race between the dismiss animation and a fresh scan of the same
@@ -28,9 +39,28 @@ struct ScannerScreen: View {
     @State private var failureReason: String?
     @State private var lastValue: String?
     @State private var lastValueAt: Date = .distantPast
+    /// The value we last took action on (saved to history in
+    /// continuous-scan mode, or presented in the sheet in normal
+    /// mode). Reset by the reticle watchdog when the camera frame
+    /// has been empty for the grace period — i.e. when the user
+    /// has visibly moved the camera off the code. This is what
+    /// stops the same code being saved over and over while it sits
+    /// in view; the older 1.5 s time window kept resetting and
+    /// re-firing every dedupeWindow seconds.
+    @State private var lastHandledValue: String?
     /// The most recent detected code's rectangle, in CameraScannerView's
     /// coordinate space. `nil` falls back to a centred default-size reticle.
     @State private var detectedRect: CGRect?
+    /// Wall-clock time of the last successful metadata detection. Used by
+    /// the watchdog timer to decide when to release the corner reticle
+    /// back to its default centred position once no codes are visible.
+    @State private var lastDetectionAt: Date = .distantPast
+    /// When the camera reports more than one code in a frame, we
+    /// store them here and render a chooser overlay instead of
+    /// immediately presenting the result sheet. Cleared as soon as
+    /// the user taps a chip, the user dismisses the chooser, or the
+    /// frame goes back to having ≤ 1 code.
+    @State private var multiCodeChoices: [ScannedCode] = []
 
     // Image-import state
     @State private var photoItem: PhotosPickerItem?
@@ -45,8 +75,14 @@ struct ScannerScreen: View {
         ZStack {
             CameraScannerView(
                 onScan: handleScan,
+                onScanBatch: handleScanBatch,
                 onFailure: { failureReason = $0 },
-                isPaused: sheetCode != nil || isDecoding,
+                // Keep the live preview running while the result sheet is
+                // up — only pause when we're actively decoding a still
+                // image (otherwise the preview would freeze on top of the
+                // imported-image progress indicator). Sheet-level dedupe
+                // is handled by `lastValue` / `lastValueAt`.
+                isPaused: isDecoding,
                 isTorchOn: torchOn
             )
             .ignoresSafeArea()
@@ -98,6 +134,70 @@ struct ScannerScreen: View {
                     .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12))
             }
 
+            // Continuous-scan mode: render the last auto-saved code as a
+            // dismissible banner near the top so the user has feedback
+            // and a tap-target to open the sheet on demand. Hidden when
+            // the toggle is off or no scan yet. The trailing ✕ button
+            // is the user's explicit "I'm done with this one — show
+            // me the next" gesture; tapping it releases the
+            // same-value dedupe lock so the next sight of any code
+            // (including the one just dismissed) registers as a
+            // fresh scan.
+            if continuousScan, let last = lastContinuousScan {
+                VStack {
+                    HStack(spacing: 0) {
+                        Button {
+                            sheetCode = last
+                        } label: {
+                            HStack(spacing: 12) {
+                                Image(systemName: "checkmark.seal.fill")
+                                    .foregroundStyle(.green)
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Saved")
+                                        .font(.caption.bold())
+                                        .foregroundStyle(.secondary)
+                                    Text(last.value)
+                                        .font(.subheadline.monospaced())
+                                        .lineLimit(1)
+                                        .truncationMode(.middle)
+                                        .foregroundStyle(.primary)
+                                }
+                                Spacer(minLength: 8)
+                                Image(systemName: "chevron.right")
+                                    .font(.caption)
+                                    .foregroundStyle(.tertiary)
+                            }
+                            .padding(.leading, 14)
+                            .padding(.vertical, 10)
+                            .padding(.trailing, 6)
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+
+                        Button {
+                            withAnimation {
+                                lastContinuousScan = nil
+                            }
+                            // Release the dedupe so the next sight of
+                            // any code — including this one — counts.
+                            lastHandledValue = nil
+                        } label: {
+                            Image(systemName: "xmark")
+                                .font(.subheadline.weight(.semibold))
+                                .frame(width: 36, height: 36)
+                                .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("Dismiss saved-scan banner")
+                    }
+                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 14))
+                    .padding(.horizontal)
+                    .padding(.top, 8)
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                    Spacer()
+                }
+            }
+
             if let failureReason {
                 VStack {
                     Spacer()
@@ -109,6 +209,16 @@ struct ScannerScreen: View {
                     Spacer().frame(height: 100)
                 }
                 .transition(.opacity)
+            }
+
+            // Multi-code chooser. Each detected code gets a numbered
+            // chip rendered roughly over its bounding rect so the
+            // user can match what's on screen to which option to act
+            // on. Tapping a chip routes through the normal scan
+            // pipeline.
+            if !multiCodeChoices.isEmpty {
+                multiCodeOverlay
+                    .transition(.opacity)
             }
         }
         .navigationTitle("Scan")
@@ -141,14 +251,56 @@ struct ScannerScreen: View {
         } message: { msg in
             Text(msg)
         }
-        .sheet(item: $sheetCode) { scan in
+        .sheet(item: $sheetCode, onDismiss: {
+            // Sheet dismissal — by tap-Done, swipe-down, or tap-outside —
+            // releases the same-value dedupe lock. The next time the
+            // user points at the same code, it'll re-present.
+            lastHandledValue = nil
+        }) { scan in
             ScanResultSheet(
                 scan: scan,
                 onSave: { notes in saveScan(scan, notes: notes) },
-                onDismiss: { sheetCode = nil }
+                onDismiss: {
+                    sheetCode = nil
+                    lastHandledValue = nil
+                }
             )
             .presentationDetents([.medium, .large])
         }
+        // Watchdog: if the camera hasn't reported a recognised code for a
+        // short grace period, release the corner reticle back to its
+        // centred default position so the brackets don't appear "stuck"
+        // on a code that has since left the frame.
+        //
+        // NOTE: deliberately does *not* clear `lastHandledValue` —
+        // the value-equality dedupe in `handleScan` is now strict.
+        // Once a value has been handled, the only way to re-handle it
+        // is to dismiss the result sheet (sheet mode) or the
+        // continuous-scan banner (continuous mode). Pointing the
+        // camera at the same code twice with a "look-away" in between
+        // is no longer enough — the user has to explicitly say
+        // "I'm done with this scan" first. This is what the user
+        // asked for: literal same-value avoidance.
+        .onReceive(reticleTimer) { _ in
+            guard detectedRect != nil else { return }
+            if Date().timeIntervalSince(lastDetectionAt) > reticleResetGrace {
+                detectedRect = nil
+            }
+        }
+    }
+
+    // MARK: - Reticle watchdog
+
+    /// How long the corner reticle stays locked on the last detection
+    /// after the camera stops seeing any code. Long enough to ride out
+    /// brief recogniser stutters, short enough to feel responsive when
+    /// the code actually leaves the frame.
+    private let reticleResetGrace: TimeInterval = 0.5
+
+    /// Drives the watchdog above. `.common` keeps it firing while the
+    /// user is interacting (otherwise it would pause during scrolls).
+    private var reticleTimer: Publishers.Autoconnect<Timer.TimerPublisher> {
+        Timer.publish(every: 0.15, on: .main, in: .common).autoconnect()
     }
 
     // MARK: - Import menu
@@ -179,22 +331,146 @@ struct ScannerScreen: View {
     // MARK: - Live scan handling
 
     private func handleScan(_ code: ScannedCode) {
-        // Debounce duplicate decodes from the same code in quick succession.
-        // We do the dedupe check *before* updating the reticle so a
-        // re-detection of the just-shown code doesn't snap the corner
-        // brackets back to the code's position (which read as them
-        // "coming back" after the result sheet was dismissed).
         let now = Date()
-        if code.value == lastValue, now.timeIntervalSince(lastValueAt) < dedupeWindow {
-            return
-        }
+        // Always refresh the reticle and the watchdog timestamp, even if
+        // the value is a duplicate that the dedupe will swallow. This
+        // keeps the corner brackets locked onto a code that's still
+        // being held in front of the camera, instead of snapping back
+        // to the centred default while the user lingers on the
+        // result sheet.
+        lastDetectionAt = now
         if let rect = code.previewRect {
             detectedRect = rect
         }
+        // Primary dedupe: don't re-handle the *same value* until the
+        // camera has visibly moved off the code (the watchdog clears
+        // `lastHandledValue` on grace-period frame-emptiness). This
+        // is what stops a single code held in view from being saved
+        // every 1.5 s in continuous mode or re-popping the sheet
+        // each time the time window expired.
+        if let last = lastHandledValue, last == code.value {
+            return
+        }
+        // Secondary safety net: a transient flip "code A → code B → code A"
+        // (oscillating recogniser) would otherwise keep re-saving once
+        // per pair of frames. Keep the original 1.5 s time-window
+        // dedupe as a guard for that pathology.
+        if code.value == lastValue, now.timeIntervalSince(lastValueAt) < dedupeWindow {
+            return
+        }
         lastValue = code.value
         lastValueAt = now
-        sheetCode = code
-        UINotificationFeedbackGenerator().notificationOccurred(.success)
+        lastHandledValue = code.value
+        emitScanFeedback()
+        if continuousScan {
+            // Persist directly, surface a banner, and stay in the
+            // camera — no sheet. Power-user "warehouse / event
+            // check-in" flow.
+            saveScan(code, notes: nil)
+            withAnimation { lastContinuousScan = code }
+        } else {
+            sheetCode = code
+        }
+    }
+
+    /// Overlay rendered on top of the camera preview when more than
+    /// one code is in frame. Numbered chips at each code's `previewRect`,
+    /// plus a translucent "Pick a code" banner at the top. Tapping a
+    /// chip routes through the normal scan pipeline.
+    @ViewBuilder
+    private var multiCodeOverlay: some View {
+        ZStack {
+            // Dimmed backdrop helps the chips stand out against a
+            // busy real-world scene without obscuring the camera.
+            Color.black.opacity(0.25)
+                .ignoresSafeArea()
+                .onTapGesture {
+                    // Tapping outside any chip dismisses the chooser
+                    // — useful when the user changes their mind and
+                    // wants to point the camera elsewhere.
+                    multiCodeChoices = []
+                }
+
+            VStack {
+                Label("Multiple codes — tap one", systemImage: "square.stack.3d.up")
+                    .font(.subheadline.bold())
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(.ultraThinMaterial, in: Capsule())
+                    .padding(.top, 12)
+                Spacer()
+            }
+
+            // Each chip positioned at its bounding-rect centre. A
+            // GeometryReader is overkill — the rects are already in
+            // CameraScannerView's coordinate space which matches
+            // ours since both fill the screen edge-to-edge.
+            ForEach(Array(multiCodeChoices.enumerated()), id: \.element.id) { (idx, code) in
+                let rect = code.previewRect ?? CGRect(x: 100, y: 100 + CGFloat(idx) * 80,
+                                                       width: 60, height: 60)
+                Button {
+                    selectFromChoices(code)
+                } label: {
+                    Text("\(idx + 1)")
+                        .font(.title2.bold().monospacedDigit())
+                        .foregroundStyle(.white)
+                        .frame(width: 44, height: 44)
+                        .background(Color.accentColor, in: Circle())
+                        .overlay(Circle().stroke(.white, lineWidth: 3))
+                        .shadow(radius: 3)
+                }
+                .accessibilityLabel("Pick code \(idx + 1): \(code.value)")
+                .position(x: rect.midX, y: rect.midY)
+            }
+        }
+    }
+
+    /// Called from `CameraScannerView.onScanBatch` whenever a frame
+    /// contains *any* recognised codes. When count == 1 the
+    /// single-code `onScan` path has already fired (handled in
+    /// CameraScannerView's coordinator), so we just clear the
+    /// chooser overlay. When count > 1 we drop into the chooser.
+    private func handleScanBatch(_ codes: [ScannedCode]) {
+        if codes.count > 1 {
+            // Don't present a result sheet — let the user pick.
+            // Suppress the haptic / sound here as well; firing once
+            // per batch + once again after pick would feel chatty.
+            multiCodeChoices = codes
+            // Refresh the watchdog so the corner reticle still
+            // tracks *something* — pick the largest rect, which is
+            // typically the closest code.
+            lastDetectionAt = Date()
+            if let widest = codes.compactMap(\.previewRect).max(by: { $0.width < $1.width }) {
+                detectedRect = widest
+            }
+        } else if !multiCodeChoices.isEmpty {
+            multiCodeChoices = []
+        }
+    }
+
+    /// User picked one of the multi-code chips. Clears the chooser
+    /// and routes through the normal `handleScan` path so dedupe,
+    /// continuous-scan, feedback, and history-save all stay
+    /// consistent.
+    private func selectFromChoices(_ code: ScannedCode) {
+        multiCodeChoices = []
+        // Bypass *both* dedupe gates — the user explicitly tapped
+        // this one, even if it was previously handled.
+        lastValue = nil
+        lastHandledValue = nil
+        handleScan(code)
+    }
+
+    /// Centralised so both live and continuous-scan paths trigger
+    /// haptic + sound under the same gating. Cheap to instantiate the
+    /// generator on each call; system caches the underlying engine.
+    private func emitScanFeedback() {
+        if hapticOnScan {
+            UINotificationFeedbackGenerator().notificationOccurred(.success)
+        }
+        if soundOnScan {
+            ScanSound.playScanned()
+        }
     }
 
     // MARK: - Image import handling
@@ -240,11 +516,14 @@ struct ScannerScreen: View {
             presentImportError("No barcodes were found in that image.")
             return
         }
-        // Don't apply the live-scan debounce to imports.
+        // Don't apply the live-scan debounce to imports — the user
+        // intentionally chose this image, so we always present the
+        // sheet (even when continuous-scan mode is on for the camera
+        // path). Feedback still respects the user's prefs.
         lastValue = first.value
         lastValueAt = Date()
         sheetCode = first
-        UINotificationFeedbackGenerator().notificationOccurred(.success)
+        emitScanFeedback()
     }
 
     /// Safe to call from any context — schedules itself onto the main actor.

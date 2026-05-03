@@ -13,6 +13,48 @@ build-phase script via `agvtool next-version -all`.
 
 _(nothing yet)_
 
+## [1.8] — 2026-05-02
+
+Mac Catalyst + visionOS targets.
+
+### Mac Catalyst
+
+The `Scan` target's build settings gained `SUPPORTS_MACCATALYST = YES` and `MACOSX_DEPLOYMENT_TARGET = 14.0` (Sonoma) across both the project-level and per-target configurations — Debug + Release for the `Scan` app, the `ScanShareExtension` app-extension, and both test targets. `DERIVE_MACCATALYST_PRODUCT_BUNDLE_IDENTIFIER = NO` keeps the Mac build under the same `me.nettrash.Scan` bundle ID so the iCloud container, App Store listing, and Universal Link's `apple-app-site-association` `appIDs` entry all carry over without a second App ID.
+
+The Catalyst destination needs no platform-specific Swift shims:
+- `UIApplication.shared.open(_:)` works as-is for the `mailto:` / `tel:` / `geo:` / `wallet:` smart actions; macOS 14 routes them to the system handler.
+- `UIPinchGestureRecognizer` on the camera preview works against trackpad pinch and Magic-Mouse gestures.
+- `windowScene` lookups in the Share Extension and Universal Link arrival path resolve to the host `UIWindowScene` Catalyst synthesises for the Mac window.
+- `AVCaptureDevice.default(for: .video)` returns the Mac's built-in camera or any connected Continuity Camera; if the device is unsuitable (no camera at all, or permission denied) the existing failure-banner UX takes over.
+
+`Scan.entitlements` gained five App Sandbox entitlements that Mac Catalyst requires for the corresponding capabilities — `com.apple.security.app-sandbox`, `com.apple.security.device.camera`, `com.apple.security.network.client`, `com.apple.security.files.user-selected.read-only`, and `com.apple.security.personal-information.photos-library`. iOS ignores the `com.apple.security.*` namespace at runtime, so a single shared entitlements file covers both destinations. Without `device.camera` in particular, `AVCaptureDevice.default(for: .video)` returns nil on Catalyst even when `NSCameraUsageDescription` is set — the iOS-only entitlement is invisible to the macOS sandbox.
+
+`updatePreviewOrientation()` in `CameraScannerView` early-returns with `videoRotationAngle = 0` when `Platform.isMacCatalyst` is true. Catalyst windows always report `effectiveGeometry.interfaceOrientation = .portrait` regardless of the actual window shape, so the iPhone-style portrait→90° rotation map would tilt the Mac preview by 90°. Forcing 0° lets the webcam's native landscape frame pass through, and `videoGravity = .resizeAspectFill` aspect-fills it into whatever shape the user has resized the window to.
+
+### Designed-for-iPad-on-Mac destination — opted out
+
+`SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO` is set on every build configuration that has `SUPPORTS_MACCATALYST = YES`. The default for iOS 14+ SDKs is `YES`, which auto-enrolls every iPad app in the "iPad apps on Apple Silicon Mac" availability bucket. Two reasons for opting out: (1) the runtime layers its own opaque orientation transform on top of any `AVCaptureConnection.videoRotationAngle` we set, so the camera preview can't be reliably uprighted from inside the iOS app — empirically every value on the 90°-step grid produced a different wrong-orientation result; and (2) the Mac App Store auto-prefers Catalyst over Designed-for-iPad-on-Mac when both are present in the same submission, so end users were never going to see the iPad-on-Mac build anyway. Removing the destination gets rid of a broken-in-development build path without affecting anything users would have actually run.
+
+### visionOS (Designed for iPad) — library + image import
+
+`SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = YES` enables the Vision Pro destination. Apple does NOT expose Vision Pro's world cameras to third-party apps under standard App Store distribution — `com.apple.developer.arkit.main-camera-access.allow` is gated on an enterprise developer agreement and a managed-device deployment, neither of which applies to Scan — so the live-camera path is unreachable on visionOS by design. Rather than ship the Scan tab with a permanent "no camera available" failure banner, 1.8 detects the host platform at runtime and presents a different layout there.
+
+- New `Scan/Scan/Platform.swift` exposes `Platform.isVisionOS` (`ProcessInfo.processInfo.isiOSAppOnVisionOS`) and `Platform.isMacCatalyst` (`ProcessInfo.processInfo.isMacCatalystApp`). Centralising the predicates keeps platform branches readable and gives the codebase a single place to update if Apple ever opens up the world camera.
+- `ScannerScreen` branches its body: iPhone / iPad / Mac Catalyst keep the existing edge-to-edge `cameraScannerLayout` ZStack; visionOS gets a new `visionOSImportLayout` that leads with two large "Choose from Photos" / "Choose from Files" buttons, a clear one-paragraph explanation of why there's no live scanner, and a footnote about the cross-device iCloud library + Generate tab. Critically, the visionOS branch never instantiates `CameraScannerView`, so no `AVCaptureSession` is started and no permission prompt fires.
+- `.fileImporter` now advertises both `.image` and `.pdf` content types — a regression catch from 1.6, when the PDF decoder was added but the importer's allowed-types list wasn't updated. Important on visionOS, where Files is the natural source for screenshots-of-receipts and saved tickets.
+
+### Same library on every device
+
+iCloud sync was already wired up in 1.5 via `NSPersistentCloudKitContainer` + the `iCloud.me.nettrash.Scan` container declared in `Scan.entitlements`. With the new Mac Catalyst and visionOS destinations, the existing replication path means a Wi-Fi QR scanned on the iPhone shows up in the Mac and Vision Pro History tabs without any new code — the iCloud token surface in the Settings tab is unchanged.
+
+### What's New
+
+`WhatsNew.swift` updated to `version = "1.8"` with four rows: "Now on Mac" (Catalyst), "On Vision Pro: library + image import" (the honest framing of what visionOS users get), "Same library, every device" (cross-device iCloud), and a roll-up entry summarising 1.2 → 1.7 for users coming directly from 1.1 / 1.0 on a freshly-installed Mac or Vision Pro build. The auto-presentation logic in `ContentView` is unchanged from 1.2 — `@AppStorage(ScanSettingsKey.lastSeenVersion)` gates the sheet so existing users who already saw 1.7 will see the 1.8 sheet exactly once.
+
+### Marketing version
+
+`MARKETING_VERSION` bumped to `1.8` across all eight `XCBuildConfiguration` entries (Debug + Release × `Scan` app + `ScanShareExtension` + `ScanTests` + `ScanUITests`). `CURRENT_PROJECT_VERSION` continues to auto-increment via the post-action `agvtool bump`.
+
 ## [1.7] — 2026-05-01
 
 Camera UX: pinch-to-zoom + centred-frame scanning.

@@ -42,10 +42,10 @@
 		E5C0DE000000000000002202 /* QRSvg.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000002201 /* QRSvg.swift */; };
 		E5C0DE000000000000002302 /* DeepLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000002301 /* DeepLink.swift */; };
 		E5C0DE000000000000002402 /* ScannedCode.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000002401 /* ScannedCode.swift */; };
-		/* === Share Extension target — own sources === */
+		E5C0DE000000000000002502 /* Platform.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000002501 /* Platform.swift */; };
 		E5C0DE000000000000005011 /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000005010 /* ShareViewController.swift */; };
 		E5C0DE000000000000005013 /* ShareView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000005012 /* ShareView.swift */; };
-		/* === Share Extension target — shared parser sources (dual membership with the main Scan target) === */
+		E5C0DE000000000000005051 /* ScanShareExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000005002 /* ScanShareExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		E5C0DE000000000000005060 /* Symbology.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000000101 /* Symbology.swift */; };
 		E5C0DE000000000000005061 /* ScanPayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000000201 /* ScanPayload.swift */; };
 		E5C0DE000000000000005062 /* ImageDecoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000000801 /* ImageDecoder.swift */; };
@@ -59,8 +59,6 @@
 		E5C0DE00000000000000506A /* BoardingPassPayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000001D01 /* BoardingPassPayload.swift */; };
 		E5C0DE00000000000000506B /* DrivingLicensePayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000001E01 /* DrivingLicensePayload.swift */; };
 		E5C0DE00000000000000506C /* ScannedCode.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000002401 /* ScannedCode.swift */; };
-		/* === Embed share extension into main Scan.app === */
-		E5C0DE000000000000005051 /* ScanShareExtension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000005002 /* ScanShareExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -87,6 +85,20 @@
 		};
 /* End PBXContainerItemProxy section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		E5C0DE000000000000005050 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				E5C0DE000000000000005051 /* ScanShareExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		E54267722AB57CF200BFED1E /* Scan.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Scan.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E54267752AB57CF200BFED1E /* ScanApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanApp.swift; sourceTree = "<group>"; };
@@ -95,9 +107,7 @@
 		E542677C2AB57CF400BFED1E /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		E542677E2AB57CF400BFED1E /* Persistence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Persistence.swift; sourceTree = "<group>"; };
 		E54267812AB57CF400BFED1E /* Scan.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Scan.xcdatamodel; sourceTree = "<group>"; };
-		E5C0DE000000000000003001 /* Scan 2.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "Scan 2.xcdatamodel"; sourceTree = "<group>"; };
 		E54267832AB57CF400BFED1E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		E5C0DE000000000000004001 /* Scan.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Scan.entitlements; sourceTree = "<group>"; };
 		E54267882AB57CF400BFED1E /* ScanTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ScanTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		E542678C2AB57CF400BFED1E /* ScanTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanTests.swift; sourceTree = "<group>"; };
 		E54267922AB57CF400BFED1E /* ScanUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ScanUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -129,7 +139,9 @@
 		E5C0DE000000000000002201 /* QRSvg.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRSvg.swift; sourceTree = "<group>"; };
 		E5C0DE000000000000002301 /* DeepLink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepLink.swift; sourceTree = "<group>"; };
 		E5C0DE000000000000002401 /* ScannedCode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScannedCode.swift; sourceTree = "<group>"; };
-		/* === Share Extension target — files === */
+		E5C0DE000000000000002501 /* Platform.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Platform.swift; sourceTree = "<group>"; };
+		E5C0DE000000000000003001 /* Scan 2.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "Scan 2.xcdatamodel"; sourceTree = "<group>"; };
+		E5C0DE000000000000004001 /* Scan.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Scan.entitlements; sourceTree = "<group>"; };
 		E5C0DE000000000000005002 /* ScanShareExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ScanShareExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		E5C0DE000000000000005010 /* ShareViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareViewController.swift; sourceTree = "<group>"; };
 		E5C0DE000000000000005012 /* ShareView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareView.swift; sourceTree = "<group>"; };
@@ -190,16 +202,6 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		E5C0DE000000000000005003 /* ScanShareExtension */ = {
-			isa = PBXGroup;
-			children = (
-				E5C0DE000000000000005010 /* ShareViewController.swift */,
-				E5C0DE000000000000005012 /* ShareView.swift */,
-				E5C0DE000000000000005014 /* Info.plist */,
-			);
-			path = ScanShareExtension;
-			sourceTree = "<group>";
-		};
 		E54267742AB57CF200BFED1E /* Scan */ = {
 			isa = PBXGroup;
 			children = (
@@ -230,6 +232,7 @@
 				E5C0DE000000000000002201 /* QRSvg.swift */,
 				E5C0DE000000000000002301 /* DeepLink.swift */,
 				E5C0DE000000000000002401 /* ScannedCode.swift */,
+				E5C0DE000000000000002501 /* Platform.swift */,
 				E5C0DE000000000000000101 /* Symbology.swift */,
 				E54267792AB57CF400BFED1E /* Assets.xcassets */,
 				E542677E2AB57CF400BFED1E /* Persistence.swift */,
@@ -266,6 +269,16 @@
 			path = ScanUITests;
 			sourceTree = "<group>";
 		};
+		E5C0DE000000000000005003 /* ScanShareExtension */ = {
+			isa = PBXGroup;
+			children = (
+				E5C0DE000000000000005010 /* ShareViewController.swift */,
+				E5C0DE000000000000005012 /* ShareView.swift */,
+				E5C0DE000000000000005014 /* Info.plist */,
+			);
+			path = ScanShareExtension;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -287,23 +300,6 @@
 			productName = Scan;
 			productReference = E54267722AB57CF200BFED1E /* Scan.app */;
 			productType = "com.apple.product-type.application";
-		};
-		E5C0DE000000000000005001 /* ScanShareExtension */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = E5C0DE000000000000005030 /* Build configuration list for PBXNativeTarget "ScanShareExtension" */;
-			buildPhases = (
-				E5C0DE000000000000005020 /* Sources */,
-				E5C0DE000000000000005021 /* Frameworks */,
-				E5C0DE000000000000005022 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			name = ScanShareExtension;
-			productName = ScanShareExtension;
-			productReference = E5C0DE000000000000005002 /* ScanShareExtension.appex */;
-			productType = "com.apple.product-type.app-extension";
 		};
 		E54267872AB57CF400BFED1E /* ScanTests */ = {
 			isa = PBXNativeTarget;
@@ -340,6 +336,23 @@
 			productName = ScanUITests;
 			productReference = E54267922AB57CF400BFED1E /* ScanUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+		E5C0DE000000000000005001 /* ScanShareExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E5C0DE000000000000005030 /* Build configuration list for PBXNativeTarget "ScanShareExtension" */;
+			buildPhases = (
+				E5C0DE000000000000005020 /* Sources */,
+				E5C0DE000000000000005021 /* Frameworks */,
+				E5C0DE000000000000005022 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = ScanShareExtension;
+			productName = ScanShareExtension;
+			productReference = E5C0DE000000000000005002 /* ScanShareExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -421,20 +434,6 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
-/* Begin PBXCopyFilesBuildPhase section */
-		E5C0DE000000000000005050 /* Embed Foundation Extensions */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 13;
-			files = (
-				E5C0DE000000000000005051 /* ScanShareExtension.appex in Embed App Extensions */,
-			);
-			name = "Embed Foundation Extensions";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXCopyFilesBuildPhase section */
-
 /* Begin PBXSourcesBuildPhase section */
 		E542676E2AB57CF200BFED1E /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -468,6 +467,7 @@
 				E5C0DE000000000000002202 /* QRSvg.swift in Sources */,
 				E5C0DE000000000000002302 /* DeepLink.swift in Sources */,
 				E5C0DE000000000000002402 /* ScannedCode.swift in Sources */,
+				E5C0DE000000000000002502 /* Platform.swift in Sources */,
 				E54267822AB57CF400BFED1E /* Scan.xcdatamodeld in Sources */,
 				E54267762AB57CF200BFED1E /* ScanApp.swift in Sources */,
 			);
@@ -567,6 +567,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				DERIVE_MACCATALYST_PRODUCT_BUNDLE_IDENTIFIER = NO;
 				DEVELOPMENT_TEAM = V4WM2SJ8Q9;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
@@ -586,11 +587,15 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTS_MACCATALYST = YES;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -630,6 +635,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DERIVE_MACCATALYST_PRODUCT_BUNDLE_IDENTIFIER = NO;
 				DEVELOPMENT_TEAM = V4WM2SJ8Q9;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -643,10 +649,14 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTS_MACCATALYST = YES;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				VALIDATE_PRODUCT = YES;
@@ -658,23 +668,30 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_ENTITLEMENTS = Scan/Scan.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 36;
+				CURRENT_PROJECT_VERSION = 60;
+				DERIVE_MACCATALYST_PRODUCT_BUNDLE_IDENTIFIER = NO;
 				DEVELOPMENT_ASSET_PATHS = "\"Scan/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Scan/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Scan;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.7;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.8;
 				PRODUCT_BUNDLE_IDENTIFIER = me.nettrash.Scan;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
+				SUPPORTS_MACCATALYST = YES;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -689,19 +706,26 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Scan/Scan.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 36;
+				CURRENT_PROJECT_VERSION = 60;
+				DERIVE_MACCATALYST_PRODUCT_BUNDLE_IDENTIFIER = NO;
 				DEVELOPMENT_ASSET_PATHS = "\"Scan/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Scan/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Scan;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.7;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.8;
 				PRODUCT_BUNDLE_IDENTIFIER = me.nettrash.Scan;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTS_MACCATALYST = YES;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -714,7 +738,8 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 36;
+				CURRENT_PROJECT_VERSION = 60;
+				DERIVE_MACCATALYST_PRODUCT_BUNDLE_IDENTIFIER = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -722,9 +747,13 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.7;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.8;
 				PRODUCT_BUNDLE_IDENTIFIER = nettrash.ScanTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTS_MACCATALYST = YES;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = YES;
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -737,7 +766,8 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 36;
+				CURRENT_PROJECT_VERSION = 60;
+				DERIVE_MACCATALYST_PRODUCT_BUNDLE_IDENTIFIER = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -745,9 +775,13 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.7;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.8;
 				PRODUCT_BUNDLE_IDENTIFIER = nettrash.ScanTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTS_MACCATALYST = YES;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = YES;
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -759,7 +793,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 36;
+				CURRENT_PROJECT_VERSION = 60;
+				DERIVE_MACCATALYST_PRODUCT_BUNDLE_IDENTIFIER = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -767,9 +802,13 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.7;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.8;
 				PRODUCT_BUNDLE_IDENTIFIER = nettrash.ScanUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTS_MACCATALYST = YES;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = YES;
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -781,7 +820,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 36;
+				CURRENT_PROJECT_VERSION = 60;
+				DERIVE_MACCATALYST_PRODUCT_BUNDLE_IDENTIFIER = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -789,9 +829,13 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.7;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.8;
 				PRODUCT_BUNDLE_IDENTIFIER = nettrash.ScanUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTS_MACCATALYST = YES;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = YES;
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -803,7 +847,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 36;
+				CURRENT_PROJECT_VERSION = 60;
+				DERIVE_MACCATALYST_PRODUCT_BUNDLE_IDENTIFIER = NO;
 				DEVELOPMENT_TEAM = V4WM2SJ8Q9;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = ScanShareExtension/Info.plist;
@@ -813,10 +858,14 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.7;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.8;
 				PRODUCT_BUNDLE_IDENTIFIER = me.nettrash.Scan.ScanShareExtension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
+				SUPPORTS_MACCATALYST = YES;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -827,7 +876,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 36;
+				CURRENT_PROJECT_VERSION = 60;
+				DERIVE_MACCATALYST_PRODUCT_BUNDLE_IDENTIFIER = NO;
 				DEVELOPMENT_TEAM = V4WM2SJ8Q9;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = ScanShareExtension/Info.plist;
@@ -837,10 +887,14 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.7;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.8;
 				PRODUCT_BUNDLE_IDENTIFIER = me.nettrash.Scan.ScanShareExtension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
+				SUPPORTS_MACCATALYST = YES;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";

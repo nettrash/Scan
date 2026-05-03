@@ -72,6 +72,100 @@ struct ScannerScreen: View {
     private let dedupeWindow: TimeInterval = 1.5
 
     var body: some View {
+        Group {
+            if Platform.isVisionOS {
+                // Vision Pro doesn't expose its world cameras to third-party
+                // App Store apps (the ARKit `main-camera-access` entitlement
+                // is enterprise-only and gated on managed deployment), so
+                // the live-camera path is unreachable here. Surface
+                // image-import as the *primary* affordance instead — and
+                // critically, don't even build a `CameraScannerView`,
+                // which would otherwise spin up an `AVCaptureSession`
+                // that is going to fail and leave the user staring at a
+                // failure banner on what is supposed to be the home tab.
+                visionOSImportLayout
+            } else {
+                cameraScannerLayout
+            }
+        }
+        .navigationTitle("Scan")
+        .navigationBarTitleDisplayMode(.inline)
+        .photosPicker(
+            isPresented: $showPhotoPickerInternal,
+            selection: $photoItem,
+            matching: .images
+        )
+        .fileImporter(
+            isPresented: $showFileImporter,
+            // Accept PDFs as well as images — `ImageDecoder.decode(url:)`
+            // auto-routes `.pdf` URLs to the PDFKit page-walker that
+                // landed in 1.6, so the importer should advertise both.
+            allowedContentTypes: [.image, .pdf],
+            allowsMultipleSelection: false
+        ) { result in
+            switch result {
+            case .success(let urls):
+                if let first = urls.first {
+                    Task { await handlePickedFile(first) }
+                }
+            case .failure(let err):
+                presentImportError(err.localizedDescription)
+            }
+        }
+        .onValueChange(of: photoItem) { newItem in
+            guard let newItem else { return }
+            Task { await handlePickedPhoto(newItem) }
+        }
+        .alert("Import failed", isPresented: $showImportError, presenting: importErrorMessage) { _ in
+            Button("OK", role: .cancel) {}
+        } message: { msg in
+            Text(msg)
+        }
+        .sheet(item: $sheetCode, onDismiss: {
+            // Sheet dismissal — by tap-Done, swipe-down, or tap-outside —
+            // releases the same-value dedupe lock. The next time the
+            // user points at the same code, it'll re-present.
+            lastHandledValue = nil
+        }) { scan in
+            ScanResultSheet(
+                scan: scan,
+                onSave: { notes in saveScan(scan, notes: notes) },
+                onDismiss: {
+                    sheetCode = nil
+                    lastHandledValue = nil
+                }
+            )
+            .presentationDetents([.medium, .large])
+        }
+        // Watchdog: if the camera hasn't reported a recognised code for a
+        // short grace period, release the corner reticle back to its
+        // centred default position so the brackets don't appear "stuck"
+        // on a code that has since left the frame.
+        //
+        // NOTE: deliberately does *not* clear `lastHandledValue` —
+        // the value-equality dedupe in `handleScan` is now strict.
+        // Once a value has been handled, the only way to re-handle it
+        // is to dismiss the result sheet (sheet mode) or the
+        // continuous-scan banner (continuous mode). Pointing the
+        // camera at the same code twice with a "look-away" in between
+        // is no longer enough — the user has to explicitly say
+        // "I'm done with this scan" first. This is what the user
+        // asked for: literal same-value avoidance.
+        .onReceive(reticleTimer) { _ in
+            guard detectedRect != nil else { return }
+            if Date().timeIntervalSince(lastDetectionAt) > reticleResetGrace {
+                detectedRect = nil
+            }
+        }
+    }
+
+    // MARK: - Camera-scanner layout (iPhone / iPad / Mac Catalyst)
+
+    /// Edge-to-edge live preview with overlays — the standard Scan-tab
+    /// experience on every destination *except* visionOS. Extracted into
+    /// a computed property so the body can branch cleanly on host
+    /// platform (see `Platform.isVisionOS`).
+    private var cameraScannerLayout: some View {
         ZStack {
             CameraScannerView(
                 onScan: handleScan,
@@ -221,71 +315,80 @@ struct ScannerScreen: View {
                     .transition(.opacity)
             }
         }
-        .navigationTitle("Scan")
-        .navigationBarTitleDisplayMode(.inline)
-        .photosPicker(
-            isPresented: $showPhotoPickerInternal,
-            selection: $photoItem,
-            matching: .images
-        )
-        .fileImporter(
-            isPresented: $showFileImporter,
-            allowedContentTypes: [.image],
-            allowsMultipleSelection: false
-        ) { result in
-            switch result {
-            case .success(let urls):
-                if let first = urls.first {
-                    Task { await handlePickedFile(first) }
+    }
+
+    // MARK: - visionOS import-first layout
+
+    /// Vision Pro replaces the live-camera ZStack with a static
+    /// "decode an image or PDF" landing surface. The world cameras are
+    /// off-limits to general App Store apps, so trying to start an
+    /// `AVCaptureSession` here would only produce a failure banner.
+    /// Instead we lead with two big Photo Library / Files buttons and
+    /// a one-paragraph explanation so the user immediately understands
+    /// what kind of scanning Scan can and can't do on their headset.
+    /// Saved scans, the Generator tab, and iCloud-synced History all
+    /// continue to work normally.
+    private var visionOSImportLayout: some View {
+        ScrollView {
+            VStack(spacing: 28) {
+                Spacer(minLength: 24)
+                Image(systemName: "photo.badge.arrow.down")
+                    .font(.system(size: 72, weight: .light))
+                    .foregroundStyle(Color.accentColor)
+                    .accessibilityHidden(true)
+
+                VStack(spacing: 10) {
+                    Text("Scan an image or PDF")
+                        .font(.largeTitle.bold())
+                        .multilineTextAlignment(.center)
+                    Text("Apple Vision Pro doesn't expose its world cameras to third-party apps, so live scanning isn't available here. Pick a screenshot, photo, or PDF and Scan will decode any codes inside it on-device.")
+                        .font(.body)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
-            case .failure(let err):
-                presentImportError(err.localizedDescription)
-            }
-        }
-        .onValueChange(of: photoItem) { newItem in
-            guard let newItem else { return }
-            Task { await handlePickedPhoto(newItem) }
-        }
-        .alert("Import failed", isPresented: $showImportError, presenting: importErrorMessage) { _ in
-            Button("OK", role: .cancel) {}
-        } message: { msg in
-            Text(msg)
-        }
-        .sheet(item: $sheetCode, onDismiss: {
-            // Sheet dismissal — by tap-Done, swipe-down, or tap-outside —
-            // releases the same-value dedupe lock. The next time the
-            // user points at the same code, it'll re-present.
-            lastHandledValue = nil
-        }) { scan in
-            ScanResultSheet(
-                scan: scan,
-                onSave: { notes in saveScan(scan, notes: notes) },
-                onDismiss: {
-                    sheetCode = nil
-                    lastHandledValue = nil
+                .padding(.horizontal, 36)
+
+                VStack(spacing: 14) {
+                    Button {
+                        showPhotoPickerInternal = true
+                    } label: {
+                        Label("Choose from Photos", systemImage: "photo.on.rectangle")
+                            .font(.headline)
+                            .frame(maxWidth: 360)
+                            .frame(minHeight: 28)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
+
+                    Button {
+                        showFileImporter = true
+                    } label: {
+                        Label("Choose from Files", systemImage: "folder")
+                            .font(.headline)
+                            .frame(maxWidth: 360)
+                            .frame(minHeight: 28)
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.large)
                 }
-            )
-            .presentationDetents([.medium, .large])
-        }
-        // Watchdog: if the camera hasn't reported a recognised code for a
-        // short grace period, release the corner reticle back to its
-        // centred default position so the brackets don't appear "stuck"
-        // on a code that has since left the frame.
-        //
-        // NOTE: deliberately does *not* clear `lastHandledValue` —
-        // the value-equality dedupe in `handleScan` is now strict.
-        // Once a value has been handled, the only way to re-handle it
-        // is to dismiss the result sheet (sheet mode) or the
-        // continuous-scan banner (continuous mode). Pointing the
-        // camera at the same code twice with a "look-away" in between
-        // is no longer enough — the user has to explicitly say
-        // "I'm done with this scan" first. This is what the user
-        // asked for: literal same-value avoidance.
-        .onReceive(reticleTimer) { _ in
-            guard detectedRect != nil else { return }
-            if Date().timeIntervalSince(lastDetectionAt) > reticleResetGrace {
-                detectedRect = nil
+                .padding(.horizontal, 24)
+
+                if isDecoding {
+                    ProgressView("Reading image…")
+                        .padding(.top, 4)
+                }
+
+                Spacer(minLength: 12)
+
+                Text("History syncs across iPhone, iPad, Mac, and Vision Pro via iCloud, and the Generate tab works fully — type Wi-Fi credentials here and show the resulting QR to a guest's phone.")
+                    .font(.footnote)
+                    .foregroundStyle(.tertiary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 36)
+                    .padding(.bottom, 24)
             }
+            .frame(maxWidth: .infinity)
         }
     }
 

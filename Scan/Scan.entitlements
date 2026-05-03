@@ -42,5 +42,50 @@
     </array>
     <key>com.apple.developer.ubiquity-kvstore-identifier</key>
     <string>$(TeamIdentifierPrefix)me.nettrash.Scan</string>
+
+    <!--
+        Mac Catalyst sandbox entitlements.
+
+        On iOS the app is sandboxed implicitly and these keys are
+        ignored by codesign / amfid; the runtime never reads them.
+        On Mac Catalyst the App Sandbox is on by default (and required
+        for Mac App Store distribution) and each piece of hardware /
+        privileged access has to be opted into explicitly — without
+        these keys the corresponding API silently fails or returns
+        zero devices, regardless of whether the user has approved the
+        Info.plist permission prompt.
+
+        Concretely:
+
+        • `com.apple.security.app-sandbox` — be explicit about being
+          sandboxed on Mac Catalyst. Apple defaults Catalyst targets
+          to sandboxed; pinning this avoids surprises if a future
+          Xcode version flips the default.
+        • `com.apple.security.device.camera` — the live scanner.
+          AVCaptureDevice.default(for: .video) returns nil on Catalyst
+          without this even when NSCameraUsageDescription is set,
+          which is the reason the Mac build "doesn't have access to
+          camera".
+        • `com.apple.security.network.client` — outbound connections.
+          CloudKit replication and the AASA fetch both go through the
+          regular client networking stack.
+        • `com.apple.security.files.user-selected.read-only` — needed
+          for the in-app Files importer (`fileImporter`) on Catalyst,
+          where the user picks an image / PDF to decode.
+        • `com.apple.security.personal-information.photos-library` —
+          PhotosPicker access on Catalyst. NSPhotoLibraryAddUsageDescription
+          handles the Save-to-Photos prompt; this entitlement gates
+          the read side that the picker uses to load thumbnails.
+    -->
+    <key>com.apple.security.app-sandbox</key>
+    <true/>
+    <key>com.apple.security.device.camera</key>
+    <true/>
+    <key>com.apple.security.network.client</key>
+    <true/>
+    <key>com.apple.security.files.user-selected.read-only</key>
+    <true/>
+    <key>com.apple.security.personal-information.photos-library</key>
+    <true/>
 </dict>
 </plist>

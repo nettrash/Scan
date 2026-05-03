@@ -317,8 +317,36 @@ final class ScannerViewController: UIViewController, AVCaptureMetadataOutputObje
     }
 
     private func updatePreviewOrientation() {
-        guard let connection = previewLayer?.connection,
-              let scene = view.window?.windowScene else { return }
+        guard let connection = previewLayer?.connection else { return }
+
+        // Mac Catalyst: the Mac webcam (built-in FaceTime HD or
+        // Continuity Camera) delivers frames in its sensor's native
+        // landscape orientation, but `effectiveGeometry.interfaceOrientation`
+        // on a Catalyst window is always reported as `.portrait`, so the
+        // iPhone rotation map below would request 90° and tilt the
+        // preview. Force 0° to let the landscape frame pass straight
+        // through to the preview layer, which then aspect-fills into
+        // whatever shape the Catalyst window currently is.
+        if Platform.isMacCatalyst {
+            if connection.isVideoRotationAngleSupported(0) {
+                connection.videoRotationAngle = 0
+            }
+            return
+        }
+
+        // Note: the Designed-for-iPad-on-Mac destination is no longer
+        // shipped (`SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO` in the
+        // pbxproj) — that runtime layered its own opaque rotation
+        // transform on top of any `videoRotationAngle` value, so no
+        // single setting could land the preview upright. Catalyst is
+        // the canonical Mac experience and is handled above. The
+        // `Platform.isMac` predicate stays defined in `Platform.swift`
+        // as defensive plumbing in case the Designed-for-iPad-on-Mac
+        // destination is ever re-enabled.
+
+        // Real iOS devices (iPhone / iPad, including iPad in any
+        // orientation): track the window scene's interface orientation.
+        guard let scene = view.window?.windowScene else { return }
         let orient = scene.effectiveGeometry.interfaceOrientation
         let angle = Self.videoRotationAngle(for: orient)
         if connection.isVideoRotationAngleSupported(angle) {
@@ -330,6 +358,9 @@ final class ScannerViewController: UIViewController, AVCaptureMetadataOutputObje
     /// `AVCaptureConnection.videoRotationAngle` API expects. Mapping
     /// covers the back camera; the front camera is mirrored at the
     /// layer level by AVFoundation, so the same angles apply.
+    ///
+    /// Not used on Mac Catalyst — see `updatePreviewOrientation()`
+    /// above for the early-return that bypasses this entire mapping.
     private static func videoRotationAngle(for orient: UIInterfaceOrientation) -> CGFloat {
         switch orient {
         case .portrait:           return 90

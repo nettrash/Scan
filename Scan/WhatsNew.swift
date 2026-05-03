@@ -29,26 +29,31 @@ enum WhatsNew {
     /// the user dismisses the sheet, so we don't re-show it on the
     /// next launch. Keep this in sync with `MARKETING_VERSION` in
     /// `Scan.xcodeproj/project.pbxproj`.
-    static let version = "1.7"
+    static let version = "1.8"
 
     /// Headline shown above the items.
-    static let headline = "What's new in 1.7"
+    static let headline = "What's new in 1.8"
 
     static let items: [WhatsNewItem] = [
         WhatsNewItem(
-            systemImage: "plus.magnifyingglass",
-            title: "Pinch to zoom",
-            detail: "Pinch the camera preview to zoom in on far-away or small codes. Posters, warehouse labels, fridge magnets — anything you couldn't quite frame before now snaps into focus."
+            systemImage: "laptopcomputer",
+            title: "Now on Mac",
+            detail: "Scan runs natively on macOS via Mac Catalyst. The live scanner uses your Mac's built-in webcam or any Continuity Camera; the Generator and History tabs work exactly as on iPhone."
         ),
         WhatsNewItem(
-            systemImage: "viewfinder.rectangular",
-            title: "Centred-frame scanning",
-            detail: "The recogniser now only acts on codes inside the centred reticle area, so a stray code at the edge of the frame won't compete with the one you're aiming at. Aim the reticle at what you want; everything else is ignored."
+            systemImage: "visionpro",
+            title: "On Vision Pro: library + image import",
+            detail: "Apple doesn't expose Vision Pro's world cameras to third-party apps, so live scanning isn't possible there. What you do get is the Generate tab, your full iCloud-synced History, and on-device decoding of any image or PDF you import from Photos or Files."
+        ),
+        WhatsNewItem(
+            systemImage: "shareplay",
+            title: "Same library, every device",
+            detail: "iCloud sync was already wired up, so your scan history follows you across iPhone, iPad, Mac, and Vision Pro. Scan a Wi-Fi QR on your phone, copy the password from your Mac an hour later."
         ),
         WhatsNewItem(
             systemImage: "arrow.triangle.2.circlepath",
-            title: "Carried over from 1.2 — 1.6",
-            detail: "Settings tab, History favourites + CSV export, QR colours / logos / SVG + PDF export, multi-code disambiguation, WPA3 + Passpoint, stablecoin tokens, identity-flow detection, loyalty cards, Universal Links, iCloud sync surface, Share to Scan + PDF — all here."
+            title: "Carried over from 1.2 — 1.7",
+            detail: "Settings tab, History favourites + CSV export, QR colours / logos / SVG + PDF export, multi-code disambiguation, WPA3 + Passpoint, stablecoin tokens, identity-flow detection, loyalty cards, Universal Links, iCloud sync surface, Share to Scan + PDF, pinch-to-zoom + centred-frame scanning — all here."
         ),
     ]
 }

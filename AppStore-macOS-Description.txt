@@ -1,0 +1,52 @@
+Scan reads and generates barcodes and QR codes natively on your Mac. No accounts, no sign-in, no trackers, no telemetry. Point your built-in webcam at a code, or use your iPhone as a Continuity Camera for a sharper, hand-held scan. Drag an image or PDF onto the window to decode it offline. Everything happens on-device.
+
+The point of Scan isn't just to decode a code — it's to understand what's in it. Scan a Wi-Fi QR and you get the SSID and a one-click password copy. Scan a SEPA invoice and you get the IBAN, beneficiary, and amount as separate copyable rows. Scan a Bitcoin URI and you get the address, amount, and a hand-off to your wallet. Scan a vCard and one click adds the contact.
+
+SCANNING
+• Live-camera scanning with your Mac's built-in webcam or any Continuity Camera
+• Drag-and-drop image and PDF decoding via Finder or the Files app
+• Symbologies: QR, Aztec, PDF417, Data Matrix, EAN-8/EAN-13, UPC-E, Code 39, Code 93, Code 128, ITF-14, Codabar, GS1 DataBar, microQR, microPDF417
+
+SMART PAYLOAD DECODING
+Scan parses dozens of formats into structured, copyable fields:
+• Web & messaging — URLs, mailto, tel, sms
+• Wi-Fi — SSID, password, security (incl. WPA3 and Passpoint)
+• Contacts — vCard 3.0, MECARD
+• Calendar — iCalendar VEVENT (timezones, all-day, UTC)
+• Authentication — otpauth (TOTP/HOTP)
+• Retail — EAN-8/EAN-13/UPC-E/ITF-14
+• Crypto — Bitcoin (BIP-21), Ethereum (EIP-681), Litecoin, Bitcoin Cash, Dogecoin, Monero, Cardano, Solana, Lightning (BOLT-11), USDC/USDT/DAI stablecoins
+• Bank payments — EPC SEPA / GiroCode, Swiss QR-bill, Czech SPD, Slovak Pay by Square, EMVCo (Pix, PayNow, PromptPay, CoDi, DuitNow, QRIS, FPS, NAPAS, NETS), Indian UPI, Bezahlcode, Serbian NBS IPS QR
+• Mobile-payment apps — Swish, Vipps, MobilePay, Bizum, iDEAL
+• Receipts — Serbian SUF fiscal receipt
+• Identity — DigiD, EUDI, OpenID4VC (recognised and routed to your browser; no verification, no claim storage)
+
+GENERATING
+A dedicated Generate tab builds codes from structured input:
+• Inputs — Text, URL, Contact (well-formed vCard 3.0), Wi-Fi
+• Symbologies — QR, Aztec, PDF417, Code 128
+• Custom foreground/background colours with WCAG contrast checking
+• Error-correction picker and centred logo embedding
+• Export to PNG, SVG, or PDF; share via the system share sheet, save to Photos, or copy image and string to the clipboard
+
+HISTORY
+• Saved scans persist locally and sync across iPhone, iPad, Mac, and Vision Pro via iCloud
+• Searchable list with relative timestamps, payload-kind icons, and favourites
+• CSV export of your full history
+• Per-record detail with editable notes and per-field smart actions
+
+SHARE EXTENSION
+• Send images or PDFs to Scan from Finder, Mail, Messages, Safari, or any app with a share sheet
+• Up to 10 images or 10 PDFs per share
+• Decoding is in-process and fully on-device
+
+PRIVACY
+• No accounts, no sign-in, no telemetry, no advertising, no third-party trackers
+• All decoding happens on-device
+• iCloud history mirroring uses your own private CloudKit container — Apple sees encrypted blobs only
+
+REQUIREMENTS
+• macOS 14 Sonoma or later
+• A built-in webcam, USB camera, or any Continuity Camera (an iPhone on iOS 16+ signed into the same Apple ID)
+
+Free, ad-free, tracker-free, and built by one person who genuinely uses it every day. Source available on GitHub. Found a payload format Scan doesn't decode, or hit a bug? Get in touch — nettrash@nettrash.me.

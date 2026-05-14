@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!--
+        Mac App Store distribution rejects any executable inside the
+        .app bundle that isn't App-Sandboxed. The main Scan target
+        already opts in via Scan/Scan.entitlements; the Share Extension
+        was missing its own entitlements file entirely and inherited
+        nothing, so codesign shipped the .appex without
+        com.apple.security.app-sandbox and App Store Connect rejected
+        the upload with error 90296.
+
+        On iOS the share extension is sandboxed implicitly and this
+        key is ignored at runtime. On Mac Catalyst it's both required
+        and enforced.
+
+        The extension's runtime needs are intentionally narrow:
+
+        • Input arrives via NSItemProvider on extensionContext — the
+          OS marshals image/PDF data into the extension's address
+          space outside the sandbox boundary, so no file or photos
+          entitlement is required to read it.
+        • Decoding is in-process via Vision / PDFKit — no network.
+        • Hand-off to the host app uses the custom URL scheme
+          me.nettrash.scan:// via the responder chain — Launch
+          Services routes the open request and needs no entitlement.
+
+        Therefore the only key we need is app-sandbox itself. Adding
+        unused entitlements here would be flagged by App Review and
+        broaden the attack surface for no benefit.
+    -->
+    <key>com.apple.security.app-sandbox</key>
+    <true/>
+</dict>
+</plist>

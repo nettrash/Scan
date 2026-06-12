@@ -38,6 +38,13 @@ enum ScanPayload: Equatable {
     case gs1(GS1Payload)
     case boardingPass(BoardingPassPayload)
     case drivingLicense(DrivingLicensePayload)
+    // New in 1.9.
+    case walletConnect(WalletConnectPayload)
+    case nostr(NostrPayload)
+    case otpMigration(OTPMigrationPayload)
+    case plusCode(PlusCodePayload)
+    case what3words(What3WordsPayload)
+    case iban(IBANPayload)
     case text(String)
 
     struct ContactPayload: Equatable {
@@ -79,6 +86,12 @@ enum ScanPayload: Equatable {
         case .gs1:          return "GS1"
         case .boardingPass: return "Boarding Pass"
         case .drivingLicense: return "Driver's Licence"
+        case .walletConnect: return "WalletConnect"
+        case .nostr:        return "Nostr"
+        case .otpMigration: return "2FA export"
+        case .plusCode:     return "Plus Code"
+        case .what3words:   return "what3words"
+        case .iban:         return "IBAN"
         case .text:         return "Text"
         }
     }
@@ -180,6 +193,21 @@ enum ScanPayloadParser {
             }
         }
 
+        // WalletConnect pairing URI — `wc:<topic>@<version>?…`.
+        if lower.hasPrefix("wc:") {
+            if let p = WalletConnectParser.parse(trimmed) {
+                return .walletConnect(p)
+            }
+        }
+
+        // Nostr — `nostr:` URI. Bare NIP-19 tokens (npub1…) are caught near
+        // the end so they don't shadow more specific formats.
+        if lower.hasPrefix("nostr:") {
+            if let p = NostrParser.parse(trimmed) {
+                return .nostr(p)
+            }
+        }
+
         // UPI (India) — `upi://pay?…`.
         if lower.hasPrefix("upi:") {
             if let p = RegionalPaymentParser.parseUPI(trimmed) {
@@ -236,6 +264,14 @@ enum ScanPayloadParser {
             return parseGeo(trimmed) ?? .text(trimmed)
         }
 
+        // Google Authenticator bulk export — `otpauth-migration://offline?data=…`.
+        // Checked before `otpauth://` (different scheme, but keep them adjacent).
+        if lower.hasPrefix("otpauth-migration:") {
+            if let p = OTPMigrationParser.parse(trimmed) {
+                return .otpMigration(p)
+            }
+        }
+
         // otpauth://
         if lower.hasPrefix("otpauth://") {
             return .otp(trimmed)
@@ -281,6 +317,29 @@ enum ScanPayloadParser {
             }
         }
 
+        // what3words — `///word.word.word` or `w3w://…`.
+        if trimmed.hasPrefix("///") || lower.hasPrefix("w3w://") {
+            if let p = What3WordsParser.parse(trimmed) {
+                return .what3words(p)
+            }
+        }
+
+        // Service URIs with a custom app scheme — Alipay, WeChat Pay, TWINT,
+        // Signal, Matrix. The https forms (paypal.me, cash.app, signal.me, …)
+        // are handled by the URL block just below.
+        if let schemeEnd = trimmed.firstIndex(of: ":") {
+            let s = String(trimmed[..<schemeEnd]).lowercased()
+            let appSchemes: Set<String> = [
+                "alipay", "alipays", "alipayqr", "weixin", "wxp", "wechat",
+                "twint", "sgnl", "matrix",
+            ]
+            if appSchemes.contains(s),
+               let url = URL(string: trimmed),
+               let rich = RichURLParser.parse(url) {
+                return .richURL(rich)
+            }
+        }
+
         // URL-ish — try rich-URL recognition first (WhatsApp / Telegram /
         // Wallet / App Store / Play / YouTube / Spotify / Apple Music).
         // Maps share URLs are special-cased: we re-classify them as `.geo`
@@ -315,6 +374,22 @@ enum ScanPayloadParser {
         // arbitrary alphanumeric strings.
         if let bare = CryptoURIParser.parseBare(trimmed) {
             return .crypto(bare)
+        }
+
+        // Bare Nostr NIP-19 token (npub1… / note1… / nevent1… / nsec1…).
+        if NostrParser.looksLikeBare(trimmed), let p = NostrParser.parse(trimmed) {
+            return .nostr(p)
+        }
+
+        // Open Location Code (Plus Code) — e.g. "849VCWC8+R9 Stockholm".
+        if let p = PlusCodeParser.parse(trimmed) {
+            return .plusCode(p)
+        }
+
+        // Bare IBAN — 2-letter country + 2 check digits + BBAN, validated
+        // with the ISO 7064 mod-97 checksum so random strings don't match.
+        if let p = IBANParser.parse(trimmed) {
+            return .iban(p)
         }
 
         return .text(trimmed)
@@ -492,5 +567,236 @@ enum ScanPayloadParser {
             }
         }
         return .contact(contact)
+    }
+}
+
+// MARK: - 2FA bulk export (otpauth-migration://) — 1.9
+
+/// A decoded Google-Authenticator bulk export. We surface *which* accounts
+/// are inside (issuer + name + type) so the user can confirm what they're
+/// about to import, but deliberately never display the shared secrets.
+struct OTPMigrationPayload: Equatable {
+    struct Account: Equatable {
+        let issuer: String?
+        let name: String?
+        let type: String   // "TOTP" / "HOTP" / "OTP"
+    }
+    let accounts: [Account]
+    let raw: String
+
+    var labelledFields: [LabelledField] {
+        var rows: [LabelledField] = [
+            .init(label: "Format", value: "Google Authenticator export"),
+            .init(label: "Accounts", value: "\(accounts.count)"),
+        ]
+        for (i, a) in accounts.enumerated() {
+            let title = [a.issuer, a.name]
+                .compactMap { $0 }
+                .filter { !$0.isEmpty }
+                .joined(separator: " — ")
+            rows.append(.init(label: "\(i + 1). \(a.type)",
+                              value: title.isEmpty ? "(unnamed)" : title))
+        }
+        return rows
+    }
+}
+
+enum OTPMigrationParser {
+    static func parse(_ raw: String) -> OTPMigrationPayload? {
+        guard raw.lowercased().hasPrefix("otpauth-migration:") else { return nil }
+        guard let comps = URLComponents(string: raw),
+              let dataParam = comps.queryItems?
+                .first(where: { $0.name.lowercased() == "data" })?.value else {
+            return OTPMigrationPayload(accounts: [], raw: raw)
+        }
+        guard let data = decodeBase64(dataParam) else {
+            // Recognised but undecodable — still better than raw "text".
+            return OTPMigrationPayload(accounts: [], raw: raw)
+        }
+        return OTPMigrationPayload(accounts: decodeMigration(data), raw: raw)
+    }
+
+    /// Tolerant base64 decoder (standard + URL-safe + on-demand padding).
+    private static func decodeBase64(_ s: String) -> Data? {
+        var t = s.replacingOccurrences(of: "-", with: "+")
+                 .replacingOccurrences(of: "_", with: "/")
+        let pad = (4 - t.count % 4) % 4
+        t.append(String(repeating: "=", count: pad))
+        return Data(base64Encoded: t)
+    }
+
+    // MARK: protobuf (MigrationPayload)
+
+    private static func decodeMigration(_ data: Data) -> [OTPMigrationPayload.Account] {
+        var reader = ProtoReader(data)
+        var accounts: [OTPMigrationPayload.Account] = []
+        while let tag = reader.readTag() {
+            // Field 1 (repeated OtpParameters), wire type 2 (length-delimited).
+            if tag.field == 1, tag.wire == 2, let sub = reader.readBytes() {
+                accounts.append(decodeParameters(sub))
+            } else {
+                reader.skip(tag.wire)
+            }
+        }
+        return accounts
+    }
+
+    private static func decodeParameters(_ data: Data) -> OTPMigrationPayload.Account {
+        var reader = ProtoReader(data)
+        var name: String?
+        var issuer: String?
+        var type = "OTP"
+        while let tag = reader.readTag() {
+            switch (tag.field, tag.wire) {
+            case (2, 2): name = reader.readString()
+            case (3, 2): issuer = reader.readString()
+            case (6, 0):
+                switch reader.readVarint() {
+                case 1:  type = "HOTP"
+                case 2:  type = "TOTP"
+                default: type = "OTP"
+                }
+            default:
+                reader.skip(tag.wire)
+            }
+        }
+        return .init(issuer: issuer, name: name, type: type)
+    }
+}
+
+/// A minimal protobuf wire-format reader — just enough to walk the
+/// Google-Authenticator `MigrationPayload` message. Supports varints and
+/// length-delimited fields and skips 32/64-bit fields it doesn't need.
+private struct ProtoReader {
+    private let bytes: [UInt8]
+    private var i = 0
+    init(_ data: Data) { bytes = [UInt8](data) }
+    private var atEnd: Bool { i >= bytes.count }
+
+    mutating func readVarint() -> UInt64 {
+        var result: UInt64 = 0
+        var shift: UInt64 = 0
+        while i < bytes.count {
+            let b = bytes[i]; i += 1
+            result |= UInt64(b & 0x7F) << shift
+            if b & 0x80 == 0 { break }
+            shift += 7
+            if shift >= 64 { break }
+        }
+        return result
+    }
+
+    mutating func readTag() -> (field: Int, wire: Int)? {
+        guard !atEnd else { return nil }
+        let key = readVarint()
+        return (Int(key >> 3), Int(key & 0x7))
+    }
+
+    mutating func readBytes() -> Data? {
+        let len = Int(readVarint())
+        guard len >= 0, i + len <= bytes.count else { return nil }
+        defer { i += len }
+        return Data(bytes[i ..< i + len])
+    }
+
+    mutating func readString() -> String? {
+        guard let d = readBytes() else { return nil }
+        return String(data: d, encoding: .utf8)
+    }
+
+    mutating func skip(_ wire: Int) {
+        switch wire {
+        case 0: _ = readVarint()
+        case 2: _ = readBytes()
+        case 5: i += 4
+        case 1: i += 8
+        default: i = bytes.count   // unknown wire type — bail
+        }
+    }
+}
+
+// MARK: - Open Location Code (Plus Code) — 1.9
+
+/// A recognised Open Location Code. We don't decode it to lat/lon (the OLC
+/// algorithm) — Maps accepts the code itself as a search query, optionally
+/// with a locality, so the smart action just hands it over.
+struct PlusCodePayload: Equatable {
+    let code: String
+    let locality: String?
+    let raw: String
+
+    /// What to feed Maps — `code` alone, or `code locality` for short/local
+    /// codes that need a reference area.
+    var mapsQuery: String {
+        if let l = locality, !l.isEmpty { return "\(code) \(l)" }
+        return code
+    }
+
+    var labelledFields: [LabelledField] {
+        var rows: [LabelledField] = [.init(label: "Plus Code", value: code)]
+        if let l = locality, !l.isEmpty { rows.append(.init(label: "Locality", value: l)) }
+        return rows
+    }
+}
+
+enum PlusCodeParser {
+    // Full OLC: 8 chars from the base-20 alphabet, a `+`, then 2–3 more,
+    // optionally followed by a locality after whitespace.
+    private static let regex = try! NSRegularExpression(
+        pattern: #"^([23456789CFGHJMPQRVWX]{8}\+[23456789CFGHJMPQRVWX]{2,3})(?:\s+(.+))?$"#,
+        options: [.caseInsensitive]
+    )
+
+    static func parse(_ raw: String) -> PlusCodePayload? {
+        let s = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        let range = NSRange(s.startIndex..., in: s)
+        guard let m = regex.firstMatch(in: s, range: range) else { return nil }
+        func group(_ i: Int) -> String? {
+            guard let r = Range(m.range(at: i), in: s) else { return nil }
+            return String(s[r])
+        }
+        guard let code = group(1) else { return nil }
+        let locality = group(2)?.trimmingCharacters(in: .whitespacesAndNewlines)
+        return PlusCodePayload(code: code.uppercased(),
+                               locality: (locality?.isEmpty == false) ? locality : nil,
+                               raw: s)
+    }
+}
+
+// MARK: - what3words — 1.9
+
+/// A what3words address (`///filled.count.soap`). We recognise the
+/// slash-prefixed and `w3w://` forms; the smart action opens it on
+/// what3words.com (or Maps).
+struct What3WordsPayload: Equatable {
+    let words: String   // "filled.count.soap"
+    let raw: String
+
+    var address: String { "///\(words)" }
+    var labelledFields: [LabelledField] {
+        [.init(label: "what3words", value: address)]
+    }
+}
+
+enum What3WordsParser {
+    static func parse(_ raw: String) -> What3WordsPayload? {
+        var s = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        let lower = s.lowercased()
+        if lower.hasPrefix("w3w://") {
+            s = String(s.dropFirst("w3w://".count))
+        } else if s.hasPrefix("///") {
+            s = String(s.dropFirst(3))
+        } else {
+            return nil
+        }
+        // Drop any trailing query / fragment.
+        s = s.split(separator: "?").first.map(String.init) ?? s
+        s = s.split(separator: "#").first.map(String.init) ?? s
+        let parts = s.split(separator: ".", omittingEmptySubsequences: false)
+        guard parts.count == 3,
+              parts.allSatisfy({ !$0.isEmpty && $0.allSatisfy { $0.isLetter } }) else {
+            return nil
+        }
+        return What3WordsPayload(words: parts.joined(separator: "."), raw: raw)
     }
 }

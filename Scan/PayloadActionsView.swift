@@ -31,6 +31,17 @@ struct PayloadActionsView: View {
     @State private var showLoyaltyAlert = false
     @State private var loyaltyMerchant = ""
     @State private var loyaltySaved = false
+    /// "No app installed" fallback. When `UIApplication.open` reports it
+    /// couldn't hand off a custom-scheme URL (`bitcoin:`, `magnet:`,
+    /// `swish:`, …) because nothing on the device claims that scheme, we
+    /// populate this so the user can find a compatible app on the App
+    /// Store or copy the link instead of hitting a dead button.
+    @State private var appFallback: AppFallback?
+    /// UPI app chooser. iOS has no app-picker for custom schemes, so a
+    /// bare `upi://pay?…` open is routed to whichever app most recently
+    /// claimed `upi` — frequently WhatsApp Pay. We instead let the user
+    /// pick the UPI app explicitly; the chosen payload is stashed here.
+    @State private var upiChooserPayload: UPIPayload?
 
     var body: some View {
         Section("Actions") {
@@ -88,6 +99,40 @@ struct PayloadActionsView: View {
             Button("Cancel", role: .cancel) {}
         } message: {
             Text("Saved scans tagged \"Loyalty: …\" are favourited so they pin to the top of History.")
+        }
+        .alert("No app installed",
+               isPresented: Binding(
+                   get: { appFallback != nil },
+                   set: { if !$0 { appFallback = nil } }
+               ),
+               presenting: appFallback) { fb in
+            Button("Search the App Store") { openAppStoreSearch(fb.searchTerm) }
+            Button("Copy link") {
+                UIPasteboard.general.string = fb.raw
+                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: { fb in
+            Text("No \(fb.itemLabel) is installed to open this. Find one on the App Store, or copy the link to use it elsewhere.")
+        }
+        .confirmationDialog("Open in UPI app",
+                            isPresented: Binding(
+                                get: { upiChooserPayload != nil },
+                                set: { if !$0 { upiChooserPayload = nil } }
+                            ),
+                            titleVisibility: .visible,
+                            presenting: upiChooserPayload) { p in
+            ForEach(upiTargets(for: p)) { t in
+                Button(t.name) {
+                    if let url = URL(string: t.urlString) {
+                        openExternally(url, itemLabel: t.fallbackLabel,
+                                       searchTerm: t.searchTerm, raw: p.raw)
+                    }
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: { _ in
+            Text("iOS can't show a UPI app picker automatically, so a plain UPI link may open the wrong app (often WhatsApp). Pick your app below.")
         }
     }
 
@@ -292,9 +337,10 @@ struct PayloadActionsView: View {
 
         case .crypto(let p):
             LabelledFieldsList(fields: p.labelledFields)
-            if let url = URL(string: p.raw) {
+            if let url = p.walletURL {
                 Button {
-                    UIApplication.shared.open(url)
+                    openExternally(url, itemLabel: "\(p.chain.rawValue) wallet",
+                                   searchTerm: p.walletSearchTerm, raw: p.raw)
                 } label: {
                     Label("Open in Wallet", systemImage: "wallet.pass")
                 }
@@ -328,12 +374,10 @@ struct PayloadActionsView: View {
 
         case .upiPayment(let p):
             LabelledFieldsList(fields: p.labelledFields)
-            if let url = URL(string: p.raw) {
-                Button {
-                    UIApplication.shared.open(url)
-                } label: {
-                    Label("Open in UPI app", systemImage: "indianrupeesign.circle")
-                }
+            Button {
+                upiChooserPayload = p
+            } label: {
+                Label("Open in UPI app", systemImage: "indianrupeesign.circle")
             }
 
         case .czechSPD(let p):
@@ -346,7 +390,8 @@ struct PayloadActionsView: View {
             LabelledFieldsList(fields: p.labelledFields)
             if let url = URL(string: p.raw) {
                 Button {
-                    UIApplication.shared.open(url)
+                    openExternally(url, itemLabel: Self.regionalItemLabel(p.scheme),
+                                   searchTerm: Self.regionalSearchTerm(p.scheme), raw: p.raw)
                 } label: {
                     Label("Open in \(p.scheme.rawValue)", systemImage: "arrow.up.forward.app")
                 }
@@ -356,7 +401,8 @@ struct PayloadActionsView: View {
             LabelledFieldsList(fields: m.labelledFields)
             if let url = URL(string: m.raw) {
                 Button {
-                    UIApplication.shared.open(url)
+                    openExternally(url, itemLabel: "torrent client",
+                                   searchTerm: "torrent client", raw: m.raw)
                 } label: {
                     Label("Open in torrent client", systemImage: "link.badge.plus")
                 }
@@ -396,11 +442,80 @@ struct PayloadActionsView: View {
                 .foregroundStyle(.orange)
             }
             Button {
-                UIApplication.shared.open(r.url)
+                // Personal-payment brands often hand off to a custom-scheme
+                // app (alipays://, weixin://, twint://) that may not be
+                // installed — route them through the App Store fallback. The
+                // https-backed kinds open the browser and never hit it.
+                if r.kind.isPayment {
+                    openExternally(r.url, itemLabel: "\(r.kind.rawValue) app",
+                                   searchTerm: r.kind.rawValue, raw: r.url.absoluteString)
+                } else {
+                    UIApplication.shared.open(r.url)
+                }
             } label: {
                 Label(Self.richURLActionLabel(r.kind),
                       systemImage: Self.richURLActionSymbol(r.kind))
             }
+
+        case .walletConnect(let p):
+            LabelledFieldsList(fields: p.labelledFields)
+            if let url = URL(string: p.raw) {
+                Button {
+                    openExternally(url, itemLabel: "WalletConnect-compatible wallet",
+                                   searchTerm: "crypto wallet", raw: p.raw)
+                } label: {
+                    Label("Open in wallet", systemImage: "wallet.pass")
+                }
+            }
+
+        case .nostr(let p):
+            LabelledFieldsList(fields: p.labelledFields)
+            if p.isPrivateKey {
+                Label("This is a secret key (nsec) — never share it or enter it into an app you don't trust.",
+                      systemImage: "exclamationmark.shield")
+                    .font(.footnote)
+                    .foregroundStyle(.orange)
+            } else {
+                let uri = p.raw.lowercased().hasPrefix("nostr:") ? p.raw : "nostr:\(p.id)"
+                if let url = URL(string: uri) {
+                    Button {
+                        openExternally(url, itemLabel: "Nostr client",
+                                       searchTerm: "nostr", raw: uri)
+                    } label: {
+                        Label("Open in Nostr client", systemImage: "person.crop.circle.badge.questionmark")
+                    }
+                }
+            }
+
+        case .otpMigration(let p):
+            LabelledFieldsList(fields: p.labelledFields)
+            Text("Bulk 2FA export. Use Share to hand it to an authenticator app — there's no universal import URL, and the codes' secrets are never displayed here.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+        case .plusCode(let p):
+            LabelledFieldsList(fields: p.labelledFields)
+            Button {
+                openMapsQuery(p.mapsQuery)
+            } label: {
+                Label("Open in Maps", systemImage: "map")
+            }
+
+        case .what3words(let w):
+            LabelledFieldsList(fields: w.labelledFields)
+            if let url = URL(string: "https://what3words.com/\(w.words)") {
+                Button {
+                    UIApplication.shared.open(url)
+                } label: {
+                    Label("Open in what3words", systemImage: "mappin.and.ellipse")
+                }
+            }
+
+        case .iban(let p):
+            LabelledFieldsList(fields: p.labelledFields)
+            Text("Checksum-valid \(p.countryCode) IBAN. Copy it into your bank app to pay or add a payee — there's no universal \"open\" for a bare account number.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
 
         case .text:
             EmptyView()
@@ -419,6 +534,16 @@ struct PayloadActionsView: View {
         case .appleMusic:  return "Open in Apple Music"
         case .googleMaps, .appleMaps: return "Open in Maps"
         case .digitalIdentity:        return "Continue in browser"
+        case .payPal:      return "Open in PayPal"
+        case .venmo:       return "Open in Venmo"
+        case .cashApp:     return "Open in Cash App"
+        case .revolut:     return "Open in Revolut"
+        case .twint:       return "Open in TWINT"
+        case .aliPay:      return "Open in Alipay"
+        case .weChatPay:   return "Open in WeChat Pay"
+        case .signal:      return "Open in Signal"
+        case .matrix:      return "Open in Matrix"
+        case .meeting:     return "Join meeting"
         }
     }
 
@@ -431,6 +556,92 @@ struct PayloadActionsView: View {
         case .spotify, .appleMusic:   return "music.note"
         case .googleMaps, .appleMaps: return "map"
         case .digitalIdentity:        return "person.text.rectangle"
+        case .payPal, .venmo, .cashApp, .revolut, .twint, .aliPay, .weChatPay:
+            return "creditcard"
+        case .signal, .matrix:        return "message"
+        case .meeting:                return "video"
+        }
+    }
+
+    // MARK: - External app open + fallback
+
+    /// Open a custom-scheme URL, falling back to an "install an app" prompt
+    /// when nothing on the device claims the scheme. The bare
+    /// `UIApplication.open(_:)` form silently does nothing in that case,
+    /// which is exactly the "Open in Wallet / torrent client / Swish / …
+    /// button does nothing" report — so every payment / wallet / magnet
+    /// hand-off routes through here and surfaces the App Store + copy
+    /// affordances instead of dead-ending.
+    private func openExternally(_ url: URL, itemLabel: String, searchTerm: String, raw: String) {
+        UIApplication.shared.open(url, options: [:]) { success in
+            if !success {
+                appFallback = AppFallback(itemLabel: itemLabel, searchTerm: searchTerm, raw: raw)
+            }
+        }
+    }
+
+    /// Open the App Store to a search for `term`. Tries the `itms-apps://`
+    /// deep link first (opens the App Store app directly) and falls back to
+    /// the web storefront if that scheme isn't handled (e.g. some Mac
+    /// configurations).
+    private func openAppStoreSearch(_ term: String) {
+        let q = term.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? term
+        if let appStore = URL(string: "itms-apps://itunes.apple.com/search?term=\(q)&media=software") {
+            UIApplication.shared.open(appStore) { success in
+                if !success, let web = URL(string: "https://www.apple.com/app-store/") {
+                    UIApplication.shared.open(web)
+                }
+            }
+        }
+    }
+
+    /// The UPI apps offered in the chooser. We don't filter on
+    /// `canOpenURL` (which would need every scheme declared up front and
+    /// would silently hide an installed app whose scheme we guessed wrong);
+    /// instead we list the dominant Indian UPI apps and let `openExternally`
+    /// degrade to an App Store suggestion if the chosen one isn't installed.
+    /// "Other UPI app" keeps the original system-routed behaviour for
+    /// anything not in the big three.
+    private func upiTargets(for p: UPIPayload) -> [UPITarget] {
+        let query = Self.upiQuery(p.raw)
+        return [
+            UPITarget(name: "Google Pay", urlString: "tez://upi/pay?\(query)",
+                      searchTerm: "google pay upi", fallbackLabel: "Google Pay"),
+            UPITarget(name: "PhonePe", urlString: "phonepe://pay?\(query)",
+                      searchTerm: "phonepe", fallbackLabel: "PhonePe"),
+            UPITarget(name: "Paytm", urlString: "paytmmp://pay?\(query)",
+                      searchTerm: "paytm", fallbackLabel: "Paytm"),
+            UPITarget(name: "Other UPI app", urlString: p.raw,
+                      searchTerm: "upi payment", fallbackLabel: "UPI app"),
+        ]
+    }
+
+    /// The query string of a `upi:…?key=val&…` URI (everything after the
+    /// first `?`), reused verbatim when retargeting a specific UPI app.
+    private static func upiQuery(_ raw: String) -> String {
+        guard let q = raw.firstIndex(of: "?") else { return "" }
+        return String(raw[raw.index(after: q)...])
+    }
+
+    private static func regionalItemLabel(_ scheme: RegionalPaymentPayload.Scheme) -> String {
+        switch scheme {
+        case .bezahlcode: return "compatible banking app"
+        case .swish:      return "Swish app"
+        case .vipps:      return "Vipps app"
+        case .mobilePay:  return "MobilePay app"
+        case .bizum:      return "Bizum-enabled banking app"
+        case .ideal:      return "iDEAL-enabled banking app"
+        }
+    }
+
+    private static func regionalSearchTerm(_ scheme: RegionalPaymentPayload.Scheme) -> String {
+        switch scheme {
+        case .bezahlcode: return "banking"
+        case .swish:      return "swish"
+        case .vipps:      return "vipps"
+        case .mobilePay:  return "mobilepay"
+        case .bizum:      return "bizum"
+        case .ideal:      return "ideal banking"
         }
     }
 
@@ -464,6 +675,13 @@ struct PayloadActionsView: View {
             s += "&q=\(encoded)"
         }
         if let url = URL(string: s) { UIApplication.shared.open(url) }
+    }
+    /// Open Maps to a free-text query (used for Plus Codes, which we hand
+    /// over verbatim rather than decoding to lat/lon ourselves).
+    private func openMapsQuery(_ query: String) {
+        guard let encoded = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
+              let url = URL(string: "http://maps.apple.com/?q=\(encoded)") else { return }
+        UIApplication.shared.open(url)
     }
     private func openSettings() {
         if let url = URL(string: UIApplication.openSettingsURLString) {
@@ -516,6 +734,29 @@ private struct LabelledFieldRow: View {
         }
         .contentShape(Rectangle())
     }
+}
+
+// MARK: - "No app installed" fallback model
+
+/// Describes the fallback shown when `UIApplication.open` couldn't hand a
+/// custom-scheme URL to any installed app. `itemLabel` is a noun phrase that
+/// reads naturally after "No … is installed" (e.g. "Bitcoin wallet",
+/// "torrent client", "Swish app").
+struct AppFallback: Identifiable {
+    let id = UUID()
+    let itemLabel: String
+    let searchTerm: String
+    let raw: String
+}
+
+/// One entry in the UPI app chooser — a display name plus the app-specific
+/// deep link to attempt, with App Store fallback metadata if it's absent.
+struct UPITarget: Identifiable {
+    let id = UUID()
+    let name: String
+    let urlString: String
+    let searchTerm: String
+    let fallbackLabel: String
 }
 
 // MARK: - Share sheet

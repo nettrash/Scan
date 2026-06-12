@@ -234,6 +234,12 @@ private struct HistoryRow: View {
         case .gs1:          return "barcode.viewfinder"
         case .boardingPass: return "airplane.departure"
         case .drivingLicense: return "person.text.rectangle"
+        case .walletConnect: return "wallet.pass"
+        case .nostr:        return "person.crop.circle.badge.questionmark"
+        case .otpMigration: return "key.horizontal"
+        case .plusCode:     return "mappin.and.ellipse"
+        case .what3words:   return "mappin.and.ellipse"
+        case .iban:         return "building.columns"
         case .richURL(let r):
             switch r.kind {
             case .whatsApp, .telegram:    return "message"
@@ -243,6 +249,10 @@ private struct HistoryRow: View {
             case .spotify, .appleMusic:   return "music.note"
             case .googleMaps, .appleMaps: return "map"
             case .digitalIdentity:        return "person.text.rectangle"
+            case .payPal, .venmo, .cashApp, .revolut, .twint, .aliPay, .weChatPay:
+                return "creditcard"
+            case .signal, .matrix:        return "message"
+            case .meeting:                return "video"
             }
         case .text:         return "qrcode"
         }

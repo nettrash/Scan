@@ -70,8 +70,12 @@
           CloudKit replication and the AASA fetch both go through the
           regular client networking stack.
         • `com.apple.security.files.user-selected.read-only` — needed
-          for the in-app Files importer (`fileImporter`) on Catalyst,
-          where the user picks an image / PDF to decode.
+          for the in-app Files importer on Catalyst, where the user
+          picks an image / PDF to decode. The importer presents
+          `UIDocumentPickerViewController` imperatively (SwiftUI's
+          `.fileImporter` never fires its completion on Catalyst — see
+          `ScannerScreen.DocumentPicker`); this entitlement gates the
+          sandbox file-read it performs.
         • `com.apple.security.personal-information.photos-library` —
           PhotosPicker access on Catalyst. NSPhotoLibraryAddUsageDescription
           handles the Save-to-Photos prompt; this entitlement gates

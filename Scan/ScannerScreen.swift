@@ -64,7 +64,6 @@ struct ScannerScreen: View {
 
     // Image-import state
     @State private var photoItem: PhotosPickerItem?
-    @State private var showFileImporter = false
     @State private var isDecoding = false
     @State private var importErrorMessage: String?
     @State private var showImportError = false
@@ -95,23 +94,6 @@ struct ScannerScreen: View {
             selection: $photoItem,
             matching: .images
         )
-        .fileImporter(
-            isPresented: $showFileImporter,
-            // Accept PDFs as well as images — `ImageDecoder.decode(url:)`
-            // auto-routes `.pdf` URLs to the PDFKit page-walker that
-                // landed in 1.6, so the importer should advertise both.
-            allowedContentTypes: [.image, .pdf],
-            allowsMultipleSelection: false
-        ) { result in
-            switch result {
-            case .success(let urls):
-                if let first = urls.first {
-                    Task { await handlePickedFile(first) }
-                }
-            case .failure(let err):
-                presentImportError(err.localizedDescription)
-            }
-        }
         .onValueChange(of: photoItem) { newItem in
             guard let newItem else { return }
             Task { await handlePickedPhoto(newItem) }
@@ -362,7 +344,7 @@ struct ScannerScreen: View {
                     .controlSize(.large)
 
                     Button {
-                        showFileImporter = true
+                        presentFilePicker()
                     } label: {
                         Label("Choose from Files", systemImage: "folder")
                             .font(.headline)
@@ -418,7 +400,7 @@ struct ScannerScreen: View {
                 Label("Photo Library", systemImage: "photo.on.rectangle")
             }
             Button {
-                showFileImporter = true
+                presentFilePicker()
             } label: {
                 Label("Files", systemImage: "folder")
             }
@@ -578,6 +560,22 @@ struct ScannerScreen: View {
 
     // MARK: - Image import handling
 
+    /// Present the system document picker imperatively.
+    ///
+    /// SwiftUI's `.fileImporter` is unreliable on Mac Catalyst — its
+    /// completion closure never fires after the NSOpenPanel closes, so the
+    /// picked file is never decoded and the import silently does nothing
+    /// ("I chose the file but nothing happened"). Presenting
+    /// `UIDocumentPickerViewController` modally from the top view controller
+    /// works on iOS *and* macOS; `asCopy: true` hands back a readable copy in
+    /// the app container, so we don't juggle security-scoped access.
+    @MainActor
+    private func presentFilePicker() {
+        DocumentPicker.pick(contentTypes: [.image, .pdf]) { url in
+            Task { await handlePickedFile(url) }
+        }
+    }
+
     @MainActor
     private func handlePickedPhoto(_ item: PhotosPickerItem) async {
         isDecoding = true
@@ -625,15 +623,39 @@ struct ScannerScreen: View {
         // path). Feedback still respects the user's prefs.
         lastValue = first.value
         lastValueAt = Date()
-        sheetCode = first
-        emitScanFeedback()
+        presentAfterPickerDismiss {
+            sheetCode = first
+            emitScanFeedback()
+        }
     }
 
     /// Safe to call from any context — schedules itself onto the main actor.
     private func presentImportError(_ message: String) {
-        Task { @MainActor in
+        presentAfterPickerDismiss {
             importErrorMessage = message
             showImportError = true
+        }
+    }
+
+    /// Present a sheet / alert *after* the file or photo picker has finished
+    /// dismissing.
+    ///
+    /// Mac Catalyst backs `.fileImporter` and `.photosPicker` with their own
+    /// NSWindow modal sessions. A `.sheet` or `.alert` whose state we flip in
+    /// the same runloop turn that the picker is being torn down is silently
+    /// dropped by UIKit — the imported-code result (or the error) then never
+    /// appears. That's the "I chose the file but nothing happened" report on
+    /// macOS: the decode succeeds, but the sheet presentation is swallowed.
+    /// Yielding a few hundred ms lets the picker's window go away first. On
+    /// iOS we only hop to the next runloop — the race is far rarer there, but
+    /// the extra beat after an explicit import tap is imperceptible and keeps
+    /// the two paths on one code path.
+    private func presentAfterPickerDismiss(_ present: @escaping @MainActor () -> Void) {
+        Task { @MainActor in
+            if Platform.isMac {
+                try? await Task.sleep(for: .milliseconds(400))
+            }
+            present()
         }
     }
 
@@ -756,5 +778,64 @@ private struct ScanResultSheet: View {
                 }
             }
         }
+    }
+}
+
+// MARK: - Imperative document picker (Mac Catalyst–safe)
+
+/// A thin wrapper around `UIDocumentPickerViewController`, presented
+/// imperatively from the top view controller.
+///
+/// Why not SwiftUI's `.fileImporter`? On **Mac Catalyst** its completion
+/// closure never fires after the open panel closes, so the chosen file is
+/// never handed back — the user picks a file and nothing happens. (An
+/// embedded `UIDocumentPickerViewController` hosted as a `.sheet`'s content
+/// misbehaves too — it expects to be *presented* modally, not hosted.)
+/// Presenting it modally from the foreground scene's top view controller is
+/// reliable on iOS *and* macOS. `asCopy: true` returns a readable copy in the
+/// app container, so callers don't manage security-scoped access.
+///
+/// Lives in `ScannerScreen.swift` (a main-app-only file) so its
+/// `UIApplication.shared` use never reaches the `ScanShareExtension` target,
+/// where that API is unavailable.
+enum DocumentPicker {
+    /// Present the picker and call `onPick` with a readable copy of the
+    /// chosen file. No-op if no presenter can be found.
+    @MainActor
+    static func pick(contentTypes: [UTType], onPick: @escaping (URL) -> Void) {
+        guard let top = topViewController() else { return }
+        let picker = UIDocumentPickerViewController(forOpeningContentTypes: contentTypes, asCopy: true)
+        picker.allowsMultipleSelection = false
+        let delegate = Delegate(onPick: onPick)
+        retained = delegate
+        picker.delegate = delegate
+        top.present(picker, animated: true)
+    }
+
+    /// Keeps the one-shot delegate alive while the picker is on screen.
+    private static var retained: Delegate?
+
+    private final class Delegate: NSObject, UIDocumentPickerDelegate {
+        let onPick: (URL) -> Void
+        init(onPick: @escaping (URL) -> Void) { self.onPick = onPick }
+
+        func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
+            defer { DocumentPicker.retained = nil }
+            if let url = urls.first { onPick(url) }
+        }
+
+        func documentPickerWasCancelled(_ controller: UIDocumentPickerViewController) {
+            DocumentPicker.retained = nil
+        }
+    }
+
+    @MainActor
+    private static func topViewController() -> UIViewController? {
+        let scenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
+        let scene = scenes.first { $0.activationState == .foregroundActive } ?? scenes.first
+        let window = scene?.windows.first { $0.isKeyWindow } ?? scene?.windows.first
+        var top = window?.rootViewController
+        while let presented = top?.presentedViewController { top = presented }
+        return top
     }
 }

@@ -13,6 +13,101 @@ build-phase script via `agvtool next-version -all`.
 
 _(nothing yet)_
 
+## [1.9] — 2026-06-12
+
+"Open in …" hand-off reliability — every payment / wallet / magnet button now
+does something useful when the target app isn't installed instead of silently
+dead-ending — plus six new recognised code types.
+
+### Added
+
+Six new payload types are recognised, each with a tailored result sheet:
+
+- **WalletConnect** (`wc:…@2?…` v2 and the legacy `@1?bridge=…` v1) — the QR a
+  dApp shows to pair with a wallet. Surfaces topic / version / relay and routes
+  "Open in wallet" through the App Store fallback. (`CryptoPayload.swift`)
+- **Nostr** — `nostr:` URIs and bare NIP-19 tokens (`npub1…`, `note1…`,
+  `nevent1…`, `naddr1…`). An `nsec1…` secret key is flagged with a
+  do-not-share warning instead of an open action. (`CryptoPayload.swift`)
+- **Google Authenticator export** (`otpauth-migration://offline?data=…`) —
+  decodes the protobuf to list the exported accounts (issuer + name + TOTP/HOTP)
+  so you can see what's inside; the secrets are never displayed. (`ScanPayload.swift`)
+- **Open Location Code / Plus Code** (`849VCWC8+R9`, optionally with a locality)
+  → "Open in Maps". (`ScanPayload.swift`)
+- **what3words** (`///filled.count.soap`, `w3w://…`) → opens what3words.com.
+  (`ScanPayload.swift`)
+- **IBAN** scanned on its own — validated with the ISO 7064 mod-97 checksum and
+  a real country-prefix list (so random strings aren't flagged), then grouped
+  for readability. (`BankPaymentPayloads.swift`)
+
+Personal-payment handles are now branded rich-URLs with an "Open in …" action
+(routed through the App Store fallback): **PayPal** (`paypal.me`), **Venmo**,
+**Cash App** (`cash.app/$tag`), **Revolut**, **TWINT**, **Alipay** (`qr.alipay.com`
+/ `alipays:`), and **WeChat Pay** (`weixin:` / `wxp:`). Likewise **Signal**
+(`signal.me` / `sgnl:`), **Matrix** (`matrix.to` / `matrix:`), and video-meeting
+links (**Zoom** join links, **Microsoft Teams**, **Google Meet**). (`RichURLPayload.swift`)
+
+### Fixed
+
+Custom-scheme hand-offs (`bitcoin:`, `ethereum:`, `lightning:`, `litecoin:`,
+`magnet:`, `swish:`, `vipps:`, `bank:`/`bezahlcode:`, `mobilepay:`, `bizum:`,
+`ideal:`, …) were opened with the bare `UIApplication.shared.open(_:)` form,
+which **silently does nothing** when no installed app claims the scheme. That's
+the "Open in Wallet / torrent client / Swish / Vipps / Bezahlcode does nothing"
+report: there was simply no compatible app on the device and the button had no
+fallback.
+
+All of these now route through a single `openExternally(_:itemLabel:searchTerm:raw:)`
+helper that uses the completion-handler form of `open`. When the open fails
+(`success == false`), the user gets a **"No app installed"** alert offering to
+**Search the App Store** (deep-linked to a relevant search term — "bitcoin
+wallet", "torrent client", "swish", …) or **Copy link** to use the URI
+elsewhere, instead of a button that appears broken.
+
+Affected smart actions: `.crypto` (Open in Wallet), `.magnet` (Open in torrent
+client), and `.regionalPayment` (Open in Swish / Vipps / MobilePay / Bizum /
+iDEAL / a Bezahlcode banking app).
+
+Bare crypto addresses scanned without a URI scheme (e.g. a plain `bc1q…`,
+`0x…`, or a raw `lnbc…` Lightning invoice) now synthesize the chain's BIP-21
+`scheme:address` form (`CryptoPayload.walletURL`) before opening, so "Open in
+Wallet" actually reaches a wallet for the common bare-address case instead of
+handing the OS a scheme-less string it can't route.
+
+**Importing a file on Mac Catalyst now works.** Picking an image / PDF via the
+in-app "Files" importer did nothing — "I chose the file but nothing happened."
+SwiftUI's `.fileImporter` is unreliable on Mac Catalyst: its completion closure
+never fires after the open panel closes, so the chosen file was never handed
+back, decoded, or presented. The decode path itself was never at fault — Vision
+reads the fixture's QR fine. The importer now presents
+`UIDocumentPickerViewController` imperatively from the foreground scene's top
+view controller
+(`ScannerScreen.DocumentPicker`, mirroring the same fix in `exchange-ios`),
+with `asCopy: true` so there's no security-scoped-resource juggling. This is
+the path for both the toolbar import menu and the visionOS "Choose from Files"
+button, and it works identically on iOS, where `.fileImporter` happened to work
+already.
+
+As belt-and-braces for the related Catalyst quirk where a `.sheet` / `.alert`
+flipped in the same runloop turn that a picker is dismissing can be dropped by
+UIKit, the imported-code result is now presented after the picker has settled
+(`ScannerScreen.presentAfterPickerDismiss`); iOS only hops to the next runloop
+(no human-visible delay). Android was unaffected throughout: it already uses an
+imperative `ActivityResultContracts.OpenDocument` launcher, and its result sheet
+is driven by observed state rather than a UIKit presentation.
+
+### Changed
+
+**UPI now shows an app chooser.** iOS has no system app-picker for custom URL
+schemes, so a plain `upi://pay?…` open is routed to whichever app most recently
+claimed the `upi` scheme — frequently **WhatsApp Pay**, which is why "Open in
+UPI app" was opening WhatsApp. "Open in UPI app" now presents a confirmation
+dialog letting the user pick **Google Pay**, **PhonePe**, **Paytm**, or **Other
+UPI app** (the original system-routed behaviour); the first three retarget the
+payment to that app's own deep link (`tez://`, `phonepe://`, `paytmmp://`) so
+the right app opens, with the same App Store fallback if the chosen app isn't
+installed.
+
 ## [1.8] — 2026-05-02
 
 Mac Catalyst + visionOS targets.

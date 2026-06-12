@@ -33,6 +33,35 @@ struct RichURLPayload: Equatable {
         /// Special-cased so the result sheet can show a security
         /// warning before the user taps "Continue in browser".
         case digitalIdentity = "Digital identity"
+
+        // New in 1.9 — personal-payment handles. Recognised as their own
+        // brands (rather than a plain link) so the result sheet can read
+        // "Open in PayPal" / "Pay with Cash App" and route through the
+        // same "app not installed → App Store" fallback the wallet /
+        // regional-payment actions use.
+        case payPal     = "PayPal"
+        case venmo      = "Venmo"
+        case cashApp    = "Cash App"
+        case revolut    = "Revolut"
+        case twint      = "TWINT"
+        case aliPay     = "Alipay"
+        case weChatPay  = "WeChat Pay"
+
+        // New in 1.9 — messaging / meeting deep links.
+        case signal     = "Signal"
+        case matrix     = "Matrix"
+        case meeting    = "Video meeting"
+
+        /// True for the personal-payment brands, which the UI routes
+        /// through the "no app installed" App Store fallback.
+        var isPayment: Bool {
+            switch self {
+            case .payPal, .venmo, .cashApp, .revolut, .twint, .aliPay, .weChatPay:
+                return true
+            default:
+                return false
+            }
+        }
     }
 
     let kind: Kind
@@ -54,11 +83,18 @@ enum RichURLParser {
     /// Recognise the URL's flavour. Returns nil for everything that should
     /// stay a plain `.url`.
     static func parse(_ url: URL) -> RichURLPayload? {
+        let scheme = url.scheme?.lowercased() ?? ""
+
+        // -- Custom app-scheme service URIs (handled before the http/https
+        // host matching, since these have no usable host). New in 1.9. --
+        if let appScheme = parseAppScheme(url, scheme: scheme) {
+            return appScheme
+        }
+
         guard let host = url.host?.lowercased() else { return nil }
         let path = url.path
-        let scheme = url.scheme?.lowercased() ?? ""
-        // Only http/https URLs are handled here — wallet / app-scheme URIs
-        // are recognised below as additional non-http fast paths.
+        // Only http/https URLs are handled past this point — wallet /
+        // app-scheme URIs were recognised above.
         guard scheme == "http" || scheme == "https" else { return nil }
 
         // -- WhatsApp click-to-chat --------------------------------------
@@ -220,7 +256,113 @@ enum RichURLParser {
             }
         }
 
+        // -- Personal-payment handles (https form). New in 1.9. --------
+        if let payment = parsePaymentHost(url, host: host, path: path) {
+            return payment
+        }
+
+        // -- Messaging / meeting links (https form). New in 1.9. -------
+        if let messaging = parseMessagingHost(url, host: host, path: path) {
+            return messaging
+        }
+
         return nil
+    }
+
+    // MARK: - Personal-payment handles (1.9)
+
+    /// `https://…` personal-payment links. The username / handle is the
+    /// single useful field; the smart action just opens it (web fallback if
+    /// the brand's app isn't installed). App-scheme variants are in
+    /// `parseAppScheme`.
+    private static func parsePaymentHost(_ url: URL, host: String, path: String) -> RichURLPayload? {
+        let handle = path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+        func payload(_ kind: RichURLPayload.Kind, handleLabel: String = "Handle") -> RichURLPayload {
+            RichURLPayload(
+                kind: kind, url: url,
+                fields: handle.isEmpty ? [] : [LabelledField(label: handleLabel, value: handle)]
+            )
+        }
+        switch host {
+        case "paypal.me", "www.paypal.me":
+            return payload(.payPal)
+        case "venmo.com", "www.venmo.com", "account.venmo.com":
+            // venmo.com/u/<user> or venmo.com/<user>
+            let user = path.split(separator: "/").last.map(String.init) ?? handle
+            return RichURLPayload(kind: .venmo, url: url,
+                                  fields: user.isEmpty ? [] : [LabelledField(label: "User", value: user)])
+        case "cash.app":
+            // cash.app/$cashtag
+            return payload(.cashApp, handleLabel: "Cashtag")
+        case "revolut.me":
+            return payload(.revolut)
+        case "qr.alipay.com", "render.alipay.com":
+            return RichURLPayload(kind: .aliPay, url: url, fields: [])
+        default:
+            return nil
+        }
+    }
+
+    // MARK: - Messaging / meeting links (1.9)
+
+    private static func parseMessagingHost(_ url: URL, host: String, path: String) -> RichURLPayload? {
+        if host == "signal.me" {
+            return RichURLPayload(kind: .signal, url: url, fields: [])
+        }
+        if host == "matrix.to" {
+            // matrix.to/#/@user:server or /#/!room:server — entity is in the
+            // fragment.
+            let entity = url.fragment.map { String($0.drop(while: { $0 == "/" })) }
+            return RichURLPayload(
+                kind: .matrix, url: url,
+                fields: (entity?.isEmpty == false) ? [LabelledField(label: "Address", value: entity!)] : []
+            )
+        }
+        // Video meetings — Zoom only when it's a join link, so we don't grab
+        // marketing pages.
+        let service: String?
+        if (host == "zoom.us" || host.hasSuffix(".zoom.us")), path.contains("/j/") {
+            service = "Zoom"
+        } else if host == "teams.microsoft.com" || host == "teams.live.com" {
+            service = "Microsoft Teams"
+        } else if host == "meet.google.com" {
+            service = "Google Meet"
+        } else {
+            service = nil
+        }
+        if let service {
+            return RichURLPayload(kind: .meeting, url: url,
+                                  fields: [LabelledField(label: "Service", value: service)])
+        }
+        return nil
+    }
+
+    // MARK: - App-scheme service URIs (1.9)
+
+    /// Recognise non-http service URIs by scheme: Alipay (`alipays:`),
+    /// WeChat Pay (`weixin:` / `wxp:`), TWINT (`twint:`), Signal (`sgnl:`),
+    /// and Matrix (`matrix:`). Returns nil for anything else (the caller
+    /// continues with http/https host matching or falls back to `.url`).
+    private static func parseAppScheme(_ url: URL, scheme: String) -> RichURLPayload? {
+        switch scheme {
+        case "alipay", "alipays", "alipayqr":
+            return RichURLPayload(kind: .aliPay, url: url, fields: [])
+        case "weixin", "wxp", "wechat":
+            return RichURLPayload(kind: .weChatPay, url: url, fields: [])
+        case "twint":
+            return RichURLPayload(kind: .twint, url: url, fields: [])
+        case "sgnl":
+            return RichURLPayload(kind: .signal, url: url, fields: [])
+        case "matrix":
+            // matrix:u/user:server, matrix:r/room:server, matrix:roomid/…
+            let entity = url.absoluteString.dropFirst("matrix:".count)
+            return RichURLPayload(
+                kind: .matrix, url: url,
+                fields: entity.isEmpty ? [] : [LabelledField(label: "Address", value: String(entity))]
+            )
+        default:
+            return nil
+        }
     }
 
     // MARK: - Digital identity (1.4)

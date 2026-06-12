@@ -1193,4 +1193,147 @@ final class ScanTests: XCTestCase {
         let p = ScanPayloadParser.parse(raw)
         if case .drivingLicense = p { XCTFail("Should not classify as AAMVA") }
     }
+
+    // MARK: - WalletConnect (1.9)
+
+    func testParsesWalletConnectV2() {
+        let raw = "wc:7f6e504bfad60b485450578e05678ed3e8e8c4751d3c6160be17160d63ec90f9@2?relay-protocol=irn&symKey=587d5484ce2a2a6ee3ba1962fdd7e8588e06200c46823bd18fbd67def96ad303"
+        guard case .walletConnect(let p) = ScanPayloadParser.parse(raw) else {
+            return XCTFail("Expected .walletConnect, got \(ScanPayloadParser.parse(raw))")
+        }
+        XCTAssertEqual(p.version, "2")
+        XCTAssertEqual(p.topic, "7f6e504bfad60b485450578e05678ed3e8e8c4751d3c6160be17160d63ec90f9")
+        XCTAssertEqual(p.relayProtocol, "irn")
+        XCTAssertTrue(p.hasKey)
+    }
+
+    func testParsesWalletConnectV1() {
+        let raw = "wc:8a5e5bdc-a0e4-4702-ba63-8f1a5655744f@1?bridge=https%3A%2F%2Fbridge.walletconnect.org&key=41791102999c339c844880b23950704cc43aa840f3739e365323cda4dfa89e7a"
+        guard case .walletConnect(let p) = ScanPayloadParser.parse(raw) else {
+            return XCTFail("Expected .walletConnect")
+        }
+        XCTAssertEqual(p.version, "1")
+        XCTAssertEqual(p.bridge, "https://bridge.walletconnect.org")
+        XCTAssertTrue(p.hasKey)
+    }
+
+    // MARK: - Nostr (1.9)
+
+    func testParsesNostrURI() {
+        let raw = "nostr:npub1sn0wdenkukak0d9dfczzeacvhkrgz92ak56egt7vdgzn8pv2wfqqhrjdv9"
+        guard case .nostr(let p) = ScanPayloadParser.parse(raw) else {
+            return XCTFail("Expected .nostr")
+        }
+        XCTAssertEqual(p.entity, .profile)
+        XCTAssertFalse(p.isPrivateKey)
+    }
+
+    func testParsesBareNostrNoteAndNsecWarning() {
+        if case .nostr(let note) = ScanPayloadParser.parse("note1fntxtkcy9pjwucqwa9mddn7v03wwwsu9j330jj350nvhpky2tuaspk6nqc") {
+            XCTAssertEqual(note.entity, .note)
+        } else { XCTFail("Expected bare .nostr note") }
+
+        if case .nostr(let nsec) = ScanPayloadParser.parse("nsec1vl029mgpspedva04g90vltkh6fvh240zqtv9k0t9af8935ke9laqsnlfe5") {
+            XCTAssertTrue(nsec.isPrivateKey)
+        } else { XCTFail("Expected bare .nostr nsec") }
+    }
+
+    // MARK: - 2FA migration (1.9)
+
+    func testParsesGoogleAuthenticatorExport() {
+        // Well-formed single-account export: issuer "Example",
+        // name "Example:alice@google.com", TOTP.
+        let raw = "otpauth-migration://offline?data=CjUKCkhlbGxvId6tvu8SGEV4YW1wbGU6YWxpY2VAZ29vZ2xlLmNvbRoHRXhhbXBsZSABKAEwAhABGAEgACgq"
+        guard case .otpMigration(let p) = ScanPayloadParser.parse(raw) else {
+            return XCTFail("Expected .otpMigration, got \(ScanPayloadParser.parse(raw))")
+        }
+        XCTAssertEqual(p.accounts.count, 1)
+        XCTAssertEqual(p.accounts.first?.issuer, "Example")
+        XCTAssertEqual(p.accounts.first?.name, "Example:alice@google.com")
+        XCTAssertEqual(p.accounts.first?.type, "TOTP")
+    }
+
+    // MARK: - Plus Code (1.9)
+
+    func testParsesPlusCode() {
+        guard case .plusCode(let p) = ScanPayloadParser.parse("849VCWC8+R9") else {
+            return XCTFail("Expected .plusCode")
+        }
+        XCTAssertEqual(p.code, "849VCWC8+R9")
+        XCTAssertNil(p.locality)
+    }
+
+    func testParsesPlusCodeWithLocality() {
+        guard case .plusCode(let p) = ScanPayloadParser.parse("849VCWC8+R9 Stockholm, Sweden") else {
+            return XCTFail("Expected .plusCode with locality")
+        }
+        XCTAssertEqual(p.code, "849VCWC8+R9")
+        XCTAssertEqual(p.locality, "Stockholm, Sweden")
+        XCTAssertEqual(p.mapsQuery, "849VCWC8+R9 Stockholm, Sweden")
+    }
+
+    // MARK: - what3words (1.9)
+
+    func testParsesWhat3Words() {
+        guard case .what3words(let w) = ScanPayloadParser.parse("///filled.count.soap") else {
+            return XCTFail("Expected .what3words")
+        }
+        XCTAssertEqual(w.words, "filled.count.soap")
+        XCTAssertEqual(w.address, "///filled.count.soap")
+    }
+
+    func testW3WSchemeForm() {
+        if case .what3words(let w) = ScanPayloadParser.parse("w3w://filled.count.soap") {
+            XCTAssertEqual(w.words, "filled.count.soap")
+        } else { XCTFail("Expected .what3words from w3w:// form") }
+    }
+
+    // MARK: - IBAN (1.9)
+
+    func testParsesValidIBAN() {
+        guard case .iban(let p) = ScanPayloadParser.parse("GB82WEST12345698765432") else {
+            return XCTFail("Expected .iban")
+        }
+        XCTAssertEqual(p.countryCode, "GB")
+        XCTAssertEqual(p.formatted, "GB82 WEST 1234 5698 7654 32")
+    }
+
+    func testRejectsIBANWithBadChecksum() {
+        // Same structure, wrong check digits → must NOT be classified as IBAN.
+        if case .iban = ScanPayloadParser.parse("GB00WEST12345698765432") {
+            XCTFail("Bad-checksum IBAN should not classify as .iban")
+        }
+    }
+
+    // MARK: - Payment handles & messaging (1.9)
+
+    func testParsesPayPalMe() {
+        guard case .richURL(let r) = ScanPayloadParser.parse("https://paypal.me/alice") else {
+            return XCTFail("Expected .richURL")
+        }
+        XCTAssertEqual(r.kind, .payPal)
+    }
+
+    func testParsesCashApp() {
+        if case .richURL(let r) = ScanPayloadParser.parse("https://cash.app/$alice") {
+            XCTAssertEqual(r.kind, .cashApp)
+        } else { XCTFail("Expected Cash App .richURL") }
+    }
+
+    func testParsesAlipayAppScheme() {
+        if case .richURL(let r) = ScanPayloadParser.parse("alipays://platformapi/startapp?saId=10000007") {
+            XCTAssertEqual(r.kind, .aliPay)
+            XCTAssertTrue(r.kind.isPayment)
+        } else { XCTFail("Expected Alipay .richURL") }
+    }
+
+    func testParsesSignalAndMeeting() {
+        if case .richURL(let s) = ScanPayloadParser.parse("https://signal.me/#p/+15551234567") {
+            XCTAssertEqual(s.kind, .signal)
+        } else { XCTFail("Expected Signal .richURL") }
+
+        if case .richURL(let m) = ScanPayloadParser.parse("https://meet.google.com/abc-defg-hij") {
+            XCTAssertEqual(m.kind, .meeting)
+        } else { XCTFail("Expected meeting .richURL") }
+    }
 }

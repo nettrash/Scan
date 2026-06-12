@@ -124,6 +124,66 @@ struct CryptoPayload: Equatable {
     }
 }
 
+// MARK: - Wallet-open helpers
+
+extension CryptoPayload {
+    /// The URL to hand a wallet app via `UIApplication.open`.
+    ///
+    /// For a scheme'd URI (`bitcoin:…`, `ethereum:…`, `lightning:…`) that's
+    /// just `raw`. For a *bare* address (scanned without a scheme — e.g. a
+    /// plain `bc1q…` or `0x…`) we synthesize the chain's BIP-21-style
+    /// `scheme:address` so a wallet can still pick it up instead of the
+    /// button doing nothing.
+    var walletURL: URL? {
+        if !scheme.isEmpty { return URL(string: raw) }
+        guard let s = Self.walletScheme(for: chain) else { return URL(string: raw) }
+        return URL(string: "\(s):\(address)")
+    }
+
+    /// App Store search term used by the "no wallet installed" fallback so
+    /// the user can find a compatible wallet rather than hitting a dead
+    /// button.
+    var walletSearchTerm: String {
+        switch chain {
+        case .bitcoin:                                   return "bitcoin wallet"
+        case .ethereum:                                  return "ethereum wallet"
+        case .litecoin:                                  return "litecoin wallet"
+        case .bitcoinCash:                               return "bitcoin cash wallet"
+        case .dogecoin:                                  return "dogecoin wallet"
+        case .monero:                                    return "monero wallet"
+        case .cardano:                                   return "cardano wallet"
+        case .solana:                                    return "solana wallet"
+        case .lightning, .lnurl, .lightningAddress:      return "bitcoin lightning wallet"
+        case .ripple:                                    return "xrp wallet"
+        case .stellar:                                   return "stellar wallet"
+        case .cosmos:                                    return "cosmos wallet"
+        case .tron:                                      return "tron wallet"
+        case .other:                                     return "crypto wallet"
+        }
+    }
+
+    /// The URI scheme to wrap a bare address in, for chains with a
+    /// well-established `scheme:address` payment URI. Chains without one
+    /// (or where wrapping a bare address would produce something a wallet
+    /// won't recognise) return nil, so we fall back to the App Store
+    /// suggestion instead of opening a broken URL.
+    private static func walletScheme(for chain: Chain) -> String? {
+        switch chain {
+        case .bitcoin:      return "bitcoin"
+        case .ethereum:     return "ethereum"
+        case .litecoin:     return "litecoin"
+        case .bitcoinCash:  return "bitcoincash"
+        case .dogecoin:     return "dogecoin"
+        case .monero:       return "monero"
+        case .solana:       return "solana"
+        case .lightning, .lnurl: return "lightning"
+        case .cardano, .ripple, .stellar, .cosmos, .tron,
+             .lightningAddress, .other:
+            return nil
+        }
+    }
+}
+
 // MARK: - Parser
 
 enum CryptoURIParser {
@@ -462,5 +522,130 @@ enum CryptoURIParser {
             raw: raw,
             token: token
         )
+    }
+}
+
+// MARK: - WalletConnect (1.9)
+
+/// A parsed WalletConnect pairing URI — the QR a dApp shows to connect to a
+/// wallet. v2 form: `wc:<topic>@2?relay-protocol=<r>&symKey=<hex>`; the
+/// legacy v1 form carries a `bridge=` URL and `key=` instead.
+struct WalletConnectPayload: Equatable {
+    let topic: String
+    let version: String
+    let relayProtocol: String?
+    let hasKey: Bool
+    let bridge: String?
+    let raw: String
+
+    var labelledFields: [LabelledField] {
+        var rows: [LabelledField] = [
+            .init(label: "Protocol", value: "WalletConnect v\(version)"),
+            .init(label: "Topic", value: topic),
+        ]
+        if let r = relayProtocol { rows.append(.init(label: "Relay", value: r)) }
+        if let b = bridge        { rows.append(.init(label: "Bridge", value: b)) }
+        rows.append(.init(label: "Pairing key", value: hasKey ? "present" : "missing"))
+        return rows
+    }
+}
+
+enum WalletConnectParser {
+    static func parse(_ raw: String) -> WalletConnectPayload? {
+        guard raw.lowercased().hasPrefix("wc:") else { return nil }
+        let body = String(raw.dropFirst(3))
+        let qSplit = body.split(separator: "?", maxSplits: 1).map(String.init)
+        let head = qSplit.first ?? ""
+        let query = qSplit.count > 1 ? qSplit[1] : ""
+        let atSplit = head.split(separator: "@", maxSplits: 1).map(String.init)
+        guard let topic = atSplit.first, !topic.isEmpty,
+              atSplit.count > 1, !atSplit[1].isEmpty else { return nil }
+        let version = atSplit[1]
+        var params: [String: String] = [:]
+        for pair in query.split(separator: "&") {
+            let kv = pair.split(separator: "=", maxSplits: 1).map(String.init)
+            guard kv.count == 2 else { continue }
+            params[kv[0].lowercased()] = kv[1].removingPercentEncoding ?? kv[1]
+        }
+        return WalletConnectPayload(
+            topic: topic,
+            version: version,
+            relayProtocol: params["relay-protocol"],
+            hasKey: params["symkey"] != nil || params["key"] != nil,
+            bridge: params["bridge"],
+            raw: raw
+        )
+    }
+}
+
+// MARK: - Nostr (1.9)
+
+/// A parsed Nostr entity — either a `nostr:` URI or a bare NIP-19 bech32
+/// token (`npub1…`, `note1…`, `nevent1…`, …).
+struct NostrPayload: Equatable {
+    enum Entity: String, Equatable {
+        case profile        = "Profile (npub)"
+        case privateKey     = "Private key (nsec)"
+        case note           = "Note"
+        case event          = "Event"
+        case profilePointer = "Profile pointer"
+        case address        = "Address (naddr)"
+        case relay          = "Relay"
+    }
+    let entity: Entity
+    let id: String
+    let raw: String
+
+    /// nsec is a *secret* key — the UI shows a do-not-share warning.
+    var isPrivateKey: Bool { entity == .privateKey }
+
+    var labelledFields: [LabelledField] {
+        [
+            .init(label: "Type", value: entity.rawValue),
+            .init(label: entity == .privateKey ? "Secret key" : "ID", value: id),
+        ]
+    }
+}
+
+enum NostrParser {
+    private static let prefixes: [(String, NostrPayload.Entity)] = [
+        ("nprofile", .profilePointer),
+        ("nevent",   .event),
+        ("naddr",    .address),
+        ("nrelay",   .relay),
+        ("npub",     .profile),
+        ("nsec",     .privateKey),
+        ("note",     .note),
+    ]
+    /// bech32 data alphabet (lowercase).
+    private static let bech32 = Set("qpzry9x8gf2tvdw0s3jn54khce6mua7l")
+
+    /// Classify a bare NIP-19 token. Longest prefixes first so `nprofile`
+    /// isn't shadowed by `note`/`npub`.
+    private static func classify(_ token: String) -> NostrPayload.Entity? {
+        let lower = token.lowercased()
+        for (prefix, kind) in prefixes {
+            guard lower.hasPrefix(prefix + "1") else { continue }
+            let data = lower.dropFirst(prefix.count + 1)
+            guard data.count >= 8, data.allSatisfy({ bech32.contains($0) }) else { continue }
+            return kind
+        }
+        return nil
+    }
+
+    /// Parse a `nostr:` URI or a bare NIP-19 token.
+    static func parse(_ raw: String) -> NostrPayload? {
+        var token = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        if token.lowercased().hasPrefix("nostr:") {
+            token = String(token.dropFirst("nostr:".count))
+        }
+        guard let kind = classify(token) else { return nil }
+        return NostrPayload(entity: kind, id: token, raw: raw)
+    }
+
+    /// True only for a *bare* NIP-19 token (no scheme) — used as a late
+    /// fallback so it doesn't shadow other formats.
+    static func looksLikeBare(_ raw: String) -> Bool {
+        classify(raw.trimmingCharacters(in: .whitespacesAndNewlines)) != nil
     }
 }

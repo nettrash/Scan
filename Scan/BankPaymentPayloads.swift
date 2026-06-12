@@ -785,3 +785,74 @@ enum BankPaymentParser {
         return EMVPaymentPayload(fields: fields)
     }
 }
+
+// MARK: - Bare IBAN — 1.9
+
+/// A recognised, checksum-valid International Bank Account Number scanned on
+/// its own (e.g. off an invoice or a card). There's no universal "open in
+/// bank app" scheme for a bare IBAN, so the smart action is copy — but
+/// validating + formatting it is still useful.
+struct IBANPayload: Equatable {
+    let iban: String          // normalised: no spaces, uppercase
+    let countryCode: String
+    let raw: String
+
+    /// Grouped into blocks of four for readability.
+    var formatted: String {
+        var out = ""
+        for (i, c) in iban.enumerated() {
+            if i > 0 && i % 4 == 0 { out.append(" ") }
+            out.append(c)
+        }
+        return out
+    }
+
+    var labelledFields: [LabelledField] {
+        [
+            .init(label: "IBAN", value: formatted),
+            .init(label: "Country", value: countryCode),
+        ]
+    }
+}
+
+enum IBANParser {
+    /// The countries that issue IBANs. Requiring a real prefix (on top of
+    /// the mod-97 checksum) keeps random alphanumerics from being flagged.
+    private static let countries: Set<String> = [
+        "AD","AE","AL","AT","AZ","BA","BE","BG","BH","BR","BY","CH","CR","CY",
+        "CZ","DE","DK","DO","EE","EG","ES","FI","FO","FR","GB","GE","GI","GL",
+        "GR","GT","HR","HU","IE","IL","IQ","IS","IT","JO","KW","KZ","LB","LC",
+        "LI","LT","LU","LV","LY","MC","MD","ME","MK","MR","MT","MU","NL","NO",
+        "PK","PL","PS","PT","QA","RO","RS","SA","SC","SD","SE","SI","SK","SM",
+        "ST","SV","TL","TN","TR","UA","VA","VG","XK",
+    ]
+
+    static func parse(_ raw: String) -> IBANPayload? {
+        let normalized = raw.replacingOccurrences(of: " ", with: "").uppercased()
+        guard (15...34).contains(normalized.count) else { return nil }
+        let chars = Array(normalized)
+        guard chars[0].isLetter, chars[1].isLetter,
+              chars[2].isNumber, chars[3].isNumber,
+              normalized.allSatisfy({ $0.isLetter || $0.isNumber }) else { return nil }
+        let country = String(normalized.prefix(2))
+        guard countries.contains(country), isValidMod97(normalized) else { return nil }
+        return IBANPayload(iban: normalized, countryCode: country, raw: raw)
+    }
+
+    /// ISO 7064 mod-97-10: move the first four characters to the end, map
+    /// letters to numbers (A=10 … Z=35), and require the value mod 97 == 1.
+    private static func isValidMod97(_ iban: String) -> Bool {
+        let rearranged = iban.dropFirst(4) + iban.prefix(4)
+        var remainder = 0
+        for ch in rearranged {
+            if let d = ch.wholeNumberValue, ch.isNumber {
+                remainder = (remainder * 10 + d) % 97
+            } else if ch.isLetter, let a = ch.asciiValue {
+                remainder = (remainder * 100 + (Int(a) - 65 + 10)) % 97
+            } else {
+                return false
+            }
+        }
+        return remainder == 1
+    }
+}

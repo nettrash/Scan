@@ -1126,7 +1126,7 @@ final class ScanTests: XCTestCase {
     func testParsesIATABoardingPass() {
         // RP 1740c minimum mandatory section: exactly 60 chars, every
         // field at the right fixed-position offset.
-        let raw = "M1NETTRASH/IVAN       EABC123 LHRJFKBA  0175020M013D0028 100"
+        let raw = "M1NETTRASH/TEST       EABC123 LHRJFKBA  0175020M013D0028 100"
         XCTAssertEqual(raw.count, 60, "Test fixture must be exactly 60 chars")
         let p = ScanPayloadParser.parse(raw)
         guard case .boardingPass(let bp) = p else {
@@ -1134,7 +1134,7 @@ final class ScanTests: XCTestCase {
         }
         XCTAssertEqual(bp.formatCode, "M")
         XCTAssertEqual(bp.numberOfLegs, 1)
-        XCTAssertEqual(bp.passengerName, "NETTRASH/IVAN")
+        XCTAssertEqual(bp.passengerName, "NETTRASH/TEST")
         XCTAssertTrue(bp.electronicTicket)
         XCTAssertEqual(bp.legs.count, 1)
         let leg = bp.legs[0]
@@ -1147,7 +1147,7 @@ final class ScanTests: XCTestCase {
 
     func testRejectsNonBoardingPassPayload() {
         // Same length but starts with `X` instead of `M`.
-        let raw = "X1NETTRASH/IVAN       EABC123 LHRJFKBA  0175020M013D0028 100"
+        let raw = "X1NETTRASH/TEST       EABC123 LHRJFKBA  0175020M013D0028 100"
         let p = ScanPayloadParser.parse(raw)
         if case .boardingPass = p { XCTFail("Expected fall-through, got .boardingPass") }
     }

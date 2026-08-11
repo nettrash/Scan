@@ -39,6 +39,15 @@ struct ContentView: View {
                 Label("Generate", systemImage: "qrcode")
             }
 
+            // Fifth tab. iOS only collapses into a "More" list at six, so
+            // Chess sits alongside the rest rather than being buried.
+            NavigationStack {
+                ChessScreen()
+            }
+            .tabItem {
+                Label("Chess", systemImage: "checkerboard.rectangle")
+            }
+
             NavigationStack {
                 HistoryScreen()
             }
@@ -58,7 +67,12 @@ struct ContentView: View {
             // sheet. We schedule the state flip async so the first
             // frame of the TabView renders cleanly underneath.
             let current = Self.currentMarketingVersion
-            if current != lastSeenVersion && current == WhatsNew.version {
+            // UI tests launch with `-uitest.skipWhatsNew YES`; the sheet
+            // otherwise covers the tab bar on a fresh install and there is
+            // nothing to test underneath it.
+            if UserDefaults.standard.bool(forKey: "uitest.skipWhatsNew") {
+                lastSeenVersion = current
+            } else if current != lastSeenVersion && current == WhatsNew.version {
                 DispatchQueue.main.async {
                     showWhatsNew = true
                 }

@@ -19,6 +19,21 @@ enum ScanSettingsKey {
     static let soundOnScan       = "settings.soundOnScan"
     static let continuousScan    = "settings.continuousScan"
     static let lastSeenVersion   = "settings.lastSeenVersion"
+
+    // MARK: Chess (1.10)
+
+    /// Seconds the engine thinks *per side*. Stored as the raw
+    /// `ChessEngine.ThinkTime` value so the picker can bind straight to it.
+    /// Note the whole analysis costs twice this — both sides are searched.
+    static let chessThinkTime    = "settings.chess.thinkTime"
+    /// Board orientation. Display only; the position itself never mirrors.
+    static let chessWhiteAtBottom = "settings.chess.whiteAtBottom"
+    /// Hidden developer toggle: write each recognised board's warped image
+    /// and its 64 square labels to Documents, to be collected as
+    /// fine-tuning data for the `chess-vision` models. Off by default and
+    /// deliberately not surfaced in Settings — it exists to build a
+    /// training set, not for users.
+    static let chessExportTrainingSquares = "settings.chess.exportTrainingSquares"
 }
 
 // MARK: - Audible-feedback helper

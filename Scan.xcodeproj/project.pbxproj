@@ -58,6 +58,7 @@
 		E5C0DE000000000000007902 /* ChessCornerAdjustView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000007901 /* ChessCornerAdjustView.swift */; };
 		E5C0DE000000000000007802 /* ChessTrainingExport.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000007801 /* ChessTrainingExport.swift */; };
 		E5C0DE000000000000007702 /* ChessBoardWarpTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000007701 /* ChessBoardWarpTests.swift */; };
+		E5C0DE000000000000007792 /* ChessCornerPlacementTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000007791 /* ChessCornerPlacementTests.swift */; };
 		E5C0DE000000000000007602 /* ChessBoardWarp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000007601 /* ChessBoardWarp.swift */; };
 		E5C0DE000000000000006E02 /* ChessPositionDecoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000006E01 /* ChessPositionDecoder.swift */; };
 		E5C0DE000000000000006F02 /* ChessRecognizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000006F01 /* ChessRecognizer.swift */; };
@@ -191,6 +192,7 @@
 		E5C0DE000000000000007901 /* ChessCornerAdjustView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChessCornerAdjustView.swift; sourceTree = "<group>"; };
 		E5C0DE000000000000007801 /* ChessTrainingExport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChessTrainingExport.swift; sourceTree = "<group>"; };
 		E5C0DE000000000000007701 /* ChessBoardWarpTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChessBoardWarpTests.swift; sourceTree = "<group>"; };
+		E5C0DE000000000000007791 /* ChessCornerPlacementTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChessCornerPlacementTests.swift; sourceTree = "<group>"; };
 		E5C0DE000000000000007601 /* ChessBoardWarp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChessBoardWarp.swift; sourceTree = "<group>"; };
 		E5C0DE000000000000006E01 /* ChessPositionDecoder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChessPositionDecoder.swift; sourceTree = "<group>"; };
 		E5C0DE000000000000006F01 /* ChessRecognizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChessRecognizer.swift; sourceTree = "<group>"; };
@@ -313,6 +315,7 @@
 				E5C0DE000000000000006D01 /* ChessSearchTests.swift */,
 				E5C0DE000000000000008001 /* ChessTrainingExportTests.swift */,
 				E5C0DE000000000000007701 /* ChessBoardWarpTests.swift */,
+				E5C0DE000000000000007791 /* ChessCornerPlacementTests.swift */,
 				E5C0DE000000000000007301 /* ChessDecoderTests.swift */,
 			);
 			path = ScanTests;
@@ -594,6 +597,7 @@
 				E5C0DE000000000000006D02 /* ChessSearchTests.swift in Sources */,
 				E5C0DE000000000000008002 /* ChessTrainingExportTests.swift in Sources */,
 				E5C0DE000000000000007702 /* ChessBoardWarpTests.swift in Sources */,
+				E5C0DE000000000000007792 /* ChessCornerPlacementTests.swift in Sources */,
 				E5C0DE000000000000007302 /* ChessDecoderTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -789,7 +793,7 @@
 				CODE_SIGN_ENTITLEMENTS = Scan/Scan.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 132;
+				CURRENT_PROJECT_VERSION = 139;
 				DERIVE_MACCATALYST_PRODUCT_BUNDLE_IDENTIFIER = NO;
 				DEVELOPMENT_ASSET_PATHS = "\"Scan/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
@@ -824,7 +828,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Scan/Scan.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 132;
+				CURRENT_PROJECT_VERSION = 139;
 				DERIVE_MACCATALYST_PRODUCT_BUNDLE_IDENTIFIER = NO;
 				DEVELOPMENT_ASSET_PATHS = "\"Scan/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
@@ -856,7 +860,7 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 132;
+				CURRENT_PROJECT_VERSION = 139;
 				DERIVE_MACCATALYST_PRODUCT_BUNDLE_IDENTIFIER = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
@@ -884,7 +888,7 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 132;
+				CURRENT_PROJECT_VERSION = 139;
 				DERIVE_MACCATALYST_PRODUCT_BUNDLE_IDENTIFIER = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
@@ -911,7 +915,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 132;
+				CURRENT_PROJECT_VERSION = 139;
 				DERIVE_MACCATALYST_PRODUCT_BUNDLE_IDENTIFIER = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
@@ -938,7 +942,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 132;
+				CURRENT_PROJECT_VERSION = 139;
 				DERIVE_MACCATALYST_PRODUCT_BUNDLE_IDENTIFIER = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
@@ -966,7 +970,7 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = ScanShareExtension/ScanShareExtension.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 132;
+				CURRENT_PROJECT_VERSION = 139;
 				DERIVE_MACCATALYST_PRODUCT_BUNDLE_IDENTIFIER = NO;
 				DEVELOPMENT_TEAM = V4WM2SJ8Q9;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -996,7 +1000,7 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = ScanShareExtension/ScanShareExtension.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 132;
+				CURRENT_PROJECT_VERSION = 139;
 				DERIVE_MACCATALYST_PRODUCT_BUNDLE_IDENTIFIER = NO;
 				DEVELOPMENT_TEAM = V4WM2SJ8Q9;
 				GENERATE_INFOPLIST_FILE = NO;

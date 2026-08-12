@@ -161,6 +161,46 @@ enum DrivingLicenseParser {
         let terminators = Set<Character>(["\n", "\r", "\u{1E}", "\u{1F}"])
         var result: [String: String] = [:]
         let chars = Array(raw)
+
+        /// Three uppercase letters starting with `D` — the shape of every
+        /// element ID this parser surfaces (DCS, DAQ, DBA, …).
+        func isElementID(_ at: Int) -> Bool {
+            at + 2 < chars.count
+                && chars[at] == "D"
+                && chars[at + 1].isLetter && chars[at + 1].isUppercase
+                && chars[at + 2].isLetter && chars[at + 2].isUppercase
+        }
+
+        // A subfile's *body* opens with its two-character type welded
+        // straight onto the first element — `…ZV03190008` `DL` `DAQABC123…`
+        // — with no separator between them, because the header's offset is
+        // what is supposed to locate it.
+        //
+        // The terminator rule below therefore rejected that first element,
+        // and since it is `DAQ` on essentially every real licence, the
+        // *licence number* was the one field this parser reliably dropped.
+        // Everything after it sits at a line start and parsed fine, which
+        // is why the failure looked like a single missing field rather than
+        // a broken parse.
+        //
+        // The header's own designators (`DL00410288`) cannot be confused
+        // with this: their third character is a digit, so `isElementID`
+        // rejects them.
+        var subfileBodyStarts = Set<Int>()
+        for index in chars.indices where index + 4 < chars.count {
+            let pair = String(chars[index...index + 1])
+            let isSubfileType = pair == "DL" || pair == "ID" || pair == "EN"
+                || (chars[index] == "Z" && chars[index + 1].isLetter
+                    && chars[index + 1].isUppercase)
+            // Either at a record boundary, or straight after the
+            // designator block — whose final character is a digit.
+            let placed = index == 0 || terminators.contains(chars[index - 1])
+                || chars[index - 1].isNumber
+            if isSubfileType, placed, isElementID(index + 2) {
+                subfileBodyStarts.insert(index + 2)
+            }
+        }
+
         var i = 0
         while i < chars.count {
             // A real AAMVA data element ID is 3 uppercase letters starting
@@ -179,7 +219,7 @@ enum DrivingLicenseParser {
                 // element's value.
                 let atStart = i == 0
                 let afterTerminator = i > 0 && terminators.contains(chars[i - 1])
-                guard atStart || afterTerminator else {
+                guard atStart || afterTerminator || subfileBodyStarts.contains(i) else {
                     i += 1
                     continue
                 }

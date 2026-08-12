@@ -483,7 +483,22 @@ private struct ChessPiecePalette: View {
 /// Wrapping rather than using `isPresented` keeps the image and its
 /// presentation in one piece of state, so there is no window where the
 /// sheet is up with nothing to show.
-private struct IdentifiedImage: Identifiable {
-    let id = UUID()
+///
+/// **The id must be derived from the image, never minted.** This wrapper is
+/// built inside the presentation binding's `get`, which SwiftUI re-runs on
+/// every `body` evaluation — and dragging a corner mutates
+/// `model.pendingCorners`, which publishes, which re-evaluates `body`. With
+/// `let id = UUID()` every one of those passes produced a *different*
+/// identity, so SwiftUI concluded the presented item had changed and
+/// rebuilt `ChessCornerAdjustView` from scratch: `@State` reset, in-flight
+/// `DragGesture` destroyed. The corner placement screen let you nudge one
+/// handle and then went dead — which, since manual corners are the only way
+/// to warp a board until the models ship, made the whole training-capture
+/// path unusable.
+///
+/// `pendingImage` is stored, so the instance is stable for as long as the
+/// cover is up and `ObjectIdentifier` is the honest identity here.
+struct IdentifiedImage: Identifiable {
     let image: UIImage
+    var id: ObjectIdentifier { ObjectIdentifier(image) }
 }

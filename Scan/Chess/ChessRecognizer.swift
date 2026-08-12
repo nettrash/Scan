@@ -13,8 +13,12 @@
 //
 //  ## The pipeline the real implementation will run
 //
-//    1. **BoardNet** on the frame → four corners (normalised, in board
-//       order a8/h8/h1/a1) plus a presence logit.
+//    1. **BoardNet** on the frame → four corners (normalised, in **image**
+//       order — clockwise from the picture's top-left) plus a presence
+//       logit. Deliberately *not* board order: a board photographed from
+//       either side is geometrically identical, so which corner is a8 is
+//       not in the pixels. Asking for it made the network guess, and
+//       guess wrong 30% of the time.
 //    2. **Presence gate** → below threshold, report `.noBoardFound` and
 //       show nothing. This is the explicit fix for the prototype's
 //       `BoardDetector`, which returned its best-guess rectangle even
@@ -29,6 +33,12 @@
 //    5. **PieceNet** → 8×8×13 logits in a single inference.
 //    6. **Constrained decoding** (`ChessPositionDecoder`) → the most
 //       probable *legal* position, plus per-square confidence.
+//    7. **Orientation** → decode both the board and its 180° rotation and
+//       keep the one whose pawns point the right way. Legality cannot
+//       decide this (a rotation maps rank r to 7-r, so it never creates a
+//       back-rank pawn); pawn direction can, because pawns only move one
+//       way. With no pawns the position is genuinely symmetric and the
+//       user flips it.
 //
 //  Steps 1 and 5 need the models. Steps 2, 3, 4 and 6 are ours, and 6 is
 //  already written and tested.
@@ -69,12 +79,19 @@ public struct ChessRecognitionResult: Sendable {
     /// The decoded, legality-repaired position.
     public var recognized: ChessRecognizedPosition
     /// Board corners in **normalised image coordinates** (0...1, origin
-    /// top-left), in board order a8/h8/h1/a1.
+    /// top-left), in **image** order — clockwise from the top-left of the
+    /// picture.
     ///
-    /// Normalised so the overlay can be drawn at any preview size, and in
-    /// board order so the capture view can label which corner is which
-    /// when the user drags them.
+    /// Normalised so the overlay can be drawn at any preview size. Image
+    /// order rather than board order because that is what the model can
+    /// actually see; `orientationFlipped` carries the rest.
     public var corners: [CGPoint]
+    /// True when the position was read 180° from the warp's default.
+    /// The Chess tab uses this to set its board orientation.
+    public var orientationFlipped: Bool
+    /// How decisive the orientation call was, in mean pawn ranks. Zero
+    /// means genuinely symmetric — offer a flip, don't imply certainty.
+    public var orientationMargin: Double
     /// BoardNet's confidence that this is a board at all, 0...1.
     public var boardConfidence: Double
     /// True when the source was already rectilinear — an imported
@@ -85,11 +102,15 @@ public struct ChessRecognitionResult: Sendable {
     public init(recognized: ChessRecognizedPosition,
                 corners: [CGPoint],
                 boardConfidence: Double,
-                wasAlreadyRectilinear: Bool = false) {
+                wasAlreadyRectilinear: Bool = false,
+                orientationFlipped: Bool = false,
+                orientationMargin: Double = 0) {
         self.recognized = recognized
         self.corners = corners
         self.boardConfidence = boardConfidence
         self.wasAlreadyRectilinear = wasAlreadyRectilinear
+        self.orientationFlipped = orientationFlipped
+        self.orientationMargin = orientationMargin
     }
 }
 

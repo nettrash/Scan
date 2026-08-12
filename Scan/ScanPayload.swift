@@ -311,7 +311,16 @@ enum ScanPayloadParser {
                 return .gs1(p)
             }
         }
-        if trimmed.first == "\u{001D}" {
+        // FNC1 form. The group separator identifies it *wherever* it falls,
+        // not only in first position: FNC1 at the start of a symbol is a
+        // symbology-level flag that AVFoundation does not surface, so a real
+        // scanned payload begins at its first AI — `01…<GS>10ABC123`. Testing
+        // only `first ==` meant the common form was never recognised and
+        // every GS1 barcode came back as plain text.
+        //
+        // `looksLikeGS1` still has to agree, so a string that merely happens
+        // to contain a separator is not dragged in.
+        if trimmed.contains("\u{001D}"), GS1Parser.looksLikeGS1(trimmed) {
             if let p = GS1Parser.parse(trimmed) {
                 return .gs1(p)
             }

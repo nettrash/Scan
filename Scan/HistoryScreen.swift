@@ -240,6 +240,7 @@ private struct HistoryRow: View {
         case .plusCode:     return "mappin.and.ellipse"
         case .what3words:   return "mappin.and.ellipse"
         case .iban:         return "building.columns"
+        case .passkey:      return "person.badge.key"
         case .richURL(let r):
             switch r.kind {
             case .whatsApp, .telegram:    return "message"

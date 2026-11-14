@@ -16,7 +16,6 @@
 		E542678D2AB57CF400BFED1E /* ScanTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E542678C2AB57CF400BFED1E /* ScanTests.swift */; };
 		E54267972AB57CF400BFED1E /* ScanUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E54267962AB57CF400BFED1E /* ScanUITests.swift */; };
 		E54267992AB57CF400BFED1E /* ScanUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E54267982AB57CF400BFED1E /* ScanUITestsLaunchTests.swift */; };
-		E5C0DE000000000000007402 /* ChessTabUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000007401 /* ChessTabUITests.swift */; };
 		E5C0DE000000000000000102 /* Symbology.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000000101 /* Symbology.swift */; };
 		E5C0DE000000000000000202 /* ScanPayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000000201 /* ScanPayload.swift */; };
 		E5C0DE000000000000000302 /* CameraScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000000301 /* CameraScannerView.swift */; };
@@ -36,6 +35,7 @@
 		E5C0DE000000000000001B02 /* RichURLPayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000001B01 /* RichURLPayload.swift */; };
 		E5C0DE000000000000001C02 /* GS1Payload.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000001C01 /* GS1Payload.swift */; };
 		E5C0DE000000000000001D02 /* BoardingPassPayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000001D01 /* BoardingPassPayload.swift */; };
+		E5C0DE0000000000000078A2 /* PasskeyPayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE0000000000000078A1 /* PasskeyPayload.swift */; };
 		E5C0DE000000000000001E02 /* DrivingLicensePayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000001E01 /* DrivingLicensePayload.swift */; };
 		E5C0DE000000000000001F02 /* ScanSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000001F01 /* ScanSettings.swift */; };
 		E5C0DE000000000000002002 /* WhatsNew.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000002001 /* WhatsNew.swift */; };
@@ -44,31 +44,6 @@
 		E5C0DE000000000000002302 /* DeepLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000002301 /* DeepLink.swift */; };
 		E5C0DE000000000000002402 /* ScannedCode.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000002401 /* ScannedCode.swift */; };
 		E5C0DE000000000000002502 /* Platform.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000002501 /* Platform.swift */; };
-		E5C0DE000000000000006102 /* ChessTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000006101 /* ChessTypes.swift */; };
-		E5C0DE000000000000006202 /* ChessBitboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000006201 /* ChessBitboard.swift */; };
-		E5C0DE000000000000006302 /* ChessMove.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000006301 /* ChessMove.swift */; };
-		E5C0DE000000000000006402 /* ChessZobrist.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000006401 /* ChessZobrist.swift */; };
-		E5C0DE000000000000006502 /* ChessPosition.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000006501 /* ChessPosition.swift */; };
-		E5C0DE000000000000006602 /* ChessFEN.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000006601 /* ChessFEN.swift */; };
-		E5C0DE000000000000006702 /* ChessMoveGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000006701 /* ChessMoveGenerator.swift */; };
-		E5C0DE000000000000006902 /* ChessEvaluation.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000006901 /* ChessEvaluation.swift */; };
-		E5C0DE000000000000006A02 /* ChessSearch.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000006A01 /* ChessSearch.swift */; };
-		E5C0DE000000000000006B02 /* ChessNotation.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000006B01 /* ChessNotation.swift */; };
-		E5C0DE000000000000006C02 /* ChessEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000006C01 /* ChessEngine.swift */; };
-		E5C0DE000000000000007902 /* ChessCornerAdjustView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000007901 /* ChessCornerAdjustView.swift */; };
-		E5C0DE000000000000007802 /* ChessTrainingExport.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000007801 /* ChessTrainingExport.swift */; };
-		E5C0DE000000000000007702 /* ChessBoardWarpTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000007701 /* ChessBoardWarpTests.swift */; };
-		E5C0DE000000000000007792 /* ChessCornerPlacementTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000007791 /* ChessCornerPlacementTests.swift */; };
-		E5C0DE000000000000007602 /* ChessBoardWarp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000007601 /* ChessBoardWarp.swift */; };
-		E5C0DE000000000000006E02 /* ChessPositionDecoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000006E01 /* ChessPositionDecoder.swift */; };
-		E5C0DE000000000000006F02 /* ChessRecognizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000006F01 /* ChessRecognizer.swift */; };
-		E5C0DE000000000000007002 /* ChessBoardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000007001 /* ChessBoardView.swift */; };
-		E5C0DE000000000000007102 /* ChessScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000007101 /* ChessScreen.swift */; };
-		E5C0DE000000000000007202 /* ChessScreenModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000007201 /* ChessScreenModel.swift */; };
-		E5C0DE000000000000006802 /* ChessEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000006801 /* ChessEngineTests.swift */; };
-		E5C0DE000000000000006D02 /* ChessSearchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000006D01 /* ChessSearchTests.swift */; };
-		E5C0DE000000000000008002 /* ChessTrainingExportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000008001 /* ChessTrainingExportTests.swift */; };
-		E5C0DE000000000000007302 /* ChessDecoderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000007301 /* ChessDecoderTests.swift */; };
 		E5C0DE000000000000005011 /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000005010 /* ShareViewController.swift */; };
 		E5C0DE000000000000005013 /* ShareView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000005012 /* ShareView.swift */; };
 		E5C0DE000000000000005051 /* ScanShareExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000005002 /* ScanShareExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -83,6 +58,7 @@
 		E5C0DE000000000000005068 /* RichURLPayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000001B01 /* RichURLPayload.swift */; };
 		E5C0DE000000000000005069 /* GS1Payload.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000001C01 /* GS1Payload.swift */; };
 		E5C0DE00000000000000506A /* BoardingPassPayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000001D01 /* BoardingPassPayload.swift */; };
+		E5C0DE0000000000000078A3 /* PasskeyPayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE0000000000000078A1 /* PasskeyPayload.swift */; };
 		E5C0DE00000000000000506B /* DrivingLicensePayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000001E01 /* DrivingLicensePayload.swift */; };
 		E5C0DE00000000000000506C /* ScannedCode.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000002401 /* ScannedCode.swift */; };
 /* End PBXBuildFile section */
@@ -139,7 +115,6 @@
 		E54267922AB57CF400BFED1E /* ScanUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ScanUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		E54267962AB57CF400BFED1E /* ScanUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanUITests.swift; sourceTree = "<group>"; };
 		E54267982AB57CF400BFED1E /* ScanUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanUITestsLaunchTests.swift; sourceTree = "<group>"; };
-		E5C0DE000000000000007401 /* ChessTabUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChessTabUITests.swift; sourceTree = "<group>"; };
 		E5C0DE000000000000000101 /* Symbology.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Symbology.swift; sourceTree = "<group>"; };
 		E5C0DE000000000000000201 /* ScanPayload.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanPayload.swift; sourceTree = "<group>"; };
 		E5C0DE000000000000000301 /* CameraScannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraScannerView.swift; sourceTree = "<group>"; };
@@ -159,6 +134,7 @@
 		E5C0DE000000000000001B01 /* RichURLPayload.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RichURLPayload.swift; sourceTree = "<group>"; };
 		E5C0DE000000000000001C01 /* GS1Payload.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GS1Payload.swift; sourceTree = "<group>"; };
 		E5C0DE000000000000001D01 /* BoardingPassPayload.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardingPassPayload.swift; sourceTree = "<group>"; };
+		E5C0DE0000000000000078A1 /* PasskeyPayload.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PasskeyPayload.swift; sourceTree = "<group>"; };
 		E5C0DE000000000000001E01 /* DrivingLicensePayload.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrivingLicensePayload.swift; sourceTree = "<group>"; };
 		E5C0DE000000000000001F01 /* ScanSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanSettings.swift; sourceTree = "<group>"; };
 		E5C0DE000000000000002001 /* WhatsNew.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhatsNew.swift; sourceTree = "<group>"; };
@@ -174,31 +150,6 @@
 		E5C0DE000000000000005012 /* ShareView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareView.swift; sourceTree = "<group>"; };
 		E5C0DE000000000000005014 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		E5C0DE000000000000005015 /* ScanShareExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ScanShareExtension.entitlements; sourceTree = "<group>"; };
-		E5C0DE000000000000006101 /* ChessTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChessTypes.swift; sourceTree = "<group>"; };
-		E5C0DE000000000000006201 /* ChessBitboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChessBitboard.swift; sourceTree = "<group>"; };
-		E5C0DE000000000000006301 /* ChessMove.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChessMove.swift; sourceTree = "<group>"; };
-		E5C0DE000000000000006401 /* ChessZobrist.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChessZobrist.swift; sourceTree = "<group>"; };
-		E5C0DE000000000000006501 /* ChessPosition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChessPosition.swift; sourceTree = "<group>"; };
-		E5C0DE000000000000006601 /* ChessFEN.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChessFEN.swift; sourceTree = "<group>"; };
-		E5C0DE000000000000006701 /* ChessMoveGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChessMoveGenerator.swift; sourceTree = "<group>"; };
-		E5C0DE000000000000006801 /* ChessEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChessEngineTests.swift; sourceTree = "<group>"; };
-		E5C0DE000000000000006D01 /* ChessSearchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChessSearchTests.swift; sourceTree = "<group>"; };
-		E5C0DE000000000000008001 /* ChessTrainingExportTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChessTrainingExportTests.swift; sourceTree = "<group>"; };
-		E5C0DE000000000000007301 /* ChessDecoderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChessDecoderTests.swift; sourceTree = "<group>"; };
-		E5C0DE000000000000006901 /* ChessEvaluation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChessEvaluation.swift; sourceTree = "<group>"; };
-		E5C0DE000000000000006A01 /* ChessSearch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChessSearch.swift; sourceTree = "<group>"; };
-		E5C0DE000000000000006B01 /* ChessNotation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChessNotation.swift; sourceTree = "<group>"; };
-		E5C0DE000000000000006C01 /* ChessEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChessEngine.swift; sourceTree = "<group>"; };
-		E5C0DE000000000000007901 /* ChessCornerAdjustView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChessCornerAdjustView.swift; sourceTree = "<group>"; };
-		E5C0DE000000000000007801 /* ChessTrainingExport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChessTrainingExport.swift; sourceTree = "<group>"; };
-		E5C0DE000000000000007701 /* ChessBoardWarpTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChessBoardWarpTests.swift; sourceTree = "<group>"; };
-		E5C0DE000000000000007791 /* ChessCornerPlacementTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChessCornerPlacementTests.swift; sourceTree = "<group>"; };
-		E5C0DE000000000000007601 /* ChessBoardWarp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChessBoardWarp.swift; sourceTree = "<group>"; };
-		E5C0DE000000000000006E01 /* ChessPositionDecoder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChessPositionDecoder.swift; sourceTree = "<group>"; };
-		E5C0DE000000000000006F01 /* ChessRecognizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChessRecognizer.swift; sourceTree = "<group>"; };
-		E5C0DE000000000000007001 /* ChessBoardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChessBoardView.swift; sourceTree = "<group>"; };
-		E5C0DE000000000000007101 /* ChessScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChessScreen.swift; sourceTree = "<group>"; };
-		E5C0DE000000000000007201 /* ChessScreenModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChessScreenModel.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -278,6 +229,7 @@
 				E5C0DE000000000000001B01 /* RichURLPayload.swift */,
 				E5C0DE000000000000001C01 /* GS1Payload.swift */,
 				E5C0DE000000000000001D01 /* BoardingPassPayload.swift */,
+				E5C0DE0000000000000078A1 /* PasskeyPayload.swift */,
 				E5C0DE000000000000001E01 /* DrivingLicensePayload.swift */,
 				E5C0DE000000000000001F01 /* ScanSettings.swift */,
 				E5C0DE000000000000002001 /* WhatsNew.swift */,
@@ -287,8 +239,6 @@
 				E5C0DE000000000000002401 /* ScannedCode.swift */,
 				E5C0DE000000000000002501 /* Platform.swift */,
 				E5C0DE000000000000000101 /* Symbology.swift */,
-				E5C0DE000000000000006000 /* Chess */,
-				E5C0DE000000000000007500 /* ChessUI */,
 				E54267792AB57CF400BFED1E /* Assets.xcassets */,
 				E542677E2AB57CF400BFED1E /* Persistence.swift */,
 				E54267832AB57CF400BFED1E /* Info.plist */,
@@ -311,47 +261,8 @@
 			isa = PBXGroup;
 			children = (
 				E542678C2AB57CF400BFED1E /* ScanTests.swift */,
-				E5C0DE000000000000006801 /* ChessEngineTests.swift */,
-				E5C0DE000000000000006D01 /* ChessSearchTests.swift */,
-				E5C0DE000000000000008001 /* ChessTrainingExportTests.swift */,
-				E5C0DE000000000000007701 /* ChessBoardWarpTests.swift */,
-				E5C0DE000000000000007791 /* ChessCornerPlacementTests.swift */,
-				E5C0DE000000000000007301 /* ChessDecoderTests.swift */,
 			);
 			path = ScanTests;
-			sourceTree = "<group>";
-		};
-		E5C0DE000000000000007500 /* ChessUI */ = {
-			isa = PBXGroup;
-			children = (
-				E5C0DE000000000000007001 /* ChessBoardView.swift */,
-				E5C0DE000000000000007901 /* ChessCornerAdjustView.swift */,
-				E5C0DE000000000000007101 /* ChessScreen.swift */,
-				E5C0DE000000000000007201 /* ChessScreenModel.swift */,
-			);
-			path = ChessUI;
-			sourceTree = "<group>";
-		};
-		E5C0DE000000000000006000 /* Chess */ = {
-			isa = PBXGroup;
-			children = (
-				E5C0DE000000000000006101 /* ChessTypes.swift */,
-				E5C0DE000000000000006201 /* ChessBitboard.swift */,
-				E5C0DE000000000000006301 /* ChessMove.swift */,
-				E5C0DE000000000000006401 /* ChessZobrist.swift */,
-				E5C0DE000000000000006501 /* ChessPosition.swift */,
-				E5C0DE000000000000006601 /* ChessFEN.swift */,
-				E5C0DE000000000000006701 /* ChessMoveGenerator.swift */,
-				E5C0DE000000000000006901 /* ChessEvaluation.swift */,
-				E5C0DE000000000000006A01 /* ChessSearch.swift */,
-				E5C0DE000000000000006B01 /* ChessNotation.swift */,
-				E5C0DE000000000000006C01 /* ChessEngine.swift */,
-				E5C0DE000000000000007801 /* ChessTrainingExport.swift */,
-				E5C0DE000000000000007601 /* ChessBoardWarp.swift */,
-				E5C0DE000000000000006E01 /* ChessPositionDecoder.swift */,
-				E5C0DE000000000000006F01 /* ChessRecognizer.swift */,
-			);
-			path = Chess;
 			sourceTree = "<group>";
 		};
 		E54267952AB57CF400BFED1E /* ScanUITests */ = {
@@ -359,7 +270,6 @@
 			children = (
 				E54267962AB57CF400BFED1E /* ScanUITests.swift */,
 				E54267982AB57CF400BFED1E /* ScanUITestsLaunchTests.swift */,
-				E5C0DE000000000000007401 /* ChessTabUITests.swift */,
 			);
 			path = ScanUITests;
 			sourceTree = "<group>";
@@ -556,6 +466,7 @@
 				E5C0DE000000000000001B02 /* RichURLPayload.swift in Sources */,
 				E5C0DE000000000000001C02 /* GS1Payload.swift in Sources */,
 				E5C0DE000000000000001D02 /* BoardingPassPayload.swift in Sources */,
+				E5C0DE0000000000000078A2 /* PasskeyPayload.swift in Sources */,
 				E5C0DE000000000000001E02 /* DrivingLicensePayload.swift in Sources */,
 				E5C0DE000000000000001F02 /* ScanSettings.swift in Sources */,
 				E5C0DE000000000000002002 /* WhatsNew.swift in Sources */,
@@ -564,25 +475,6 @@
 				E5C0DE000000000000002302 /* DeepLink.swift in Sources */,
 				E5C0DE000000000000002402 /* ScannedCode.swift in Sources */,
 				E5C0DE000000000000002502 /* Platform.swift in Sources */,
-				E5C0DE000000000000006102 /* ChessTypes.swift in Sources */,
-				E5C0DE000000000000006202 /* ChessBitboard.swift in Sources */,
-				E5C0DE000000000000006302 /* ChessMove.swift in Sources */,
-				E5C0DE000000000000006402 /* ChessZobrist.swift in Sources */,
-				E5C0DE000000000000006502 /* ChessPosition.swift in Sources */,
-				E5C0DE000000000000006602 /* ChessFEN.swift in Sources */,
-				E5C0DE000000000000006702 /* ChessMoveGenerator.swift in Sources */,
-				E5C0DE000000000000006902 /* ChessEvaluation.swift in Sources */,
-				E5C0DE000000000000006A02 /* ChessSearch.swift in Sources */,
-				E5C0DE000000000000006B02 /* ChessNotation.swift in Sources */,
-				E5C0DE000000000000006C02 /* ChessEngine.swift in Sources */,
-				E5C0DE000000000000007902 /* ChessCornerAdjustView.swift in Sources */,
-				E5C0DE000000000000007802 /* ChessTrainingExport.swift in Sources */,
-				E5C0DE000000000000007602 /* ChessBoardWarp.swift in Sources */,
-				E5C0DE000000000000006E02 /* ChessPositionDecoder.swift in Sources */,
-				E5C0DE000000000000006F02 /* ChessRecognizer.swift in Sources */,
-				E5C0DE000000000000007002 /* ChessBoardView.swift in Sources */,
-				E5C0DE000000000000007102 /* ChessScreen.swift in Sources */,
-				E5C0DE000000000000007202 /* ChessScreenModel.swift in Sources */,
 				E54267822AB57CF400BFED1E /* Scan.xcdatamodeld in Sources */,
 				E54267762AB57CF200BFED1E /* ScanApp.swift in Sources */,
 			);
@@ -593,12 +485,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				E542678D2AB57CF400BFED1E /* ScanTests.swift in Sources */,
-				E5C0DE000000000000006802 /* ChessEngineTests.swift in Sources */,
-				E5C0DE000000000000006D02 /* ChessSearchTests.swift in Sources */,
-				E5C0DE000000000000008002 /* ChessTrainingExportTests.swift in Sources */,
-				E5C0DE000000000000007702 /* ChessBoardWarpTests.swift in Sources */,
-				E5C0DE000000000000007792 /* ChessCornerPlacementTests.swift in Sources */,
-				E5C0DE000000000000007302 /* ChessDecoderTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -608,7 +494,6 @@
 			files = (
 				E54267972AB57CF400BFED1E /* ScanUITests.swift in Sources */,
 				E54267992AB57CF400BFED1E /* ScanUITestsLaunchTests.swift in Sources */,
-				E5C0DE000000000000007402 /* ChessTabUITests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -629,6 +514,7 @@
 				E5C0DE000000000000005068 /* RichURLPayload.swift in Sources */,
 				E5C0DE000000000000005069 /* GS1Payload.swift in Sources */,
 				E5C0DE00000000000000506A /* BoardingPassPayload.swift in Sources */,
+				E5C0DE0000000000000078A3 /* PasskeyPayload.swift in Sources */,
 				E5C0DE00000000000000506B /* DrivingLicensePayload.swift in Sources */,
 				E5C0DE00000000000000506C /* ScannedCode.swift in Sources */,
 			);
@@ -709,6 +595,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LM_SKIP_METADATA_EXTRACTION = YES;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
@@ -771,6 +658,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LM_SKIP_METADATA_EXTRACTION = YES;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
@@ -793,7 +681,7 @@
 				CODE_SIGN_ENTITLEMENTS = Scan/Scan.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 139;
+				CURRENT_PROJECT_VERSION = 234;
 				DERIVE_MACCATALYST_PRODUCT_BUNDLE_IDENTIFIER = NO;
 				DEVELOPMENT_ASSET_PATHS = "\"Scan/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
@@ -828,7 +716,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Scan/Scan.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 139;
+				CURRENT_PROJECT_VERSION = 234;
 				DERIVE_MACCATALYST_PRODUCT_BUNDLE_IDENTIFIER = NO;
 				DEVELOPMENT_ASSET_PATHS = "\"Scan/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
@@ -860,7 +748,7 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 139;
+				CURRENT_PROJECT_VERSION = 234;
 				DERIVE_MACCATALYST_PRODUCT_BUNDLE_IDENTIFIER = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
@@ -888,7 +776,7 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 139;
+				CURRENT_PROJECT_VERSION = 234;
 				DERIVE_MACCATALYST_PRODUCT_BUNDLE_IDENTIFIER = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
@@ -915,7 +803,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 139;
+				CURRENT_PROJECT_VERSION = 234;
 				DERIVE_MACCATALYST_PRODUCT_BUNDLE_IDENTIFIER = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
@@ -942,7 +830,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 139;
+				CURRENT_PROJECT_VERSION = 234;
 				DERIVE_MACCATALYST_PRODUCT_BUNDLE_IDENTIFIER = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
@@ -970,7 +858,7 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = ScanShareExtension/ScanShareExtension.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 139;
+				CURRENT_PROJECT_VERSION = 234;
 				DERIVE_MACCATALYST_PRODUCT_BUNDLE_IDENTIFIER = NO;
 				DEVELOPMENT_TEAM = V4WM2SJ8Q9;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -1000,7 +888,7 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = ScanShareExtension/ScanShareExtension.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 139;
+				CURRENT_PROJECT_VERSION = 234;
 				DERIVE_MACCATALYST_PRODUCT_BUNDLE_IDENTIFIER = NO;
 				DEVELOPMENT_TEAM = V4WM2SJ8Q9;
 				GENERATE_INFOPLIST_FILE = NO;

@@ -1336,4 +1336,64 @@ final class ScanTests: XCTestCase {
             XCTAssertEqual(m.kind, .meeting)
         } else { XCTFail("Expected meeting .richURL") }
     }
+
+    // MARK: - Passkey / FIDO hybrid transport (1.10)
+
+    // digitEncode(CBOR map {0: 33-byte key, 1: 16-byte secret, 2: 2,
+    // 3: 1721400000, 4: true, 5: "ga"}) per CTAP 2.2 §11.5.
+    private static let fidoSignInQR = "FIDO:/005640586143991420254210104918118704520152650222346064982042512635050847625585230466405085311340191775070633618515609790059716415128245854177999084978946107096654083332"
+
+    // Same shape with {2: 3, 3: 1755763200, 4: false, 5: "mc", 6: true} —
+    // key 6 is a newer addition the parser must tolerate.
+    private static let fidoCreateQR = "FIDO:/00564058614399143025421010491811870452015265022234606498204251263505084762558523046640508531134019177507063361851560979005971641512824580023161215293926701798171307406340245"
+
+    func testParsesPasskeySignInQR() {
+        guard case .passkey(let p) = ScanPayloadParser.parse(Self.fidoSignInQR) else {
+            return XCTFail("Expected .passkey")
+        }
+        XCTAssertTrue(p.decoded)
+        XCTAssertEqual(p.operationHint, "ga")
+        XCTAssertEqual(p.purposeDescription, "Sign in with a passkey")
+        XCTAssertEqual(p.tunnelDomains, 2)
+        XCTAssertEqual(p.linkable, true)
+        XCTAssertEqual(p.generatedAt, Date(timeIntervalSince1970: 1_721_400_000))
+        XCTAssertEqual(ScanPayloadParser.parse(Self.fidoSignInQR).kindLabel, "Passkey")
+    }
+
+    func testParsesPasskeyCreateQRAndToleratesUnknownKeys() {
+        guard case .passkey(let p) = ScanPayloadParser.parse(Self.fidoCreateQR) else {
+            return XCTFail("Expected .passkey")
+        }
+        XCTAssertTrue(p.decoded)
+        XCTAssertEqual(p.operationHint, "mc")
+        XCTAssertEqual(p.purposeDescription, "Create a passkey")
+        XCTAssertEqual(p.tunnelDomains, 3)
+        XCTAssertEqual(p.linkable, false)
+    }
+
+    func testPasskeyPrefixIsCaseInsensitive() {
+        let lower = "fido:/" + Self.fidoSignInQR.dropFirst("FIDO:/".count)
+        guard case .passkey(let p) = ScanPayloadParser.parse(lower) else {
+            return XCTFail("Expected .passkey from lowercase prefix")
+        }
+        XCTAssertEqual(p.operationHint, "ga")
+    }
+
+    func testUndecodablePasskeyStillRecognised() {
+        // Valid digits that aren't a CBOR map (or a malformed chunk
+        // length) → recognised as a passkey QR, flagged undecodable.
+        for raw in ["FIDO:/123", "FIDO:/1234", "FIDO:/99999999999999999"] {
+            guard case .passkey(let p) = ScanPayloadParser.parse(raw) else {
+                return XCTFail("Expected undecodable .passkey for \(raw)")
+            }
+            XCTAssertFalse(p.decoded, raw)
+            XCTAssertNil(p.operationHint, raw)
+        }
+    }
+
+    func testFidoPrefixWithNonDigitsFallsBackToText() {
+        guard case .text = ScanPayloadParser.parse("FIDO:/hello-world") else {
+            return XCTFail("Expected .text for non-digit FIDO payload")
+        }
+    }
 }

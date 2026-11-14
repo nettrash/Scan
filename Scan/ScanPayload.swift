@@ -45,6 +45,8 @@ enum ScanPayload: Equatable {
     case plusCode(PlusCodePayload)
     case what3words(What3WordsPayload)
     case iban(IBANPayload)
+    // New in 1.10.
+    case passkey(PasskeyPayload)
     case text(String)
 
     struct ContactPayload: Equatable {
@@ -92,6 +94,7 @@ enum ScanPayload: Equatable {
         case .plusCode:     return "Plus Code"
         case .what3words:   return "what3words"
         case .iban:         return "IBAN"
+        case .passkey:      return "Passkey"
         case .text:         return "Text"
         }
     }
@@ -127,6 +130,15 @@ enum ScanPayloadParser {
         if DrivingLicenseParser.looksLikeAAMVA(trimmed) {
             if let p = DrivingLicenseParser.parse(trimmed) {
                 return .drivingLicense(p)
+            }
+        }
+
+        // FIDO cross-device passkey QR (CTAP 2.2 hybrid transport) —
+        // "FIDO:/" + digit-encoded CBOR. Shown by websites for the
+        // phone-as-authenticator flow.
+        if PasskeyParser.looksLikePasskey(trimmed) {
+            if let p = PasskeyParser.parse(trimmed) {
+                return .passkey(p)
             }
         }
 

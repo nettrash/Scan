@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import CoreData
 import UIKit
 import Contacts
 import ContactsUI
@@ -514,6 +515,20 @@ struct PayloadActionsView: View {
         case .iban(let p):
             LabelledFieldsList(fields: p.labelledFields)
             Text("Checksum-valid \(p.countryCode) IBAN. Copy it into your bank app to pay or add a payee — there's no universal \"open\" for a bare account number.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+        case .passkey(let p):
+            LabelledFieldsList(fields: p.labelledFields)
+            // Same phishing shape as digital-identity flows: approving a
+            // code somebody sent you can hand *them* a session as you.
+            Label(
+                "Only use a passkey code you initiated yourself — approving someone else's can sign them in to your account.",
+                systemImage: "exclamationmark.shield"
+            )
+            .font(.footnote)
+            .foregroundStyle(.orange)
+            Text("Cross-device sign-in QR. Only the system camera flow can complete the handshake (on iPhone, the built-in Camera app) — Scan can't sign in with it. The one-time secret inside is never displayed, and the code expires shortly after it's shown.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
 

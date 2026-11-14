@@ -11,6 +11,12 @@ build-phase script via `agvtool next-version -all`.
 
 ## [Unreleased]
 
+_(nothing yet)_
+
+## [1.10] — 2026-11-14
+
+Passkey QR recognition, plus GS1 and driving-licence parser fixes.
+
 ### Added
 
 - **Passkey QR (FIDO cross-device sign-in)** — recognises the `FIDO:/`

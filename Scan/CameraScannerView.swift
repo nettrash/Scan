@@ -42,6 +42,13 @@ struct CameraScannerView: UIViewControllerRepresentable {
         vc.setTorch(on: isTorchOn)
     }
 
+    /// SwiftUI is removing this camera — the switch to Live Text, which
+    /// brings its own. Release the session now rather than whenever the
+    /// controller happens to deallocate.
+    static func dismantleUIViewController(_ vc: ScannerViewController, coordinator: Coordinator) {
+        vc.tearDown()
+    }
+
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
     }
@@ -83,6 +90,27 @@ final class ScannerViewController: UIViewController, AVCaptureMetadataOutputObje
     private weak var captureDevice: AVCaptureDevice?
     private var hasConfigured = false
 
+    // Run state, main thread only. The session runs while the view is in a
+    // window, the host hasn't paused it and SwiftUI hasn't dismantled it —
+    // never merely because `updateUIViewController` ran: ScannerScreen
+    // re-renders while another tab is showing (a Settings toggle it reads
+    // is enough), and "not paused" must not restart the camera, or light
+    // the torch, behind that tab.
+    private var isInWindow = false
+    /// Between `viewWillDisappear` and the next `viewWillAppear` (or the
+    /// next time the view enters a window).
+    private var isDisappearing = false
+    private var isPausedByHost = false
+    private var isTornDown = false
+    private var wantsTorch = false
+    /// Whether the torch is on because this controller lit it. Only that
+    /// torch is ours to put out.
+    private var litTorch = false
+
+    private var shouldRun: Bool {
+        isInWindow && !isDisappearing && !isPausedByHost && !isTornDown
+    }
+
     /// Fraction of the preview's shorter side used for the centred
     /// region-of-interest. Codes outside this rect are not delivered
     /// by AVFoundation — saves cycles and stops a stray code at the
@@ -92,6 +120,20 @@ final class ScannerViewController: UIViewController, AVCaptureMetadataOutputObje
     /// typical phone preview, so anything visually inside the
     /// brackets is also inside the ROI.
     private let roiFraction: CGFloat = 0.78
+
+    override func loadView() {
+        // Window membership is the "on screen" signal that holds however
+        // SwiftUI inserts this controller (a tab switch takes the view out
+        // of the window); the appearance callbacks below add to it.
+        let root = CameraHostView()
+        root.onWindowChange = { [weak self] inWindow in
+            guard let self else { return }
+            self.isInWindow = inWindow
+            if inWindow { self.isDisappearing = false }
+            self.updateRunState()
+        }
+        view = root
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -109,42 +151,85 @@ final class ScannerViewController: UIViewController, AVCaptureMetadataOutputObje
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        startIfPossible()
+        isDisappearing = false
+        updateRunState()
     }
 
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
+        isDisappearing = true
+        updateRunState()
+    }
+
+    // MARK: - Public controls
+
+    /// The host's pause (an imported image is decoding). Acts on a change
+    /// only — SwiftUI calls this on every update.
+    func setPaused(_ paused: Bool) {
+        guard paused != isPausedByHost else { return }
+        isPausedByHost = paused
+        updateRunState()
+    }
+
+    /// Re-applied on every update, which is cheap when nothing changed and
+    /// heals a torch the session reset when it started.
+    func setTorch(on: Bool) {
+        wantsTorch = on
+        applyTorch()
+    }
+
+    /// The camera is going away for good (see `dismantleUIViewController`).
+    /// The torch is left alone: the Live Text camera taking over the lens
+    /// sets its own.
+    func tearDown() {
+        isTornDown = true
         sessionQueue.async { [session] in
             if session.isRunning { session.stopRunning() }
         }
     }
 
-    // MARK: - Public controls
-
-    func setPaused(_ paused: Bool) {
-        sessionQueue.async { [weak self] in
-            guard let self = self else { return }
-            if paused {
-                if self.session.isRunning { self.session.stopRunning() }
-            } else {
-                if !self.session.isRunning { self.session.startRunning() }
+    /// Starts or stops the session to match `shouldRun`. The session queue
+    /// runs the requests in order, so the last one wins.
+    private func updateRunState() {
+        let run = shouldRun
+        if !run { applyTorch() }
+        sessionQueue.async { [weak self, session] in
+            if run {
+                // No inputs yet: `buildSession` calls back here when done.
+                guard !session.inputs.isEmpty, !session.isRunning else { return }
+                session.startRunning()
+                DispatchQueue.main.async { self?.applyTorch() }
+            } else if session.isRunning {
+                session.stopRunning()
             }
         }
     }
 
-    func setTorch(on: Bool) {
-        guard let device = AVCaptureDevice.default(for: .video),
+    /// The torch follows `wantsTorch` while the camera runs for this screen
+    /// and is off otherwise — a torch set with no session behind it would
+    /// stay lit as a flashlight. Best-effort, as before.
+    private func applyTorch() {
+        guard !isTornDown else { return }
+        let on = wantsTorch && shouldRun
+        guard on || litTorch,
+              let device = AVCaptureDevice.default(for: .video),
               device.hasTorch else { return }
+        if device.torchMode == (on ? .on : .off) {
+            litTorch = on
+            return
+        }
+        if on, !device.isTorchAvailable { return }
         do {
             try device.lockForConfiguration()
+            defer { device.unlockForConfiguration() }
             if on {
-                try? device.setTorchModeOn(level: 1.0)
+                try device.setTorchModeOn(level: 1.0)
             } else {
                 device.torchMode = .off
             }
-            device.unlockForConfiguration()
+            litTorch = on
         } catch {
-            // Best-effort; ignore failures.
+            // Best-effort; another client may hold the configuration.
         }
     }
 
@@ -170,7 +255,13 @@ final class ScannerViewController: UIViewController, AVCaptureMetadataOutputObje
                 }
             }
         default:
-            self.delegate?.scanner(self, didFailWith: "Camera access is not allowed. Enable it in Settings to scan codes.")
+            // On the next turn, as the paths above report: this runs from
+            // `viewDidLoad`, inside SwiftUI's update, where the host's
+            // state change would be dropped and the screen left blank.
+            DispatchQueue.main.async { [weak self] in
+                guard let self else { return }
+                self.delegate?.scanner(self, didFailWith: "Camera access is not allowed. Enable it in Settings to scan codes.")
+            }
         }
     }
 
@@ -220,7 +311,7 @@ final class ScannerViewController: UIViewController, AVCaptureMetadataOutputObje
                 self.captureDevice = device
                 self.updatePreviewOrientation()
                 self.applyRectOfInterest()
-                self.startIfPossible()
+                self.updateRunState()
             }
         }
     }
@@ -308,14 +399,6 @@ final class ScannerViewController: UIViewController, AVCaptureMetadataOutputObje
         }
     }
 
-    private func startIfPossible() {
-        sessionQueue.async { [weak self] in
-            guard let self = self else { return }
-            if self.session.inputs.isEmpty { return }
-            if !self.session.isRunning { self.session.startRunning() }
-        }
-    }
-
     private func updatePreviewOrientation() {
         guard let connection = previewLayer?.connection else { return }
 
@@ -376,6 +459,9 @@ final class ScannerViewController: UIViewController, AVCaptureMetadataOutputObje
     func metadataOutput(_ output: AVCaptureMetadataOutput,
                         didOutput metadataObjects: [AVMetadataObject],
                         from connection: AVCaptureConnection) {
+        // A frame still in flight when SwiftUI dismantled this camera
+        // belongs to the mode the user just left.
+        guard !isTornDown else { return }
         // Collect *all* readable codes in the frame — the SwiftUI
         // host decides what to do with multiplicity (single-code path
         // goes straight through; multi-code path renders a chooser).
@@ -410,6 +496,16 @@ final class ScannerViewController: UIViewController, AVCaptureMetadataOutputObje
 }
 
 // MARK: - Helpers
+
+/// The scanner's root view; reports when it enters or leaves a window.
+private final class CameraHostView: UIView {
+    var onWindowChange: ((Bool) -> Void)?
+
+    override func didMoveToWindow() {
+        super.didMoveToWindow()
+        onWindowChange?(window != nil)
+    }
+}
 
 private extension Comparable {
     /// Clamp a value to a closed range. Used by the ROI mapping to

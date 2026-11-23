@@ -13,6 +13,188 @@ build-phase script via `agvtool next-version -all`.
 
 _(nothing yet)_
 
+## [1.10] — 2026-11-14
+
+Scan now explains codes, checks them for tricks before you act on them,
+reads printed text and NFC tags, and decodes the identity, product-passport
+and e-invoice formats that EU wallets and regulations introduced — plus
+Passkey QR recognition and GS1 / driving-licence parser fixes. What you scan
+is still analysed on the device and never uploaded; the only new downloads
+are Apple's own translation language packs, which iOS asks about first.
+
+### Added
+
+- **"What is this code?"** — explains an unfamiliar result in plain language
+  on the scanner, History and deep-link result sheets. Uses Apple
+  Intelligence (FoundationModels, the on-device `SystemLanguageModel` only —
+  never Private Cloud Compute) where the device supports it, and Scan's
+  built-in rule-based explainer everywhere else. Credential-shaped content
+  (Wi-Fi passwords, `otpauth` secrets, private keys, seed phrases, API
+  tokens, OpenID4VCI pre-authorised codes, long opaque blobs) is blanked
+  before anything reaches the model; a model answer is capped in length and
+  falls back to the built-in answer after 10 seconds; the cautions shown are
+  always Scan's own rules, never model-generated. (`Assistant.swift`,
+  `AssistantView.swift`, `HeuristicExplainer.swift`, `SecretRedaction.swift`)
+- **"Describe the code"** on the Generate tab — type "Wi-Fi for network
+  BlueHouse, password hunter2" and the form fills itself (text, link, Wi-Fi
+  or contact). Apple Intelligence first where available, keeping a value only
+  if it appears word for word in what you typed, then the built-in rules.
+  Nothing you type leaves the device. (`AssistantView.swift`,
+  `GeneratorScreen.swift`)
+- **QR safety check** — every decoded code is graded note / caution / danger
+  before an action is offered: punycode and mixed-alphabet hosts, brand
+  look-alikes (homoglyphs such as `paypaI.com` or `rnicrosoft`, a brand
+  pasted in front of someone else's domain such as
+  `paypal.com.secure-login.info`), `user@host` and backslash address-bar
+  tricks, raw and numeric IP hosts, odd ports, open redirects, URL
+  shorteners, plain HTTP, abuse-heavy TLDs, oversized or encoded links,
+  urgent bait wording, dangerous schemes, exposed secrets (private and WIF
+  keys, BIP-39 seed phrases), 2FA-enrolment codes, open Wi-Fi, payment codes
+  without a payee or with a preset amount, static payment posters, and more
+  than one code in the frame (the sticker-over-sticker tamper). A danger
+  finding replaces the code's Open button with "Copy link" until you choose
+  "I understand — open anyway"; an ordinary link, internationalised domains
+  included, gets no finding at all. Pure on-device string analysis — no
+  reputation service is contacted. (`QrRisk.swift`, `QrRiskView.swift`,
+  `PayloadActionsView.swift`)
+- **Scan modes: Codes, Live Text and Bulk**, remembered between launches.
+  - *Live Text* (VisionKit `DataScannerViewController`; iPhone and iPad with
+    a supported camera, hidden on Mac, Vision Pro and the Simulator, falling
+    back to Codes when the camera is unavailable) reads text and codes
+    together. Tap a highlighted block for a card with Copy, Share and
+    Translate; "Select words in this frame" freezes the picture for
+    word-by-word selection with the system menu (`ImageAnalysisInteraction`)
+    — that menu's Look Up and Translate are iOS services that may use
+    Apple's servers. A single code in view opens its result once per stay in
+    the frame; with several in view, tap the one you want.
+  - *Bulk* keeps scanning and collects every distinct code with a sighting
+    count (up to 500, in memory only). The list survives mode and tab
+    switches until you tap Clear; "Save all to History" writes only the
+    codes not saved yet; "Export CSV" shares
+    `value,symbology,kind,sightings,first_seen`.
+  (`ScanMode.swift`, `VisionTextScanner.swift`, `ScannerScreen.swift`)
+- **On-device translation** — a Translate row on text, link and e-mail
+  results and on the Live Text card, using Apple's Translation framework.
+  The target is Settings → Insights → "Translate to" (default: the first of
+  your preferred languages this device can translate into, otherwise
+  English); the source language is detected on the device. A missing
+  language pack is downloaded by iOS after its own consent sheet; the text
+  is never uploaded. Which of the 30 catalogue languages are offered depends
+  on the device and iOS version (iPhone, iPad and Mac; not Vision Pro).
+  (`TranslationKit.swift`)
+- **NFC read and write** (iPhone) — "Read an NFC tag" on the Scan tab reads a
+  tag's first readable record (text, URI, Smart Poster, Wi-Fi configuration
+  or vCard) into the normal result sheet. "Write to NFC tag" on the Generate
+  tab writes the current code — web, phone, e-mail, SMS and map links as URI
+  records, WPA/WPA2 and open Wi-Fi as a Wi-Fi configuration record, contacts
+  as a vCard, anything else as text — after checking that the tag is
+  writable and large enough. Reading and writing only ever start from those
+  buttons. Needs the "NFC Tag Reading" capability on the App ID
+  (entitlement `TAG` only; App Store Connect rejects `NDEF`).
+  (`NFCTagWriter.swift`)
+- **Digital-identity codes** — decoded to inform only: Scan never answers a
+  request, fetches a `request_uri` or verifies a signature.
+  - ISO/IEC 18013-5 `mdoc:` device-engagement QR codes (mobile driving
+    licences, the EU PID and other mdocs), the second-edition reader QR, and
+    the ISO/IEC 18013-7 `mdoc://` online form, shown as "Digital ID",
+    "ID Reader" or "ID Request" with version, channels (NFC, Bluetooth LE
+    modes, Wi-Fi Aware, website), server-retrieval hosts and key type.
+    Tokens, passphrases and key bytes are never shown.
+  - OpenID4VP 1.0 / HAIP presentation requests (`openid4vp://`,
+    `eudi-openid4vp://`, `mdoc-openid4vp://`, `haip-vp://` …): who is asking
+    (client-identifier prefixes such as `x509_san_dns:` included), which
+    credentials and claims a by-value DCQL request names — biometric claims
+    such as a portrait flagged — and whether it is replay-protected, or that
+    a by-reference request is fetched from the verifier.
+  - OpenID4VCI 1.0 credential offers, by value or by reference: issuer,
+    offered credentials, grant type and whether a transaction code will be
+    asked for — the pre-authorised code itself is never shown.
+  - SD-JWT verifiable credentials and presentations: issuer, credential
+    type, validity dates and disclosed claim names.
+  (`IdentityPayload.swift`, `VerifiableCredentialPayload.swift`,
+  `CBORReader.swift`)
+- **EN 16931 e-invoices (CII)** — a QR carrying a UN/CEFACT CII invoice
+  (ZUGFeRD / Factur-X / XRechnung in CII syntax), as raw XML or base64, shows
+  the guideline, invoice number, seller and the seller's own VAT id, buyer
+  and Leitweg-ID, IBAN, total with currency, tax, issue and due dates — so
+  the payee and the amount can be checked against the paper invoice.
+  (`InvoicePayload.swift`)
+- **Digital Product Passport** — a GS1 Digital Link marked as a passport (a
+  `dpp` path segment or query key) gets its own sheet: product, batch,
+  serial, dates, countries of origin and processing (AIs 422–426, against
+  the full ISO 3166 list), the resolver host — shown, never contacted —
+  every other GS1 element of the code, and "Look up GTIN".
+  (`DigitalProductPassport.swift`, `GS1Payload.swift`)
+- **QR styles** — module shapes (Square, Rounded, Dots, Leaves, Bars),
+  finder-eye shapes (Square, Rounded, Circle, Ring), a solid or two-colour
+  gradient ink and presets (Classic, Soft, Dots, Nature, Ink, Sunset).
+  Shapes and logos raise error correction to High automatically; a centred
+  logo clears a whole-module square sized so the code still decodes; there
+  is a 3:1 contrast hint and a warning where dense dot codes, or shaped
+  codes with a logo, get hard for cameras to read; the preview renders off
+  the main thread and says when content is too long for a style. PNG, SVG
+  and PDF exports keep the style; an unstyled code is byte-for-byte what
+  1.9 produced. (`QRStyle.swift`, `QRSvg.swift`, `GeneratorScreen.swift`)
+- **Shortcuts and Siri (App Intents)** — Start Scanning (Codes, Live Text or
+  Bulk; it closes whatever covers the camera), Explain Code, Generate Code
+  (QR, Aztec, PDF417 or Code 128, returned as an image) and Copy Recent Scan
+  (needs the device unlocked). Copy Recent Scan and Generate Code never
+  read a code's contents aloud — Siri names only the kind of code — and
+  Explain Code answers with the same redacted explanation the app shows.
+  Phrases such as "Scan a code with Scan" work without setup.
+  (`ScanIntents.swift`)
+- **Settings → Insights** — switches for the on-device assistant and the QR
+  safety check (both on by default), the "Translate to" language, and a line
+  saying which explanation engine this device uses. (`ScanSettings.swift`)
+- **Passkey QR (FIDO cross-device sign-in)** — recognises the `FIDO:/`
+  hybrid-transport codes (CTAP 2.2) that websites show for the
+  phone-as-authenticator flow. Decodes the digit-encoded CBOR to show what
+  the code is for (sign in vs. create a passkey), when it was generated,
+  tunnel-server count and device-linking support, with a phishing caution.
+  The embedded one-time secret is never displayed, and the result sheet
+  explains that only the system camera flow can complete the handshake.
+  (`PasskeyPayload.swift`)
+
+### Changed
+
+- The camera permission text now mentions Live Text: "Scan uses the camera
+  to read barcodes and QR codes and, in Live Text mode, printed text. Frames
+  are processed on this device and are not saved."
+- History and Bulk CSV exports quote values that contain line breaks (a
+  vCard or an EPC code no longer splits across rows) and neutralise
+  spreadsheet formulas: a cell starting with `=`, `+`, `-`, `@`, a tab or a
+  carriage return gets a leading apostrophe. (`HistoryCSV.swift`)
+- A generated code with a logo and no other styling now goes through the
+  style renderer: a proper 4-module quiet zone, the logo on a cleared square
+  instead of a white punch, and the logo kept in SVG and PDF exports.
+- The CBOR reader that lived inside `PasskeyPayload.swift` is shared
+  (`CBORReader.swift`) and stops at 64 nesting levels; JSON inside scanned
+  codes is refused past 64 levels too, so a hostile code can't exhaust the
+  small stack an App Intent runs on.
+- Project: a `PrivacyInfo.xcprivacy` privacy manifest (UserDefaults, reason
+  `CA92.1`), which App Store Connect requires; Mac Catalyst signs with
+  `Scan-macCatalyst.entitlements` (the iOS entitlements minus NFC, which Mac
+  profiles cannot carry); App Intents metadata is exported for the app
+  target (`LM_SKIP_METADATA_EXTRACTION = NO` there — it stays `YES` at
+  project level for the share extension and tests).
+
+### Fixed
+
+- **GS1 (FNC1 form)** — a scanned GS1 barcode whose group separators sit
+  between elements (the normal `01…<GS>10…` shape, since AVFoundation does
+  not surface the leading FNC1) is now recognised instead of falling back to
+  plain text, and a separator after a fixed-length AI no longer swallows the
+  next element's first digit (which silently dropped the batch/lot).
+- **AAMVA driving licence** — the licence number (`DAQ`, welded onto the
+  subfile type with no separator) is no longer the one field the parser
+  dropped.
+- With camera access already denied at launch, the Scan tab now says so
+  instead of showing an empty viewfinder.
+- The multi-code chooser chips now sit on their codes instead of about a
+  navigation-bar height below them.
+- `test-fixtures/43-emvco-pix.png` is regenerated with correct TLV lengths
+  and CRC; it used to decode as plain text instead of a merchant QR.
+
 ## [1.9] — 2026-06-12
 
 "Open in …" hand-off reliability — every payment / wallet / magnet button now

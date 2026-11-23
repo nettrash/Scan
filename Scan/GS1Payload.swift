@@ -120,6 +120,10 @@ enum GS1Registry {
         "420": .init(name: "Ship to / deliver to postal code", length: nil, isDate: false),
         "421": .init(name: "Ship to + ISO country", length: nil, isDate: false),
         "422": .init(name: "Country of origin",        length: 3,  isDate: false),
+        "423": .init(name: "Country of initial processing", length: nil, isDate: false),
+        "424": .init(name: "Country of processing",    length: 3,  isDate: false),
+        "425": .init(name: "Country of disassembly",   length: nil, isDate: false),
+        "426": .init(name: "Country covering full process chain", length: 3, isDate: false),
 
         // URL
         "8200": .init(name: "Extended packaging URL",  length: nil, isDate: false),
@@ -212,7 +216,13 @@ enum GS1Parser {
         if raw.hasPrefix("(") {
             return parseParens(raw)
         }
-        if let url = URL(string: raw), url.scheme?.hasPrefix("http") == true {
+        // Schemes are case-insensitive, and an all-caps link fits a QR's
+        // alphanumeric mode: `HTTPS://ID.GS1.ORG/…` is a Digital Link too,
+        // not an element string whose first AI is "HT". The Android port
+        // tests the prefix the same way.
+        let scheme = raw.prefix(8).lowercased()
+        if scheme.hasPrefix("http://") || scheme.hasPrefix("https://") {
+            guard let url = URL(string: raw) else { return nil }
             return parseDigitalLink(url, raw: raw)
         }
         return parseFNC1(raw)
@@ -283,6 +293,21 @@ enum GS1Parser {
 
         var elements: [GS1Payload.Element] = []
         while !s.isEmpty {
+            // A separator may follow *any* element, not only a
+            // variable-length one: the standard permits it and real
+            // encoders emit one after fixed-length AIs too.
+            //
+            // Skipping it here is what stops it being read as part of the
+            // next AI. `resolveVariablePrefix` falls back to "assume two
+            // digits" for anything it does not recognise, so a leftover
+            // separator produced the AI `<GS>1` and consumed the real
+            // element's first digit — turning a parse error into silent
+            // data loss. In the canonical `01…<GS>10…<GS>21…` payload that
+            // meant the batch/lot went missing while GTIN and serial both
+            // looked fine.
+            while s.first == fnc1 { s = s.dropFirst() }
+            if s.isEmpty { break }
+
             guard let prefixLen = GS1Registry.resolveVariablePrefix(s) else { return nil }
             let aiEnd = s.index(s.startIndex, offsetBy: prefixLen)
             let ai = String(s[..<aiEnd])

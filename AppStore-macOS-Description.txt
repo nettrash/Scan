@@ -2,6 +2,13 @@ Scan reads and generates barcodes and QR codes natively on your Mac. No accounts
 
 The point of Scan isn't just to decode a code — it's to understand what's in it. Scan a Wi-Fi QR and you get the SSID and a one-click password copy. Scan a SEPA invoice and you get the IBAN, beneficiary, and amount as separate copyable rows. Scan a Bitcoin URI and you get the address, amount, and a hand-off to your wallet. Scan a vCard and one click adds the contact.
 
+NEW IN 1.10
+• QR safety check — look-alike addresses, address-bar tricks and stuck-on codes are flagged before you act; dangerous links offer Copy instead of Open.
+• “What is this code?” — plain-language explanations, with Apple Intelligence where available. Nothing is uploaded.
+• Bulk mode — collect every distinct code, then save it to History or export CSV.
+• Digital ID, product passport, e-invoice and passkey codes — decoded only; Scan never answers an identity request.
+• Styled QR codes — shapes, gradients and presets in PNG, SVG and PDF.
+
 SCANNING
 • Live-camera scanning with your Mac's built-in webcam or any Continuity Camera
 • Drag-and-drop image and PDF decoding via Finder or the Files app
@@ -19,7 +26,7 @@ Scan parses dozens of formats into structured, copyable fields:
 • Bank payments — EPC SEPA / GiroCode, Swiss QR-bill, Czech SPD, Slovak Pay by Square, EMVCo (Pix, PayNow, PromptPay, CoDi, DuitNow, QRIS, FPS, NAPAS, NETS), Indian UPI, Bezahlcode, Serbian NBS IPS QR
 • Mobile-payment apps — Swish, Vipps, MobilePay, Bizum, iDEAL
 • Receipts — Serbian SUF fiscal receipt
-• Identity — DigiD, EUDI, OpenID4VC (recognised and routed to your browser; no verification, no claim storage)
+• Identity — mdoc, OpenID4VP / VCI, SD-JWT, DigiD, EUDI (decoded only; no verification, no claim storage)
 
 GENERATING
 A dedicated Generate tab builds codes from structured input:
@@ -42,11 +49,11 @@ SHARE EXTENSION
 
 PRIVACY
 • No accounts, no sign-in, no telemetry, no advertising, no third-party trackers
-• All decoding happens on-device
+• All decoding, the safety check and the explanations happen on-device
 • iCloud history mirroring uses your own private CloudKit container — Apple sees encrypted blobs only
 
 REQUIREMENTS
-• macOS 14 Sonoma or later
+• macOS 26 Tahoe or later
 • A built-in webcam, USB camera, or any Continuity Camera (an iPhone on iOS 16+ signed into the same Apple ID)
 
 Free, ad-free, tracker-free, and built by one person who genuinely uses it every day. Source available on GitHub. Found a payload format Scan doesn't decode, or hit a bug? Get in touch — nettrash@nettrash.me.

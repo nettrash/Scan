@@ -309,9 +309,12 @@ enum RegionalPaymentParser {
         let pairs = queryPairs(raw)
         var parsed: [LabelledField] = []
         if let data = pairs.first(where: { $0.0.lowercased() == "data" })?.1 {
-            // Try to decode as base64 → UTF-8 → JSON.
+            // Try to decode as base64 → UTF-8 → JSON. The nesting cap keeps
+            // a hostile blob from recursing `JSONSerialization` off the
+            // small stack of an App Intent's thread.
             if let decoded = decodeBase64URL(data),
                let str = String(data: decoded, encoding: .utf8),
+               PayloadCodec.jsonNestingIsWithinLimit(str.utf8),
                let obj = try? JSONSerialization.jsonObject(with: Data(str.utf8)),
                let dict = obj as? [String: Any] {
                 let labelMap: [String: String] = [

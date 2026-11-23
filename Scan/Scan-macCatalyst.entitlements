@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!--
+        Mac Catalyst entitlements (selected by
+        `CODE_SIGN_ENTITLEMENTS[sdk=macosx*]` on the Scan target).
+
+        Identical to `Scan.entitlements` except that it leaves out
+        `com.apple.developer.nfc.readersession.formats`: NFC Tag Reading is
+        an iOS-only capability, Mac provisioning profiles never carry it,
+        and a Mac has no NFC reader. Keep every other key in step with
+        `Scan.entitlements` — a key added there and not here silently goes
+        missing from the Mac build.
+    -->
+    <!--
+        Universal Links: claim the /scan/* path on nettrash.me. Apple's
+        swcd daemon fetches https://nettrash.me/.well-known/apple-app-site-association
+        on first install (and re-fetches periodically) and cross-checks
+        the appIDs there against this entitlement.
+
+        `?mode=developer` switches Apple's CDN cache off — useful while
+        iterating on the AASA file. Drop it for App Store builds.
+    -->
+    <key>com.apple.developer.associated-domains</key>
+    <array>
+        <string>applinks:nettrash.me</string>
+        <string>webcredentials:nettrash.me</string>
+    </array>
+
+    <!--
+        CloudKit: backs `NSPersistentCloudKitContainer` in
+        `Persistence.swift`. Without these three keys the container
+        runs in local-only mode (Core Data still works, but no
+        cross-device sync). With them, history rows replicate to the
+        user's iCloud account whenever they're signed into iCloud at
+        the system level.
+
+        Container ID convention: `iCloud.<bundle-id>`. If the app
+        ever ships under a different bundle ID, update this AND
+        provision the matching CloudKit container in the Apple
+        Developer dashboard before shipping — a bundle whose
+        entitlement points at a non-existent container fails silently
+        (sync logs show "schema not found").
+    -->
+    <key>com.apple.developer.icloud-services</key>
+    <array>
+        <string>CloudKit</string>
+    </array>
+    <key>com.apple.developer.icloud-container-identifiers</key>
+    <array>
+        <string>iCloud.me.nettrash.Scan</string>
+    </array>
+    <key>com.apple.developer.ubiquity-kvstore-identifier</key>
+    <string>$(TeamIdentifierPrefix)me.nettrash.Scan</string>
+
+    <!--
+        Mac Catalyst sandbox entitlements.
+
+        On iOS the app is sandboxed implicitly and these keys are
+        ignored by codesign / amfid; the runtime never reads them.
+        On Mac Catalyst the App Sandbox is on by default (and required
+        for Mac App Store distribution) and each piece of hardware /
+        privileged access has to be opted into explicitly — without
+        these keys the corresponding API silently fails or returns
+        zero devices, regardless of whether the user has approved the
+        Info.plist permission prompt.
+
+        Concretely:
+
+        • `com.apple.security.app-sandbox` — be explicit about being
+          sandboxed on Mac Catalyst. Apple defaults Catalyst targets
+          to sandboxed; pinning this avoids surprises if a future
+          Xcode version flips the default.
+        • `com.apple.security.device.camera` — the live scanner.
+          AVCaptureDevice.default(for: .video) returns nil on Catalyst
+          without this even when NSCameraUsageDescription is set,
+          which is the reason the Mac build "doesn't have access to
+          camera".
+        • `com.apple.security.network.client` — outbound connections.
+          CloudKit replication and the AASA fetch both go through the
+          regular client networking stack.
+        • `com.apple.security.files.user-selected.read-only` — needed
+          for the in-app Files importer on Catalyst, where the user
+          picks an image / PDF to decode. The importer presents
+          `UIDocumentPickerViewController` imperatively (SwiftUI's
+          `.fileImporter` never fires its completion on Catalyst — see
+          `ScannerScreen.DocumentPicker`); this entitlement gates the
+          sandbox file-read it performs.
+        • `com.apple.security.personal-information.photos-library` —
+          PhotosPicker access on Catalyst. NSPhotoLibraryAddUsageDescription
+          handles the Save-to-Photos prompt; this entitlement gates
+          the read side that the picker uses to load thumbnails.
+    -->
+    <key>com.apple.security.app-sandbox</key>
+    <true/>
+    <key>com.apple.security.device.camera</key>
+    <true/>
+    <key>com.apple.security.network.client</key>
+    <true/>
+    <key>com.apple.security.files.user-selected.read-only</key>
+    <true/>
+    <key>com.apple.security.personal-information.photos-library</key>
+    <true/>
+</dict>
+</plist>

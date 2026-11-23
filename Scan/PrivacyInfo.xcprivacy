@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<!--
+    Privacy manifest for the Scan app target.
+
+    Scan tracks nobody and collects nothing (matching the App Store
+    "Data Not Collected" label), so the tracking and collected-data
+    arrays are empty. The one required-reason API it touches is
+    UserDefaults — @AppStorage settings and the What's New stamp, read and
+    written only by the app itself — declared with CA92.1 ("access
+    information that is only accessible to the app itself"). No App Group
+    suite is used; if one is ever added, it needs 1C8F.1 as well.
+
+    The share extension uses none of these APIs and needs no manifest.
+-->
+<dict>
+	<key>NSPrivacyTracking</key>
+	<false/>
+	<key>NSPrivacyTrackingDomains</key>
+	<array/>
+	<key>NSPrivacyCollectedDataTypes</key>
+	<array/>
+	<key>NSPrivacyAccessedAPITypes</key>
+	<array>
+		<dict>
+			<key>NSPrivacyAccessedAPIType</key>
+			<string>NSPrivacyAccessedAPICategoryUserDefaults</string>
+			<key>NSPrivacyAccessedAPITypeReasons</key>
+			<array>
+				<string>CA92.1</string>
+			</array>
+		</dict>
+	</array>
+</dict>
+</plist>

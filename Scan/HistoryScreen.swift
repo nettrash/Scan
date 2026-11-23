@@ -241,6 +241,10 @@ private struct HistoryRow: View {
         case .what3words:   return "mappin.and.ellipse"
         case .iban:         return "building.columns"
         case .passkey:      return "person.badge.key"
+        case .mobileDrivingLicense: return "person.text.rectangle.fill"
+        case .verifiableCredential: return "person.crop.circle.badge.checkmark"
+        case .eInvoice:     return "doc.text.fill"
+        case .digitalProductPassport: return "leaf"
         case .richURL(let r):
             switch r.kind {
             case .whatsApp, .telegram:    return "message"

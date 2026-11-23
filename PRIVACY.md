@@ -1,6 +1,6 @@
 # Privacy Policy
 
-**Effective date:** 26 April 2026
+**Effective date:** 22 November 2026
 **Applies to:** Scan — the iOS app published by nettrash, available on
 the App Store. This policy is versioned alongside the app's source
 code; the most recent commit on `main` is authoritative.
@@ -54,7 +54,8 @@ We have no access to this database under any circumstance.
 
 | Permission | Used for | Scope |
 | --- | --- | --- |
-| **Camera** (`NSCameraUsageDescription`) | Live barcode and QR-code scanning. | Frames are decoded on-device by Apple's AVFoundation; nothing is recorded or transmitted. |
+| **Camera** (`NSCameraUsageDescription`) | Live barcode and QR-code scanning and, in Live Text mode, reading printed text. | Frames are decoded on-device by Apple's AVFoundation and VisionKit; nothing is recorded or transmitted. A still frame is captured only when you tap "Select words in this frame", stays in memory, and is discarded when you leave it. |
+| **NFC** (`NFCReaderUsageDescription`) | Reading a tag into the scanner, and writing a generated code to a writable tag (iPhone only). | Only after you tap *Read an NFC tag* or *Write to NFC tag*; the system NFC sheet is shown the whole time and there is no background reading. Nothing read or written leaves the device. |
 | **Photo Library — add only** (`NSPhotoLibraryAddUsageDescription`) | Saving codes you generate to your Photos library. | Write-only — the app cannot read existing photos. |
 | **Contacts** (`NSContactsUsageDescription`) | "Add to Contacts" when you scan a vCard / MECARD QR. | Mediated by the system "New Contact" sheet that you must tap *Done* on; Scan does not read your address book. |
 | **Calendars — write only** (`NSCalendarsWriteOnlyAccessUsageDescription` / `NSCalendarsUsageDescription`) | "Add to Calendar" when you scan an iCalendar QR. | Mediated by the system "Add Event" sheet on iOS 17+ via write-only access; Scan does not read your existing events. |
@@ -68,9 +69,37 @@ sheet that you control. If you cancel that sheet, nothing is saved.
 libraries beyond what Apple itself provides as part of iOS. There are
 no analytics tools (Firebase, Mixpanel, Sentry, etc.), no advertising
 SDKs (AdMob, Meta, etc.), no crash reporters that phone home, and no
-attribution providers. The only external network connections are the
-ones *you* initiate — tapping "Open in Safari" on a scanned URL, for
-example.
+attribution providers. Scan's own code makes no network requests; the
+only external connections are the ones *you* initiate — tapping "Open in
+Safari" on a scanned URL, for example — and the Apple system services
+below.
+
+## Apple system services Scan uses
+
+These run inside iOS, under Apple's privacy policy rather than ours. Scan
+sends nothing to us through any of them.
+
+- **Apple Intelligence** (the "What is this code?" explanation and
+  "Describe the code" on the Generate tab, on devices that support it).
+  Scan uses only the **on-device** model (`SystemLanguageModel`), never
+  Private Cloud Compute, and blanks passwords, keys, one-time-code secrets
+  and other credentials before a code is handed to it. Everywhere else the
+  explanation comes from Scan's own built-in rules.
+- **Apple Translation** (the Translate row). Translation runs on the
+  device. If a language pack is missing, **iOS** downloads it from Apple
+  after asking you in its own sheet; the text you translate is not
+  uploaded.
+- **Live Text system menu.** In Live Text's frozen frame, selected words
+  get the standard iOS menu. Its *Look Up* and *Translate* entries are iOS
+  features that may send the selected text to Apple when you choose them;
+  Scan's own Translate (on the text card) stays on the device.
+- **Siri and Shortcuts** (Scan's App Shortcuts). Your voice request is
+  handled by Siri under Apple's terms; Scan's actions run on the device
+  and never read a scanned code's contents aloud when copying your last
+  scan or generating a code.
+
+The QR safety check, the built-in explanations, text recognition and NFC
+all run entirely on the device with no network access.
 
 ## Tracking
 

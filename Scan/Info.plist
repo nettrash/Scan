@@ -58,7 +58,7 @@
 
     <!-- Privacy-string permissions (NSxxxUsageDescription). -->
     <key>NSCameraUsageDescription</key>
-    <string>Scan needs the camera to read 1D and 2D barcodes such as QR, EAN, UPC, Code 128, PDF417, Aztec and Data Matrix.</string>
+    <string>Scan uses the camera to read barcodes and QR codes and, in Live Text mode, printed text. Frames are processed on this device and are not saved.</string>
     <key>NSContactsUsageDescription</key>
     <string>Scan can save a scanned vCard or MECARD as a new entry in your Contacts. You'll be shown the system 'New Contact' form first and can edit or cancel before saving.</string>
     <key>NSPhotoLibraryAddUsageDescription</key>
@@ -67,6 +67,9 @@
     <string>Scan can add events from a scanned iCalendar QR to your calendar. You'll be shown the system 'Add Event' sheet first and can edit or cancel before saving.</string>
     <key>NSCalendarsWriteOnlyAccessUsageDescription</key>
     <string>Scan can add events from a scanned iCalendar QR to your calendar. The app only needs write access — it never reads your existing events.</string>
+    <!-- Core NFC won't start a reader session without a non-empty NFC usage string. -->
+    <key>NFCReaderUsageDescription</key>
+    <string>Scan can read an NFC tag and write a link, Wi-Fi login or contact to a writable tag, so you can tap instead of scan.</string>
 
     <!-- Scene + launch-screen scaffolding (the equivalent of
          INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES /

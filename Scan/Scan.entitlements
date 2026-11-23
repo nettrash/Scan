@@ -91,5 +91,37 @@
     <true/>
     <key>com.apple.security.personal-information.photos-library</key>
     <true/>
+
+    <!--
+        NFC (1.10): reading an NDEF tag and writing a URL / Wi-Fi / contact
+        to a writable one, through `NFCNDEFReaderSession`
+        (`NFCTagWriter.swift`).
+
+        `TAG` is the only value, which is what Xcode's "Near Field
+        Communication Tag Reading" capability writes, and it covers NDEF
+        reader sessions too. Do not add `NDEF`: App Store Connect rejects it
+        for apps built with the iOS 17 SDK or later (ITMS-90778, "NDEF is
+        disallowed").
+
+        The App ID needs the NFC Tag Reading capability (Signing &
+        Capabilities, or the developer portal). Until a provisioning profile
+        carries this key, code signing fails. It does not quietly turn
+        `NFCNDEFReaderSession.readingAvailable` false: that property only
+        reports reader hardware, and a binary signed without the entitlement
+        gets sessions that end at once (Core NFC's header names both
+        `readerErrorSecurityViolation` and `readerErrorUnsupportedFeature`
+        for this).
+
+        Mac Catalyst does NOT use this file: the capability is iOS-only (Mac
+        profiles never include it, so the key would break Mac signing), so
+        the Mac build signs with `Scan-macCatalyst.entitlements` — the same
+        keys minus this one — via `CODE_SIGN_ENTITLEMENTS[sdk=macosx*]`.
+        Keep the two files in step. The Mac has no reader anyway:
+        `NFCTagWriter.isSupported` is false there and the controls are hidden.
+    -->
+    <key>com.apple.developer.nfc.readersession.formats</key>
+    <array>
+        <string>TAG</string>
+    </array>
 </dict>
 </plist>

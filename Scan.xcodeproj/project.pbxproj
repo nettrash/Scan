@@ -10,12 +10,37 @@
 		E54267762AB57CF200BFED1E /* ScanApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E54267752AB57CF200BFED1E /* ScanApp.swift */; };
 		E54267782AB57CF200BFED1E /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E54267772AB57CF200BFED1E /* ContentView.swift */; };
 		E542677A2AB57CF400BFED1E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E54267792AB57CF400BFED1E /* Assets.xcassets */; };
+		E5C0DE00000000000000AA41 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = E5C0DE00000000000000AA40 /* PrivacyInfo.xcprivacy */; };
 		E542677D2AB57CF400BFED1E /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E542677C2AB57CF400BFED1E /* Preview Assets.xcassets */; };
 		E542677F2AB57CF400BFED1E /* Persistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = E542677E2AB57CF400BFED1E /* Persistence.swift */; };
 		E54267822AB57CF400BFED1E /* Scan.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = E54267802AB57CF400BFED1E /* Scan.xcdatamodeld */; };
 		E542678D2AB57CF400BFED1E /* ScanTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E542678C2AB57CF400BFED1E /* ScanTests.swift */; };
 		E54267972AB57CF400BFED1E /* ScanUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E54267962AB57CF400BFED1E /* ScanUITests.swift */; };
 		E54267992AB57CF400BFED1E /* ScanUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E54267982AB57CF400BFED1E /* ScanUITestsLaunchTests.swift */; };
+		E5C0DE00000000000000AA01 /* CBORReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE00000000000000AA00 /* CBORReader.swift */; };
+		E5C0DE00000000000000AA03 /* IdentityPayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE00000000000000AA02 /* IdentityPayload.swift */; };
+		E5C0DE00000000000000AA05 /* VerifiableCredentialPayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE00000000000000AA04 /* VerifiableCredentialPayload.swift */; };
+		E5C0DE00000000000000AA07 /* InvoicePayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE00000000000000AA06 /* InvoicePayload.swift */; };
+		E5C0DE00000000000000AA09 /* DigitalProductPassport.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE00000000000000AA08 /* DigitalProductPassport.swift */; };
+		E5C0DE00000000000000AA0B /* QrRisk.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE00000000000000AA0A /* QrRisk.swift */; };
+		E5C0DE00000000000000AA0D /* QrRiskView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE00000000000000AA0C /* QrRiskView.swift */; };
+		E5C0DE00000000000000AA0F /* Assistant.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE00000000000000AA0E /* Assistant.swift */; };
+		E5C0DE00000000000000AA11 /* ComposeResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE00000000000000AA10 /* ComposeResult.swift */; };
+		E5C0DE00000000000000AA13 /* SecretRedaction.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE00000000000000AA12 /* SecretRedaction.swift */; };
+		E5C0DE00000000000000AA21 /* HeuristicExplainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE00000000000000AA20 /* HeuristicExplainer.swift */; };
+		E5C0DE00000000000000AA23 /* AssistantView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE00000000000000AA22 /* AssistantView.swift */; };
+		E5C0DE00000000000000AA15 /* TranslationKit.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE00000000000000AA14 /* TranslationKit.swift */; };
+		E5C0DE00000000000000AA17 /* ScanMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE00000000000000AA16 /* ScanMode.swift */; };
+		E5C0DE00000000000000AA19 /* VisionTextScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE00000000000000AA18 /* VisionTextScanner.swift */; };
+		E5C0DE00000000000000AA1B /* QRStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE00000000000000AA1A /* QRStyle.swift */; };
+		E5C0DE00000000000000AA1D /* NFCTagWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE00000000000000AA1C /* NFCTagWriter.swift */; };
+		E5C0DE00000000000000AA1F /* ScanIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE00000000000000AA1E /* ScanIntents.swift */; };
+		E5C0DE00000000000000AA31 /* CBORReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE00000000000000AA00 /* CBORReader.swift */; };
+		E5C0DE00000000000000AA33 /* IdentityPayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE00000000000000AA02 /* IdentityPayload.swift */; };
+		E5C0DE00000000000000AA35 /* VerifiableCredentialPayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE00000000000000AA04 /* VerifiableCredentialPayload.swift */; };
+		E5C0DE00000000000000AA37 /* InvoicePayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE00000000000000AA06 /* InvoicePayload.swift */; };
+		E5C0DE00000000000000AA39 /* DigitalProductPassport.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE00000000000000AA08 /* DigitalProductPassport.swift */; };
+		E5C0DE00000000000000AA3B /* QrRisk.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE00000000000000AA0A /* QrRisk.swift */; };
 		E5C0DE000000000000000102 /* Symbology.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000000101 /* Symbology.swift */; };
 		E5C0DE000000000000000202 /* ScanPayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000000201 /* ScanPayload.swift */; };
 		E5C0DE000000000000000302 /* CameraScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C0DE000000000000000301 /* CameraScannerView.swift */; };
@@ -110,6 +135,7 @@
 		E542677E2AB57CF400BFED1E /* Persistence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Persistence.swift; sourceTree = "<group>"; };
 		E54267812AB57CF400BFED1E /* Scan.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Scan.xcdatamodel; sourceTree = "<group>"; };
 		E54267832AB57CF400BFED1E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		E5C0DE00000000000000AA40 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		E54267882AB57CF400BFED1E /* ScanTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ScanTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		E542678C2AB57CF400BFED1E /* ScanTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanTests.swift; sourceTree = "<group>"; };
 		E54267922AB57CF400BFED1E /* ScanUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ScanUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -142,8 +168,27 @@
 		E5C0DE000000000000002301 /* DeepLink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepLink.swift; sourceTree = "<group>"; };
 		E5C0DE000000000000002401 /* ScannedCode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScannedCode.swift; sourceTree = "<group>"; };
 		E5C0DE000000000000002501 /* Platform.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Platform.swift; sourceTree = "<group>"; };
+		E5C0DE00000000000000AA00 /* CBORReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CBORReader.swift; sourceTree = "<group>"; };
+		E5C0DE00000000000000AA02 /* IdentityPayload.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IdentityPayload.swift; sourceTree = "<group>"; };
+		E5C0DE00000000000000AA04 /* VerifiableCredentialPayload.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerifiableCredentialPayload.swift; sourceTree = "<group>"; };
+		E5C0DE00000000000000AA06 /* InvoicePayload.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InvoicePayload.swift; sourceTree = "<group>"; };
+		E5C0DE00000000000000AA08 /* DigitalProductPassport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DigitalProductPassport.swift; sourceTree = "<group>"; };
+		E5C0DE00000000000000AA0A /* QrRisk.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QrRisk.swift; sourceTree = "<group>"; };
+		E5C0DE00000000000000AA0C /* QrRiskView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QrRiskView.swift; sourceTree = "<group>"; };
+		E5C0DE00000000000000AA0E /* Assistant.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Assistant.swift; sourceTree = "<group>"; };
+		E5C0DE00000000000000AA10 /* ComposeResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeResult.swift; sourceTree = "<group>"; };
+		E5C0DE00000000000000AA12 /* SecretRedaction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecretRedaction.swift; sourceTree = "<group>"; };
+		E5C0DE00000000000000AA20 /* HeuristicExplainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeuristicExplainer.swift; sourceTree = "<group>"; };
+		E5C0DE00000000000000AA22 /* AssistantView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistantView.swift; sourceTree = "<group>"; };
+		E5C0DE00000000000000AA14 /* TranslationKit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranslationKit.swift; sourceTree = "<group>"; };
+		E5C0DE00000000000000AA16 /* ScanMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanMode.swift; sourceTree = "<group>"; };
+		E5C0DE00000000000000AA18 /* VisionTextScanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisionTextScanner.swift; sourceTree = "<group>"; };
+		E5C0DE00000000000000AA1A /* QRStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRStyle.swift; sourceTree = "<group>"; };
+		E5C0DE00000000000000AA1C /* NFCTagWriter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NFCTagWriter.swift; sourceTree = "<group>"; };
+		E5C0DE00000000000000AA1E /* ScanIntents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanIntents.swift; sourceTree = "<group>"; };
 		E5C0DE000000000000003001 /* Scan 2.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "Scan 2.xcdatamodel"; sourceTree = "<group>"; };
 		E5C0DE000000000000004001 /* Scan.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Scan.entitlements; sourceTree = "<group>"; };
+		E5C0DE000000000000004002 /* Scan-macCatalyst.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Scan-macCatalyst.entitlements"; sourceTree = "<group>"; };
 		E5C0DE000000000000005002 /* ScanShareExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ScanShareExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		E5C0DE000000000000005010 /* ShareViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareViewController.swift; sourceTree = "<group>"; };
 		E5C0DE000000000000005012 /* ShareView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareView.swift; sourceTree = "<group>"; };
@@ -238,11 +283,31 @@
 				E5C0DE000000000000002301 /* DeepLink.swift */,
 				E5C0DE000000000000002401 /* ScannedCode.swift */,
 				E5C0DE000000000000002501 /* Platform.swift */,
+				E5C0DE00000000000000AA00 /* CBORReader.swift */,
+				E5C0DE00000000000000AA02 /* IdentityPayload.swift */,
+				E5C0DE00000000000000AA04 /* VerifiableCredentialPayload.swift */,
+				E5C0DE00000000000000AA06 /* InvoicePayload.swift */,
+				E5C0DE00000000000000AA08 /* DigitalProductPassport.swift */,
+				E5C0DE00000000000000AA0A /* QrRisk.swift */,
+				E5C0DE00000000000000AA0C /* QrRiskView.swift */,
+				E5C0DE00000000000000AA0E /* Assistant.swift */,
+				E5C0DE00000000000000AA10 /* ComposeResult.swift */,
+				E5C0DE00000000000000AA12 /* SecretRedaction.swift */,
+				E5C0DE00000000000000AA20 /* HeuristicExplainer.swift */,
+				E5C0DE00000000000000AA22 /* AssistantView.swift */,
+				E5C0DE00000000000000AA14 /* TranslationKit.swift */,
+				E5C0DE00000000000000AA16 /* ScanMode.swift */,
+				E5C0DE00000000000000AA18 /* VisionTextScanner.swift */,
+				E5C0DE00000000000000AA1A /* QRStyle.swift */,
+				E5C0DE00000000000000AA1C /* NFCTagWriter.swift */,
+				E5C0DE00000000000000AA1E /* ScanIntents.swift */,
 				E5C0DE000000000000000101 /* Symbology.swift */,
 				E54267792AB57CF400BFED1E /* Assets.xcassets */,
 				E542677E2AB57CF400BFED1E /* Persistence.swift */,
 				E54267832AB57CF400BFED1E /* Info.plist */,
+				E5C0DE00000000000000AA40 /* PrivacyInfo.xcprivacy */,
 				E5C0DE000000000000004001 /* Scan.entitlements */,
+				E5C0DE000000000000004002 /* Scan-macCatalyst.entitlements */,
 				E54267802AB57CF400BFED1E /* Scan.xcdatamodeld */,
 				E542677B2AB57CF400BFED1E /* Preview Content */,
 			);
@@ -414,6 +479,7 @@
 			files = (
 				E542677D2AB57CF400BFED1E /* Preview Assets.xcassets in Resources */,
 				E542677A2AB57CF400BFED1E /* Assets.xcassets in Resources */,
+				E5C0DE00000000000000AA41 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -477,6 +543,24 @@
 				E5C0DE000000000000002502 /* Platform.swift in Sources */,
 				E54267822AB57CF400BFED1E /* Scan.xcdatamodeld in Sources */,
 				E54267762AB57CF200BFED1E /* ScanApp.swift in Sources */,
+				E5C0DE00000000000000AA01 /* CBORReader.swift in Sources */,
+				E5C0DE00000000000000AA03 /* IdentityPayload.swift in Sources */,
+				E5C0DE00000000000000AA05 /* VerifiableCredentialPayload.swift in Sources */,
+				E5C0DE00000000000000AA07 /* InvoicePayload.swift in Sources */,
+				E5C0DE00000000000000AA09 /* DigitalProductPassport.swift in Sources */,
+				E5C0DE00000000000000AA0B /* QrRisk.swift in Sources */,
+				E5C0DE00000000000000AA0D /* QrRiskView.swift in Sources */,
+				E5C0DE00000000000000AA0F /* Assistant.swift in Sources */,
+				E5C0DE00000000000000AA11 /* ComposeResult.swift in Sources */,
+				E5C0DE00000000000000AA13 /* SecretRedaction.swift in Sources */,
+				E5C0DE00000000000000AA21 /* HeuristicExplainer.swift in Sources */,
+				E5C0DE00000000000000AA23 /* AssistantView.swift in Sources */,
+				E5C0DE00000000000000AA15 /* TranslationKit.swift in Sources */,
+				E5C0DE00000000000000AA17 /* ScanMode.swift in Sources */,
+				E5C0DE00000000000000AA19 /* VisionTextScanner.swift in Sources */,
+				E5C0DE00000000000000AA1B /* QRStyle.swift in Sources */,
+				E5C0DE00000000000000AA1D /* NFCTagWriter.swift in Sources */,
+				E5C0DE00000000000000AA1F /* ScanIntents.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -517,6 +601,12 @@
 				E5C0DE0000000000000078A3 /* PasskeyPayload.swift in Sources */,
 				E5C0DE00000000000000506B /* DrivingLicensePayload.swift in Sources */,
 				E5C0DE00000000000000506C /* ScannedCode.swift in Sources */,
+				E5C0DE00000000000000AA31 /* CBORReader.swift in Sources */,
+				E5C0DE00000000000000AA33 /* IdentityPayload.swift in Sources */,
+				E5C0DE00000000000000AA35 /* VerifiableCredentialPayload.swift in Sources */,
+				E5C0DE00000000000000AA37 /* InvoicePayload.swift in Sources */,
+				E5C0DE00000000000000AA39 /* DigitalProductPassport.swift in Sources */,
+				E5C0DE00000000000000AA3B /* QrRisk.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -681,6 +771,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Scan/Scan.entitlements;
+				"CODE_SIGN_ENTITLEMENTS[sdk=macosx*]" = "Scan/Scan-macCatalyst.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 241;
@@ -696,6 +787,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				LM_SKIP_METADATA_EXTRACTION = NO;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MARKETING_VERSION = 1.10;
 				PRODUCT_BUNDLE_IDENTIFIER = me.nettrash.Scan;
@@ -717,6 +809,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Scan/Scan.entitlements;
+				"CODE_SIGN_ENTITLEMENTS[sdk=macosx*]" = "Scan/Scan-macCatalyst.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 241;
 				DERIVE_MACCATALYST_PRODUCT_BUNDLE_IDENTIFIER = NO;
@@ -731,6 +824,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				LM_SKIP_METADATA_EXTRACTION = NO;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MARKETING_VERSION = 1.10;
 				PRODUCT_BUNDLE_IDENTIFIER = me.nettrash.Scan;

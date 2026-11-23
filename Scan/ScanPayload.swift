@@ -47,6 +47,11 @@ enum ScanPayload: Equatable {
     case iban(IBANPayload)
     // New in 1.10.
     case passkey(PasskeyPayload)
+    // New in 1.10 — the digital-identity and paperless-trade wave.
+    case mobileDrivingLicense(MobileDrivingLicensePayload)
+    case verifiableCredential(VerifiableCredentialPayload)
+    case eInvoice(InvoicePayload)
+    case digitalProductPassport(DigitalProductPassportPayload)
     case text(String)
 
     struct ContactPayload: Equatable {
@@ -95,6 +100,10 @@ enum ScanPayload: Equatable {
         case .what3words:   return "what3words"
         case .iban:         return "IBAN"
         case .passkey:      return "Passkey"
+        case .mobileDrivingLicense(let p): return p.kindLabel
+        case .verifiableCredential(let v): return v.kind.rawValue
+        case .eInvoice:     return "E-Invoice"
+        case .digitalProductPassport: return "Product Passport"
         case .text:         return "Text"
         }
     }
@@ -139,6 +148,34 @@ enum ScanPayloadParser {
         if PasskeyParser.looksLikePasskey(trimmed) {
             if let p = PasskeyParser.parse(trimmed) {
                 return .passkey(p)
+            }
+        }
+
+        // ISO/IEC 18013-5 mdoc engagement — `mdoc:`, the QR a digital-ID
+        // wallet shows an ID reader (or a reader shows a wallet), and its
+        // ISO/IEC 18013-7 online form `mdoc://`. `mdoc-openid4vp://` is not
+        // this scheme: it is an OpenID4VP request, for the parser below.
+        if MobileDrivingLicenseParser.looksLikeMdocURI(trimmed) {
+            if let p = MobileDrivingLicenseParser.parse(trimmed) {
+                return .mobileDrivingLicense(p)
+            }
+        }
+
+        // eIDAS 2.0 / OpenID4VP: a wallet presentation request, a credential
+        // offer, or an SD-JWT VC / VP JWT token. Checked before the URL
+        // fallback because `openid4vp://` is a URI a generic parser would
+        // hand to Safari, which can do nothing with it.
+        if VerifiableCredentialParser.looksLikeCredentialRequest(trimmed)
+            || VerifiableCredentialParser.looksLikeCredentialToken(trimmed) {
+            if let p = VerifiableCredentialParser.parse(trimmed) {
+                return .verifiableCredential(p)
+            }
+        }
+
+        // Electronic invoice (EN 16931 CII / ZUGFeRD / XRechnung).
+        if InvoiceParser.looksLikeEInvoice(trimmed) {
+            if let p = InvoiceParser.parse(trimmed) {
+                return .eInvoice(p)
             }
         }
 
@@ -320,7 +357,7 @@ enum ScanPayloadParser {
         if trimmed.hasPrefix("(") {
             if GS1Parser.looksLikeGS1(trimmed),
                let p = GS1Parser.parse(trimmed) {
-                return .gs1(p)
+                return Self.classifyGS1(p)
             }
         }
         // FNC1 form. The group separator identifies it *wherever* it falls,
@@ -334,7 +371,7 @@ enum ScanPayloadParser {
         // to contain a separator is not dragged in.
         if trimmed.contains("\u{001D}"), GS1Parser.looksLikeGS1(trimmed) {
             if let p = GS1Parser.parse(trimmed) {
-                return .gs1(p)
+                return Self.classifyGS1(p)
             }
         }
 
@@ -374,7 +411,7 @@ enum ScanPayloadParser {
             // resolver and we'd otherwise classify as a plain URL.
             if GS1Parser.looksLikeGS1(trimmed),
                let p = GS1Parser.parse(trimmed) {
-                return .gs1(p)
+                return Self.classifyGS1(p)
             }
             if let rich = RichURLParser.parse(url) {
                 // Maps URLs: prefer .geo when coordinates are available.
@@ -414,6 +451,18 @@ enum ScanPayloadParser {
         }
 
         return .text(trimmed)
+    }
+
+    // MARK: - GS1 / Digital Product Passport
+
+    /// A GS1 carrier that also spells out a product passport gets its own
+    /// kind, because the question it answers ("what is this made of, where
+    /// is it from, when does it end") is different from a plain product code.
+    private static func classifyGS1(_ p: GS1Payload) -> ScanPayload {
+        if DigitalProductPassportParser.looksLikePassport(p) {
+            return .digitalProductPassport(DigitalProductPassportParser.parse(p))
+        }
+        return .gs1(p)
     }
 
     // MARK: - Wi-Fi

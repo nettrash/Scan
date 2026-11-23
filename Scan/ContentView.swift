@@ -22,15 +22,28 @@ struct ContentView: View {
     /// `ScannerScreen`'s already-existing `.sheet(item:)` plumbing.
     @State private var deepLinkScan: ScannedCode?
     @ObservedObject private var deepLinks = DeepLinkDispatcher.shared
+    /// The visible tab. Only moved in code by the Start Scanning App Intent
+    /// (via `ScanIntentRouter`), which has to land on the camera even when
+    /// the app was left on another tab — and with nothing of ours over it:
+    /// this view takes down whatever is presented over the window, from any
+    /// tab, and drops its deep-link and What's New sheets; `ScannerScreen`
+    /// clears its own state.
+    @State private var selectedTab: RootTab = .scan
+    @ObservedObject private var intentRouter = ScanIntentRouter.shared
+
+    private enum RootTab: Hashable {
+        case scan, generate, history, settings
+    }
 
     var body: some View {
-        TabView {
+        TabView(selection: $selectedTab) {
             NavigationStack {
                 ScannerScreen()
             }
             .tabItem {
                 Label("Scan", systemImage: "qrcode.viewfinder")
             }
+            .tag(RootTab.scan)
 
             NavigationStack {
                 GeneratorScreen()
@@ -38,6 +51,7 @@ struct ContentView: View {
             .tabItem {
                 Label("Generate", systemImage: "qrcode")
             }
+            .tag(RootTab.generate)
 
             NavigationStack {
                 HistoryScreen()
@@ -45,6 +59,7 @@ struct ContentView: View {
             .tabItem {
                 Label("History", systemImage: "clock")
             }
+            .tag(RootTab.history)
 
             NavigationStack {
                 SettingsScreen()
@@ -52,6 +67,19 @@ struct ContentView: View {
             .tabItem {
                 Label("Settings", systemImage: "gearshape")
             }
+            .tag(RootTab.settings)
+        }
+        // Start Scanning App Intent — see `ScanIntentRouter`. Whatever is
+        // over the window goes first: a sheet, picker or alert from any tab
+        // (a History share sheet, the Generate tab's photo picker, …) or the
+        // Files picker. A What's New sheet already up counts as seen once it
+        // goes (its `onDismiss` stamps the version); a deep-link result is
+        // simply closed.
+        .onValueChange(of: intentRouter.scannerRequests) { _ in
+            Self.dismissPresentedControllers()
+            selectedTab = .scan
+            deepLinkScan = nil
+            showWhatsNew = false
         }
         .onAppear {
             // Decide once per launch whether to show the What's-New
@@ -60,6 +88,10 @@ struct ContentView: View {
             let current = Self.currentMarketingVersion
             if current != lastSeenVersion && current == WhatsNew.version {
                 DispatchQueue.main.async {
+                    // A launch that came from Start Scanning is for the
+                    // camera. The version stays unstamped, so the sheet
+                    // shows on the next ordinary launch instead.
+                    guard intentRouter.scannerRequests == 0 else { return }
                     showWhatsNew = true
                 }
             } else if current != lastSeenVersion {
@@ -114,6 +146,19 @@ struct ContentView: View {
             timestamp: Date(),
             previewRect: nil
         )
+    }
+
+    /// Takes down everything presented over each window's root view
+    /// controller, without animation: dismissing the root's presented
+    /// controller dismisses the whole stack above it. SwiftUI sees its own
+    /// sheets go and resets their bindings, as after a swipe-down.
+    @MainActor
+    private static func dismissPresentedControllers() {
+        for case let scene as UIWindowScene in UIApplication.shared.connectedScenes {
+            for window in scene.windows {
+                window.rootViewController?.presentedViewController?.dismiss(animated: false)
+            }
+        }
     }
 
     /// Marketing version (e.g. "1.2") read from the bundle's

@@ -271,6 +271,54 @@ enum CodeGenerator {
     }
 }
 
+// MARK: - Preview failures
+
+/// Why the Generate tab has no code to show. Worked out only once encoding
+/// has failed, so a preview that renders costs nothing extra. The Android
+/// port's `PreviewFailure` makes the same decision in the same words.
+enum PreviewFailure: Equatable {
+    /// Nothing to encode yet.
+    case empty
+    /// Fits at the user's own error correction, but not at the High that
+    /// shaped modules, shaped eyes or a logo raise it to.
+    case tooLongForStyle
+    /// Code 128 carries 7-bit ASCII only; anything else fails however short.
+    case notASCII
+    /// More than the symbology holds.
+    case tooLong(GeneratableSymbology)
+
+    /// Which limit `content` ran into. Call it only after encoding failed: it
+    /// renders nothing, it only works out why.
+    static func reason(content: String,
+                       symbology: GeneratableSymbology,
+                       style: QRStyle,
+                       requested: QRErrorCorrection) -> PreviewFailure {
+        guard !content.isEmpty else { return .empty }
+        if symbology == .qr, !style.isPlain,
+           style.errorCorrection(raising: requested) != requested,
+           CodeGenerator.qrModuleMatrix(for: content, errorCorrection: requested) != nil {
+            return .tooLongForStyle
+        }
+        if symbology == .code128, content.unicodeScalars.contains(where: { !$0.isASCII }) {
+            return .notASCII
+        }
+        return .tooLong(symbology)
+    }
+
+    var message: String {
+        switch self {
+        case .empty:
+            return "Fill in the fields above to see a preview."
+        case .tooLongForStyle:
+            return "Too long for shaped modules, shaped eyes or a logo — they need High error correction. Use square modules and eyes without a logo, or shorten the content."
+        case .notASCII:
+            return "Code 128 only holds plain ASCII text — no accents, emoji or other scripts."
+        case .tooLong(let symbology):
+            return "This content is too long for \(symbology == .aztec ? "an" : "a") \(symbology.rawValue) code."
+        }
+    }
+}
+
 // MARK: - UIColor → CIColor convenience
 
 private extension CIColor {

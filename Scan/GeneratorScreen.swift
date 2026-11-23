@@ -10,6 +10,12 @@
 //   - a logo image picker (QR only),
 //   - SVG / PDF export alongside the existing PNG share path.
 //
+//  In 1.10 the QR art studio joins them (`QRStyle`): module and eye shapes,
+//  an optional second ink for a gradient, and presets. A style that costs
+//  module area raises the error correction by itself, and the preview, the
+//  PNG, the SVG and the PDF all draw the same styled code. With no shape,
+//  gradient or logo chosen, every output is exactly what it was before.
+//
 
 import SwiftUI
 import UIKit
@@ -62,6 +68,19 @@ struct GeneratorScreen: View {
     @State private var qrErrorCorrection: QRErrorCorrection = .medium
     @State private var logoItem: PhotosPickerItem?
     @State private var logoImage: UIImage?
+    // 1.10 — QR art studio. Shapes and the optional second ink; colours
+    // and error correction keep their existing state above.
+    @State private var moduleShape: QRStyle.ModuleShape = .square
+    @State private var eyeShape: QRStyle.EyeShape = .square
+    @State private var usesSecondInk = false
+    /// A fixed sRGB blue (the Android port's default too), not `.blue`:
+    /// SwiftUI's blue adapts to Dark Mode, which would make the same
+    /// settings print a different code depending on the phone's appearance.
+    @State private var secondInk = Color(red: 0, green: 0, blue: 1)
+    @State private var presetID = "classic"
+    /// NFC tag writing. A session is single-use, so this object is the only
+    /// place the live session lives.
+    @StateObject private var nfc = NFCTagWriter()
 
     // MARK: - UX state
 
@@ -105,30 +124,138 @@ struct GeneratorScreen: View {
         }
     }
 
-    private var generatedImage: UIImage? {
-        guard !encodedString.isEmpty else { return nil }
-        return CodeGenerator.image(
-            for: encodedString,
-            symbology: symbology,
+    /// The style the preview and every export use. Colours and the logo come
+    /// from the existing pickers; shapes from the studio rows.
+    private var activeStyle: QRStyle {
+        var style = QRStyle()
+        style.moduleShape = symbology == .qr ? moduleShape : .square
+        style.eyeShape = symbology == .qr ? eyeShape : .square
+        style.background = UIColor(backgroundColor)
+        style.inks = [UIColor(foregroundColor)]
+        if usesSecondInk, symbology == .qr { style.inks.append(UIColor(secondInk)) }
+        style.logo = symbology.supportsLogo ? logoImage : nil
+        return style
+    }
+
+    /// Error correction every QR output is encoded at. Non-square modules,
+    /// shaped eyes and inset artwork cost module area, so they buy back
+    /// redundancy automatically; the user's pick is raised, never lowered.
+    private var effectiveErrorCorrection: QRErrorCorrection {
+        previewRequest.effectiveErrorCorrection
+    }
+
+    private var isStyled: Bool {
+        previewRequest.isStyled
+    }
+
+    // MARK: - Preview
+
+    /// Everything the preview picture depends on, and nothing else, so the
+    /// Preview section redraws exactly when the picture would change.
+    struct PreviewRequest: Equatable {
+        let content: String
+        let symbology: GeneratableSymbology
+        let style: QRStyle
+        /// The user's own pick; the style may raise it.
+        let errorCorrection: QRErrorCorrection
+
+        /// Only a QR with something for the studio to draw takes the styled path.
+        var isStyled: Bool { symbology == .qr && !style.isPlain }
+
+        /// The level every QR output is encoded at: the user's pick, raised —
+        /// never lowered — to High when the style needs it.
+        var effectiveErrorCorrection: QRErrorCorrection {
+            symbology == .qr ? style.errorCorrection(raising: errorCorrection) : errorCorrection
+        }
+    }
+
+    /// What the Preview section shows for one request.
+    enum PreviewResult {
+        /// The code. A styled QR also reports its modules per side, because
+        /// that decides whether its shapes still scan reliably; nil for the
+        /// plain path.
+        case code(UIImage, styledSide: Int?)
+        /// No code, and why not.
+        case unavailable(PreviewFailure)
+    }
+
+    /// Draws `request`, away from the main actor: a dense styled code takes a
+    /// few hundred milliseconds to draw, which must never stall typing or a
+    /// colour-picker drag.
+    nonisolated static func renderPreview(_ request: PreviewRequest) -> PreviewResult {
+        guard !request.content.isEmpty else { return .unavailable(.empty) }
+        if request.isStyled,
+           let matrix = CodeGenerator.qrModuleMatrix(for: request.content,
+                                                     errorCorrection: request.effectiveErrorCorrection) {
+            if let image = QRStyledRenderer.image(matrix: matrix, style: request.style) {
+                return .code(image, styledSide: QRGeometry.symbolArea(of: matrix).map { Int($0.width) })
+            }
+        } else if let image = CodeGenerator.image(
+            for: request.content,
+            symbology: request.symbology,
             scale: 12,
-            foreground: UIColor(foregroundColor),
-            background: UIColor(backgroundColor),
-            errorCorrection: qrErrorCorrection,
-            logo: symbology.supportsLogo ? logoImage : nil
-        )
+            foreground: request.style.primaryInk,
+            background: request.style.background,
+            errorCorrection: request.effectiveErrorCorrection,
+            logo: request.style.logo
+        ) {
+            return .code(image, styledSide: nil)
+        }
+        return .unavailable(PreviewFailure.reason(content: request.content,
+                                                  symbology: request.symbology,
+                                                  style: request.style,
+                                                  requested: request.errorCorrection))
+    }
+
+    private var previewRequest: PreviewRequest {
+        PreviewRequest(content: encodedString, symbology: symbology, style: activeStyle,
+                       errorCorrection: qrErrorCorrection)
+    }
+
+    /// The last preview drawn, with the request it was drawn for. It stays on
+    /// screen while a newer request draws.
+    private struct ShownPreview {
+        let request: PreviewRequest
+        let result: PreviewResult
+    }
+
+    @State private var shownPreview: ShownPreview?
+
+    /// Draws `request` off the main actor and shows it. Every change to the
+    /// request restarts this (`.task(id:)`), so the short sleep lets a burst
+    /// of edits — typing, a colour-picker drag — draw only its last state.
+    /// With nothing on screen yet there is nothing to wait for.
+    private func refreshPreview(for request: PreviewRequest) async {
+        guard !request.content.isEmpty else {
+            shownPreview = nil
+            return
+        }
+        if shownPreview != nil {
+            do { try await Task.sleep(for: .milliseconds(150)) } catch { return }
+        }
+        let result = await Task.detached(priority: .userInitiated) {
+            GeneratorScreen.renderPreview(request)
+        }.value
+        guard !Task.isCancelled else { return }
+        shownPreview = ShownPreview(request: request, result: result)
     }
 
     /// Relative luminance contrast ratio per WCAG. Values in [1, 21];
     /// QR scanners typically need ≥ 3 for reliable decoding (the
     /// scanner threshold logic is more lenient than human readability,
     /// but going below 3 gets noticeably hit-and-miss, so that's our
-    /// warning floor).
+    /// warning floor). With a gradient every ink is measured against the
+    /// background and the worst is reported: a wash is only as legible as
+    /// its palest end.
     private var contrastRatio: Double {
-        let l1 = relativeLuminance(of: UIColor(foregroundColor))
-        let l2 = relativeLuminance(of: UIColor(backgroundColor))
-        let lighter = max(l1, l2)
-        let darker  = min(l1, l2)
-        return (lighter + 0.05) / (darker + 0.05)
+        let background = relativeLuminance(of: activeStyle.background)
+        let ratios = activeStyle.inks.map { ink -> Double in
+            let l1 = relativeLuminance(of: ink)
+            let lighter = max(l1, background)
+            let darker  = min(l1, background)
+            return (lighter + 0.05) / (darker + 0.05)
+        }
+        return ratios.min() ?? 21
     }
 
     private var contrastIsSafe: Bool { contrastRatio >= 3.0 }
@@ -137,6 +264,12 @@ struct GeneratorScreen: View {
 
     var body: some View {
         Form {
+            // "Describe the code": a sentence in, a filled-in form out. The
+            // box hides itself when the assistant is off in Settings →
+            // Insights. Above the type picker, as on Android, because the
+            // sentence also picks the type.
+            AssistantComposeBox(onResult: applyComposed)
+
             Section {
                 Picker("Type", selection: $inputKind) {
                     ForEach(InputKind.allCases) { kind in
@@ -168,45 +301,87 @@ struct GeneratorScreen: View {
 
             styleSection
 
+            nfcSection
+
             if symbology.supportsLogo {
                 logoSection
             }
 
             Section("Preview") {
-                if let img = generatedImage {
-                    VStack(spacing: 12) {
-                        Image(uiImage: img)
-                            .interpolation(.none)
-                            .resizable()
-                            .scaledToFit()
-                            .frame(maxHeight: 280)
-                            .padding(8)
-                            .background(Color.white)
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .stroke(.secondary.opacity(0.2))
-                            )
-                            .accessibilityLabel("Generated \(symbology.rawValue) code")
-
-                        if !contrastIsSafe {
-                            Label(
-                                "Contrast \(String(format: "%.1f", contrastRatio)):1 is below the safe threshold (3:1). Some scanners will struggle.",
-                                systemImage: "exclamationmark.triangle"
-                            )
-                            .font(.footnote)
-                            .foregroundStyle(.orange)
-                        }
-                    }
-                    .frame(maxWidth: .infinity)
-
-                    actionsRow(image: img)
-                } else {
-                    Text("Fill in the fields above to see a preview.")
+                let request = previewRequest
+                if request.content.isEmpty {
+                    Text(PreviewFailure.empty.message)
                         .foregroundStyle(.secondary)
+                } else if let shown = shownPreview {
+                    switch shown.result {
+                    case .code(let img, let styledSide):
+                        VStack(spacing: 12) {
+                            Image(uiImage: img)
+                                // Plain codes are pure module squares and stay
+                                // crisp with nearest-neighbour; a styled code
+                                // has antialiased curves that would alias.
+                                .interpolation(styledSide == nil ? .none : .high)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(maxHeight: 280)
+                                .padding(8)
+                                .background(Color.white)
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .stroke(.secondary.opacity(0.2))
+                                )
+                                .accessibilityLabel("Generated \(shown.request.symbology.rawValue) code")
+
+                            if !contrastIsSafe {
+                                Label(
+                                    "Contrast \(String(format: "%.1f", contrastRatio)):1 is below the safe threshold (3:1). Some scanners will struggle.",
+                                    systemImage: "exclamationmark.triangle"
+                                )
+                                .font(.footnote)
+                                .foregroundStyle(.orange)
+                            }
+
+                            // Shaped modules run out of margin on dense codes —
+                            // dots soonest, all of them sooner with a logo
+                            // (`QRStyle.isHardToScan`): say so rather than let
+                            // the user print a code their own camera may not
+                            // read.
+                            if let side = styledSide,
+                               let warning = shown.request.style.scannabilityWarning(symbolSide: side) {
+                                Label(warning, systemImage: "exclamationmark.triangle")
+                                    .font(.footnote)
+                                    .foregroundStyle(.orange)
+                            }
+                        }
+                        .frame(maxWidth: .infinity)
+
+                        // The last picture stays up while a newer one draws,
+                        // but nothing shares, saves or copies it once it no
+                        // longer matches the form.
+                        Group {
+                            actionsRow(image: img)
+                        }
+                        .disabled(shown.request != request)
+                    case .unavailable(let failure):
+                        Text(failure.message)
+                            .foregroundStyle(.secondary)
+                    }
+                } else {
+                    ProgressView()
+                        .frame(maxWidth: .infinity)
                 }
             }
         }
+        // Off the main actor and debounced (`refreshPreview`): drawing a
+        // dense styled code must not stall the form on every keystroke.
+        .task(id: previewRequest) { [request = previewRequest] in
+            await refreshPreview(for: request)
+        }
+        // An NFC outcome belongs to the content it was for: editing the form
+        // clears "Tag written" (or a failure). On the Form, not in the lazy
+        // NFC section, so it fires while that section is scrolled away.
+        .onValueChange(of: encodedString) { _ in nfc.contentDidChange() }
         .navigationTitle("Generate")
         // `.scrollDismissesKeyboard(.interactively)` already
         // covers drag-to-dismiss; the keyboard's `Done` toolbar
@@ -232,10 +407,16 @@ struct GeneratorScreen: View {
         .onValueChange(of: logoItem) { newItem in
             guard let newItem else { logoImage = nil; return }
             Task {
-                if let data = try? await newItem.loadTransferable(type: Data.self),
-                   let img = UIImage(data: data) {
-                    await MainActor.run { logoImage = img }
-                }
+                guard let data = try? await newItem.loadTransferable(type: Data.self) else { return }
+                // Decode and shrink off the main actor: a camera-roll photo
+                // is 12 MP, and the preview redraws the logo on every edit
+                // (and the SVG export inlines it).
+                let prepared = await Task.detached(priority: .userInitiated) {
+                    UIImage(data: data).map { QRStyledRenderer.preparedLogo($0) }
+                }.value
+                // A slow load for an earlier pick must not replace a newer one.
+                guard let prepared, logoItem == newItem else { return }
+                logoImage = prepared
             }
         }
         .sheet(item: $shareItems) { wrapped in
@@ -259,6 +440,57 @@ struct GeneratorScreen: View {
             #selector(UIResponder.resignFirstResponder),
             to: nil, from: nil, for: nil
         )
+    }
+
+    // MARK: - Describe the code
+
+    /// Copies a "describe the code" result onto the form and switches to its
+    /// type. False when the result carries nothing the form can use, so the
+    /// box says it did not understand instead of claiming it filled anything.
+    /// Same mapping as the Android port's `ComposeFormFill`: fields the
+    /// request did not give are cleared rather than left over from an
+    /// earlier code — except the Wi-Fi security, which keeps the form's
+    /// choice when the request does not name one.
+    private func applyComposed(_ result: ComposeResult) -> Bool {
+        let text = result.text.trimmingCharacters(in: .whitespacesAndNewlines)
+        switch result.kind {
+        case .wifi:
+            guard let ssid = result.value("ssid") else { return false }
+            inputKind = .wifi
+            wifiSSID = ssid
+            wifiPassword = result.value("password") ?? ""
+            if let tag = result.wifiSecurityTag,
+               let security = CodeComposer.WifiSecurity(rawValue: tag) {
+                wifiSecurity = security
+            }
+            wifiHidden = result.isHiddenNetwork
+        case .contact:
+            let name = result.value("name") ?? ""
+            let phone = result.value("phone") ?? ""
+            let email = result.value("email") ?? ""
+            let organization = result.value("org") ?? ""
+            guard !(name.isEmpty && phone.isEmpty && email.isEmpty && organization.isEmpty) else {
+                return false
+            }
+            inputKind = .contact
+            contactName = name
+            contactPhone = phone
+            contactEmail = email
+            contactOrg = organization
+            contactURL = ""
+        case .url:
+            guard !text.isEmpty else { return false }
+            inputKind = .url
+            urlInput = text
+        case .text, .email, .phone, .payment, .product:
+            // The Generate tab has no form for the last four; neither engine
+            // produces them today, and if one ever does its literal text is
+            // still the code the user asked for.
+            guard !text.isEmpty else { return false }
+            inputKind = .text
+            textInput = text
+        }
+        return true
     }
 
     // MARK: - Input forms (per kind)
@@ -336,11 +568,63 @@ struct GeneratorScreen: View {
                     }
                 }
                 .pickerStyle(.menu)
+
+                // Say so when the studio overrode the user's choice — the
+                // picker still shows what they asked for.
+                if effectiveErrorCorrection != qrErrorCorrection {
+                    Label(
+                        "Shapes and artwork raise error correction to \(effectiveErrorCorrection.displayName) automatically — that redundancy is what pays for them.",
+                        systemImage: "shield.lefthalf.filled"
+                    )
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                }
             }
+            if symbology == .qr {
+                Picker("Preset", selection: $presetID) {
+                    ForEach(QRStyle.presets) { preset in
+                        Text(preset.name).tag(preset.id)
+                    }
+                }
+                .pickerStyle(.menu)
+
+                Picker("Modules", selection: $moduleShape) {
+                    ForEach(QRStyle.ModuleShape.allCases) { shape in
+                        Text(shape.label).tag(shape)
+                    }
+                }
+                .pickerStyle(.menu)
+
+                Picker("Eyes", selection: $eyeShape) {
+                    ForEach(QRStyle.EyeShape.allCases) { shape in
+                        Text(shape.label).tag(shape)
+                    }
+                }
+                .pickerStyle(.menu)
+
+                Toggle("Gradient ink", isOn: $usesSecondInk)
+                if usesSecondInk {
+                    ColorPicker("Second ink", selection: $secondInk, supportsOpacity: false)
+                }
+
+                if let preset = QRStyle.presets.first(where: { $0.id == presetID }) {
+                    Button {
+                        apply(preset)
+                    } label: {
+                        Label("Apply “\(preset.name)”", systemImage: "paintbrush.pointed")
+                            .font(.footnote)
+                    }
+                }
+            }
+
             HStack {
                 Button {
                     foregroundColor = .black
                     backgroundColor = .white
+                    moduleShape = .square
+                    eyeShape = .square
+                    usesSecondInk = false
+                    presetID = "classic"
                 } label: {
                     Label("Reset to black on white", systemImage: "arrow.uturn.backward")
                         .font(.footnote)
@@ -351,9 +635,76 @@ struct GeneratorScreen: View {
             Text("Style")
         } footer: {
             if symbology == .qr {
-                Text("Error correction is auto-set to High whenever a logo is added — keep it on Medium for the smallest QR otherwise.")
+                Text("Shapes and artwork raise error correction to High automatically — that redundancy is what pays for them. Aim for a contrast ratio of at least 3:1 for every ink.")
             } else {
                 Text("Colour customisation works on every supported symbology. Aim for a contrast ratio of at least 3:1.")
+            }
+        }
+    }
+
+    /// Apply a studio preset: shapes *and* inks, background included — a
+    /// preset is a whole look, and the Android port applies it the same way.
+    /// Shapes alone can still be changed afterwards with the rows above.
+    private func apply(_ preset: QRStyle.Preset) {
+        moduleShape = preset.style.moduleShape
+        eyeShape = preset.style.eyeShape
+        usesSecondInk = preset.style.inks.count > 1
+        if let first = preset.style.inks.first {
+            foregroundColor = Color(uiColor: first)
+        }
+        if preset.style.inks.count > 1, let second = preset.style.inks.last {
+            secondInk = Color(uiColor: second)
+        }
+        backgroundColor = Color(uiColor: preset.style.background)
+        UINotificationFeedbackGenerator().notificationOccurred(.success)
+    }
+
+    // MARK: - NFC section
+
+    /// Write whatever the form currently encodes onto a writable NDEF tag.
+    /// Same string as the code, so the tag and the QR stay interchangeable.
+    @ViewBuilder
+    private var nfcSection: some View {
+        if NFCTagWriter.isSupported {
+            // What a tap writes, so the button is off whenever the write would
+            // be refused — blank or whitespace-only content included, trimmed
+            // by the same rule as on Android.
+            let request = NFCTagWriteRequest(kind: .inferred(from: encodedString), value: encodedString)
+            Section {
+                Button {
+                    nfc.write(request)
+                } label: {
+                    Label("Write to NFC tag", systemImage: "wave.3.right")
+                }
+                .disabled(!request.isValid)
+
+                switch nfc.status {
+                case .scanning:
+                    Label("Hold your iPhone near a writable tag…", systemImage: "hourglass")
+                        .font(.footnote).foregroundStyle(.secondary)
+                case .writing:
+                    Label("Writing…", systemImage: "hourglass")
+                        .font(.footnote).foregroundStyle(.secondary)
+                case .wrote(let message):
+                    Label(message, systemImage: "checkmark.circle.fill")
+                        .font(.footnote).foregroundStyle(.green)
+                case .failed(let message):
+                    Label(message, systemImage: "exclamationmark.triangle.fill")
+                        .font(.footnote).foregroundStyle(.orange)
+                case .idle:
+                    EmptyView()
+                }
+            } header: {
+                Text("NFC")
+            } footer: {
+                // Only http(s), tel, mailto, sms, smsto and geo links become
+                // URI records (`NFCTagPayloadKind.linkPrefixes`), only open
+                // and WPA/WPA2 networks a Wi-Fi token, only vCards a contact
+                // card (`NDEFRecordCodec.records(for:)`). And a tap alone
+                // doesn't do what a scan would — an iPhone ignores Wi-Fi,
+                // contact and text tags, and `smsto:` and `geo:` links — so
+                // the promise is about Scan.
+                Text("Writes the same content to a writable NFC tag — a web, phone, email, SMS or map link, a Wi-Fi network or a contact card in its own NFC format, anything else (WPA3, WEP and hidden Wi-Fi included) as text — so reading the tag in Scan gives the same result as scanning the code.")
             }
         }
     }
@@ -424,7 +775,7 @@ struct GeneratorScreen: View {
         } header: {
             Text("Logo")
         } footer: {
-            Text("Logos are placed at ~22% of the QR canvas with a white punch behind them — well within the 30% recovery margin of High error correction.")
+            Text("Logos sit at about 22% of the code's width on a patch of the background colour — well within what High error correction can recover.")
         }
     }
 
@@ -471,18 +822,25 @@ struct GeneratorScreen: View {
 
     // MARK: - Vector export
 
+    /// The module grid the vector exports draw: encoded once, at the level
+    /// the preview used, so the SVG / PDF is the same code as the PNG.
+    private var exportMatrix: CodeGenerator.ModuleMatrix? {
+        CodeGenerator.qrModuleMatrix(for: encodedString, errorCorrection: effectiveErrorCorrection)
+    }
+
+    /// Nil for a plain code, which keeps the exports' original output.
+    private var exportStyle: QRStyle? { isStyled ? activeStyle : nil }
+
     private func exportSVG() {
-        guard let matrix = CodeGenerator.qrModuleMatrix(
-            for: encodedString,
-            errorCorrection: logoImage == nil ? qrErrorCorrection : .high
-        ) else {
+        guard let matrix = exportMatrix else {
             saveError = "Couldn't build a vector for this content."
             return
         }
         let svg = QRSvg.svg(
             for: matrix,
             foreground: UIColor(foregroundColor),
-            background: UIColor(backgroundColor)
+            background: UIColor(backgroundColor),
+            style: exportStyle
         )
         do {
             let url = try QRSvg.writeSVG(svg)
@@ -493,17 +851,15 @@ struct GeneratorScreen: View {
     }
 
     private func exportPDF() {
-        guard let matrix = CodeGenerator.qrModuleMatrix(
-            for: encodedString,
-            errorCorrection: logoImage == nil ? qrErrorCorrection : .high
-        ) else {
+        guard let matrix = exportMatrix else {
             saveError = "Couldn't build a vector for this content."
             return
         }
         let data = QRSvg.pdfData(
             for: matrix,
             foreground: UIColor(foregroundColor),
-            background: UIColor(backgroundColor)
+            background: UIColor(backgroundColor),
+            style: exportStyle
         )
         do {
             let url = try QRSvg.writePDF(data)

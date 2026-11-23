@@ -2,7 +2,13 @@
 //  PayloadActionsView.swift
 //  Scan
 //
-//  Smart-action buttons for a parsed ScanPayload, plus copy & share.
+//  Smart-action buttons for a parsed ScanPayload, plus copy & share, the QR
+//  safety banner, and the on-device Explain / Translate helpers.
+//
+//  The safety inspector gates the links: while it is objecting to a code,
+//  the code's own "Open" button is replaced by "Copy link", and a link
+//  nested inside another payload (a contact card's URL) asks first. The
+//  banner's "open anyway" puts the button back.
 //
 
 import SwiftUI
@@ -16,6 +22,21 @@ import EventKitUI
 struct PayloadActionsView: View {
     let payload: ScanPayload
     let raw: String
+    /// How many distinct codes the camera saw in the frame this came from.
+    /// More than one is the tamper-sticker signature, so the risk assessor
+    /// wants it; still-image imports and history rows pass the default 1.
+    let codesInFrame: Int
+    /// The safety verdict, graded once per view value — the actions below
+    /// consult it several times while rendering. Pure string analysis.
+    private let riskReport: QrRiskReport
+
+    init(payload: ScanPayload, raw: String, codesInFrame: Int = 1) {
+        self.payload = payload
+        self.raw = raw
+        self.codesInFrame = codesInFrame
+        self.riskReport = QrRiskAssessor.assess(raw: raw, payload: payload,
+                                                codesInFrame: codesInFrame)
+    }
 
     @Environment(\.managedObjectContext) private var viewContext
 
@@ -43,9 +64,25 @@ struct PayloadActionsView: View {
     /// claimed `upi` — frequently WhatsApp Pay. We instead let the user
     /// pick the UPI app explicitly; the chosen payload is stashed here.
     @State private var upiChooserPayload: UPIPayload?
+    /// Safety inspector. `riskConfirmed` puts a blocked code's open button
+    /// back once the user has read the warning and chosen "open anyway";
+    /// `gatedURL` is a nested link waiting on the "looks suspicious" alert.
+    @State private var riskConfirmed = false
+    @State private var gatedURL: URL?
+    @State private var linkCopied = false
+    @AppStorage(ScanSettingsKey.riskChecksEnabled) private var riskChecksEnabled = true
+    @AppStorage(ScanSettingsKey.assistantEnabled) private var assistantEnabled = ScanAssistant.defaultEnabled
 
     var body: some View {
         Section("Actions") {
+            if riskChecksEnabled, !riskReport.isEmpty {
+                // A tinted card in an ordinary row, like the Explain and
+                // Translate cards below it.
+                QrRiskView(report: riskReport,
+                           confirmedOpen: riskConfirmed,
+                           onConfirmOpen: { riskConfirmed = true })
+            }
+
             smartActions
 
             Button {
@@ -62,6 +99,36 @@ struct PayloadActionsView: View {
             } label: {
                 Label("Share", systemImage: "square.and.arrow.up")
             }
+
+            // On-device helpers. Both are pull-only: nothing is generated or
+            // translated until the user asks, and neither can reach the
+            // network. Settings → Insights can switch the assistant off.
+            if assistantEnabled {
+                AssistantExplainButton(raw: raw, payload: payload)
+            }
+
+            if TranslationCatalog.isTranslatable(payload) {
+                TranslateRow(text: raw)
+            }
+        }
+        .alert("This link looks suspicious",
+               isPresented: Binding(
+                   get: { gatedURL != nil },
+                   set: { if !$0 { gatedURL = nil } }),
+               presenting: gatedURL) { url in
+            Button("Open anyway", role: .destructive) {
+                UIApplication.shared.open(url)
+            }
+            Button("Copy link") {
+                UIPasteboard.general.string = url.absoluteString
+                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+            }
+            Button("Not now", role: .cancel) {}
+        } message: { url in
+            // The reason, which names the host lower-cased — not the link as
+            // written: an alert cannot be set in a monospaced font, and in
+            // the system font paypaI.com reads as paypal.com.
+            Text(QrRiskAssessor.gatedLinkMessage(for: url.absoluteString))
         }
         .sheet(isPresented: $showShare) {
             ShareSheet(items: [raw])
@@ -172,13 +239,13 @@ struct PayloadActionsView: View {
     private var smartActions: some View {
         switch payload {
         case .url(let url):
-            Button {
+            guardedOpen("Open in Safari", systemImage: "safari", link: url.absoluteString) {
                 UIApplication.shared.open(url)
-            } label: {
-                Label("Open in Safari", systemImage: "safari")
             }
+            // Monospaced, where a capital I and a lower-case l differ.
             Text(url.absoluteString)
                 .font(.footnote)
+                .monospaced()
                 .foregroundStyle(.secondary)
                 .textSelection(.enabled)
 
@@ -279,9 +346,10 @@ struct PayloadActionsView: View {
             ForEach(c.urls, id: \.self) { s in
                 if let u = URL(string: s) {
                     Button {
-                        UIApplication.shared.open(u)
+                        openNestedLink(u)
                     } label: {
                         Label(s, systemImage: "link")
+                            .monospaced()
                     }
                 }
             }
@@ -364,10 +432,8 @@ struct PayloadActionsView: View {
 
         case .sufReceipt(let p):
             LabelledFieldsList(fields: p.labelledFields)
-            Button {
+            guardedOpen("Verify Receipt", systemImage: "checkmark.seal", link: p.url.absoluteString) {
                 UIApplication.shared.open(p.url)
-            } label: {
-                Label("Verify Receipt", systemImage: "checkmark.seal")
             }
 
         case .ipsPayment(let p):
@@ -442,7 +508,9 @@ struct PayloadActionsView: View {
                 .font(.footnote)
                 .foregroundStyle(.orange)
             }
-            Button {
+            guardedOpen(Self.richURLActionLabel(r.kind),
+                        systemImage: Self.richURLActionSymbol(r.kind),
+                        link: r.url.absoluteString) {
                 // Personal-payment brands often hand off to a custom-scheme
                 // app (alipays://, weixin://, twint://) that may not be
                 // installed — route them through the App Store fallback. The
@@ -453,9 +521,6 @@ struct PayloadActionsView: View {
                 } else {
                     UIApplication.shared.open(r.url)
                 }
-            } label: {
-                Label(Self.richURLActionLabel(r.kind),
-                      systemImage: Self.richURLActionSymbol(r.kind))
             }
 
         case .walletConnect(let p):
@@ -532,8 +597,103 @@ struct PayloadActionsView: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
 
+        case .mobileDrivingLicense(let p):
+            LabelledFieldsList(fields: p.labelledFields)
+            // Scan is neither the wallet nor the reader: no action here
+            // could do anything but mislead, so the sheet only explains.
+            ForEach(p.warnings, id: \.self) { warning in
+                Label(warning, systemImage: "exclamationmark.shield")
+                    .font(.footnote)
+                    .foregroundStyle(.orange)
+            }
+            Text(p.notice)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+        case .verifiableCredential(let p):
+            LabelledFieldsList(fields: p.labelledFields)
+            ForEach(p.cautions, id: \.self) { caution in
+                Label(caution, systemImage: "exclamationmark.shield")
+                    .font(.footnote)
+                    .foregroundStyle(.orange)
+            }
+            Text(p.footnote)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+        case .eInvoice(let p):
+            LabelledFieldsList(fields: p.labelledFields)
+            Text("Compare the IBAN and total with the invoice you are holding before you approve any transfer — that pair is exactly what a swapped QR changes.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+        case .digitalProductPassport(let p):
+            LabelledFieldsList(fields: p.labelledFields)
+            // The plain GS1 sheet's web search, which a passport carrier
+            // must not lose: it sends the GTIN, never the serial.
+            if let gtin = p.gtin,
+               let lookupURL = URL(string: "https://www.google.com/search?q=GTIN+\(gtin)") {
+                Button {
+                    UIApplication.shared.open(lookupURL)
+                } label: {
+                    Label("Look up GTIN \(gtin)", systemImage: "magnifyingglass")
+                }
+            }
+            Text("Everything above is encoded in the code itself. The rest of the passport lives behind the resolver link; Scan never follows it, because that would send your serial number to somebody's server.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
         case .text:
             EmptyView()
+        }
+    }
+
+    // MARK: - Insights helpers
+
+    /// True while the safety inspector is objecting to this code and the
+    /// user has not chosen "open anyway" on the banner.
+    private var openIsBlocked: Bool {
+        riskChecksEnabled && riskReport.isBlocking && !riskConfirmed
+    }
+
+    /// The code's own open action — or, while the safety check objects,
+    /// "Copy link" plus a line saying where the override lives. A suspicious
+    /// link can still be used deliberately; it just cannot be opened by the
+    /// reflex tap the attacker is counting on.
+    @ViewBuilder
+    private func guardedOpen(_ title: String, systemImage: String, link: String,
+                             open: @escaping () -> Void) -> some View {
+        if openIsBlocked {
+            Button {
+                UIPasteboard.general.string = link
+                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                linkCopied = true
+                Task {
+                    try? await Task.sleep(for: .seconds(1.2))
+                    linkCopied = false
+                }
+            } label: {
+                Label(linkCopied ? "Copied!" : "Copy link",
+                      systemImage: linkCopied ? "checkmark" : "doc.on.doc")
+            }
+            Text("Opening is turned off because the safety check flagged this code. If you are sure, expand the warning above and choose \u{201C}open anyway\u{201D}.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        } else {
+            Button(action: open) {
+                Label(title, systemImage: systemImage)
+            }
+        }
+    }
+
+    /// A link inside another payload (a contact card's URL) is graded on its
+    /// own — the code-level verdict never looked at it — and asks first when
+    /// it is suspicious.
+    private func openNestedLink(_ url: URL) {
+        if riskChecksEnabled, QrRiskAssessor.assess(raw: url.absoluteString).isBlocking {
+            gatedURL = url
+        } else {
+            UIApplication.shared.open(url)
         }
     }
 

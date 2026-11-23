@@ -64,17 +64,64 @@ enum HistoryCSV {
         return url
     }
 
-    /// RFC 4180-style escape: wrap in double quotes if the field
-    /// contains a quote, comma, CR, or LF; double-up any embedded
-    /// quotes. Always quoting would be safer but would bloat the
-    /// output and trip up a few naïve consumers, so we only quote
-    /// where we must.
+    /// RFC 4180 escape (with formula neutralisation) exposed for the
+    /// bulk-capture export in `BulkScanSession`, so both exports quote
+    /// identically.
+    static func csvField(_ s: String) -> String { csvEscape(s) }
+
+    /// Shared timestamp rendering (ISO 8601 with offset).
+    static func timestampString(_ date: Date) -> String {
+        isoFormatter.string(from: date)
+    }
+
+    /// Writes a bulk-capture session to a temporary CSV for the share
+    /// sheet. Same escaping and line-ending rules as the history export.
+    static func writeBulk(lines: [String]) throws -> URL {
+        let url = FileManager.default
+            .temporaryDirectory
+            .appendingPathComponent("Scan-bulk-capture.csv")
+        if FileManager.default.fileExists(atPath: url.path) {
+            try? FileManager.default.removeItem(at: url)
+        }
+        let body = lines.joined(separator: "\r\n") + "\r\n"
+        try body.data(using: .utf8)?.write(to: url, options: .atomic)
+        return url
+    }
+
+    /// RFC 4180-style escape, after `neutralisingFormula(_:)`: wrap in
+    /// double quotes if the field contains a quote, comma, CR, or LF;
+    /// double-up any embedded quotes. Always quoting would be safer but
+    /// would bloat the output and trip up a few naïve consumers, so we
+    /// only quote where we must.
+    ///
+    /// The tests look at Unicode scalars, not `Character`s, and the quotes
+    /// are doubled with a literal replace. "\r\n" is a single grapheme
+    /// cluster that equals neither "\r" nor "\n", and a comma or quote
+    /// followed by a combining mark is one cluster too, so a `Character`
+    /// test left a CRLF vCard unquoted and split its row, and the default
+    /// (non-literal) replace skips such a quote. Scalars are also what the
+    /// Android port's per-`Char` check sees for these ASCII characters, so
+    /// both write the same bytes.
     private static func csvEscape(_ s: String) -> String {
-        let needsQuoting = s.contains(where: { c in
-            c == "\"" || c == "," || c == "\r" || c == "\n"
-        })
-        if !needsQuoting { return s }
-        let escaped = s.replacingOccurrences(of: "\"", with: "\"\"")
+        let field = neutralisingFormula(s)
+        let needsQuoting = field.unicodeScalars.contains { scalar in
+            scalar == "\"" || scalar == "," || scalar == "\r" || scalar == "\n"
+        }
+        if !needsQuoting { return field }
+        let escaped = field.replacingOccurrences(of: "\"", with: "\"\"", options: .literal)
         return "\"\(escaped)\""
+    }
+
+    /// CSV formula injection: a spreadsheet opening the file evaluates a
+    /// cell that starts with = + - or @, and a scanned code is text an
+    /// attacker chose. A cell starting with one of those, or with a tab or
+    /// CR, gets a leading apostrophe, which keeps it plain text. Applied to
+    /// every escaped cell of both exports, before the quoting above — so
+    /// `=1+2";=1+2` is written `"'=1+2"";=1+2"`, as in OWASP's example. The
+    /// Android port's `HistoryCsv` applies the same rule to the same set.
+    private static func neutralisingFormula(_ s: String) -> String {
+        guard let first = s.unicodeScalars.first,
+              ["=", "+", "-", "@", "\t", "\r"].contains(first) else { return s }
+        return "'" + s
     }
 }
